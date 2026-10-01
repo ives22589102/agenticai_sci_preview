@@ -12,10 +12,15 @@ const SCI_CONFIG = Object.freeze({
     referenceReliefPercent: 75
 });
 
-// 暫定換算基準：1 小時知識工作交由影分身處理，含讀取資料與多輪產出的 token 量。
+// 暫定換算基準：以市場主流模型混合 input/output 的平均價格，每 100 萬 tokens 約 NT$ 190。
+// 節省金額 ÷ 此單價 = 等於省下多少 tokens 的費用。
 const TOKEN_CONFIG = Object.freeze({
-    tokensPerHour: 40000
+    twdPerMillionTokens: 190
 });
+
+function twdToTokens(twd) {
+    return twd / TOKEN_CONFIG.twdPerMillionTokens * 1000000;
+}
 
 const personaCatalog = Object.freeze({
     soho: {
@@ -789,7 +794,7 @@ function calculateAssessment(snapshot) {
         task.reliefRate = task.currentMonthlyMinutes > 0 ? task.savedMonthlyMinutes / task.currentMonthlyMinutes * 100 : 0;
         task.reliefShare = totals.current > 0 ? task.savedMonthlyMinutes / totals.current * 100 : 0;
         task.savedCostMonthlyTwd = task.savedMonthlyMinutes / 60 * hourlyCost;
-        task.savedTokensMonthly = task.savedMonthlyMinutes / 60 * TOKEN_CONFIG.tokensPerHour;
+        task.savedTokensMonthly = twdToTokens(task.savedCostMonthlyTwd);
     });
     const recommendation = routeHardware(snapshot, taskResults);
     const cloneMap = new Map();
@@ -835,11 +840,11 @@ function calculateAssessment(snapshot) {
             annualTwd: savedHours * hourlyCost * 12
         },
         tokens: {
-            perHour: TOKEN_CONFIG.tokensPerHour,
-            currentMonthly: currentHours * TOKEN_CONFIG.tokensPerHour,
-            targetMonthly: targetHours * TOKEN_CONFIG.tokensPerHour,
-            savedMonthly: savedHours * TOKEN_CONFIG.tokensPerHour,
-            savedAnnual: savedHours * TOKEN_CONFIG.tokensPerHour * 12
+            twdPerMillionTokens: TOKEN_CONFIG.twdPerMillionTokens,
+            currentMonthly: twdToTokens(currentHours * hourlyCost),
+            targetMonthly: twdToTokens(targetHours * hourlyCost),
+            savedMonthly: twdToTokens(savedHours * hourlyCost),
+            savedAnnual: twdToTokens(savedHours * hourlyCost * 12)
         },
         taskResults: taskResults.sort((a, b) => b.currentMonthlyMinutes - a.currentMonthlyMinutes || a.selectionIndex - b.selectionIndex),
         clones: [...cloneMap.values()],
@@ -911,7 +916,7 @@ function routeHardware(snapshot, taskResults) {
 function renderResult() {
     const result = assessmentState.result;
     if (!result) return;
-    document.getElementById('result-summary').textContent = `你的 ${result.taskResults.length} 項工作可由影分身團隊重新分工，每月可釋放 ${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}、約 ${formatTokens(result.tokens.savedMonthly)} tokens 的工作量，相當於 ${formatCurrency(result.cost.savedMonthlyTwd)} 的成本空間。`;
+    document.getElementById('result-summary').textContent = `你的 ${result.taskResults.length} 項工作可由影分身團隊重新分工，每月可釋放 ${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}，省下 ${formatCurrency(result.cost.savedMonthlyTwd)}，相當於 ${formatTokens(result.tokens.savedMonthly)} tokens 的費用。`;
     document.getElementById('sci-gap').textContent = `+${Math.round(result.sci.gap)} 點`;
     document.getElementById('current-sci-card').innerHTML = renderSciCard('目前 SCI', result.sci.current, getSciLevel(result.sci.current), 'SCI 採 100 分制；0 代表目前設定為全手動。', 'current', 0);
     document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', result.sci.target, '本次任務組合', '依本次選擇的任務、頻率與工作方式綜合計算。', 'target', result.sci.current);
@@ -945,7 +950,7 @@ function renderMetricHighlights(result) {
         </article>
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('zap')}</span>
-            <div><span>等效 Token 工作量</span><strong>${formatTokens(result.tokens.savedMonthly)}</strong><p>以每小時約 ${formatTokens(result.tokens.perHour)} tokens 換算</p></div>
+            <div><span>每月節省 Token</span><strong>${formatTokens(result.tokens.savedMonthly)}</strong><p>以每 1M tokens 約 NT$ ${result.tokens.twdPerMillionTokens} 換算</p></div>
         </article>
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('receipt')}</span>
@@ -956,9 +961,9 @@ function renderMetricHighlights(result) {
 function renderEfficiencyComparison(result) {
     return `
         <div class="before-after before-after--compact">
-            <article class="comparison-state comparison-state--before"><span>現在每月投入</span><strong>${formatHours(result.time.currentHoursMonthly)} ${getTimeUnit()}</strong><small>${formatTokens(result.tokens.currentMonthly)} tokens · ${formatCurrency(result.cost.currentMonthlyTwd)}</small></article>
+            <article class="comparison-state comparison-state--before"><span>現在每月投入</span><strong>${formatHours(result.time.currentHoursMonthly)} ${getTimeUnit()}</strong><small>${formatCurrency(result.cost.currentMonthlyTwd)} · ${formatTokens(result.tokens.currentMonthly)} tokens</small></article>
             <div class="comparison-arrow" aria-hidden="true">${iconSvg('arrow-right')}</div>
-            <article class="comparison-state comparison-state--after"><span>導入影分身後</span><strong>${formatHours(result.time.targetHoursMonthly)} ${getTimeUnit()}</strong><small>${formatTokens(result.tokens.targetMonthly)} tokens · ${formatCurrency(result.cost.targetMonthlyTwd)}</small></article>
+            <article class="comparison-state comparison-state--after"><span>導入影分身後</span><strong>${formatHours(result.time.targetHoursMonthly)} ${getTimeUnit()}</strong><small>${formatCurrency(result.cost.targetMonthlyTwd)} · ${formatTokens(result.tokens.targetMonthly)} tokens</small></article>
         </div>`;
 }
 
@@ -968,7 +973,7 @@ function renderWorkflowResults(result) {
         ${renderWorkloadOverview(result)}
         <aside class="top-workload-callout">
             <span class="top-workload-callout__icon">${iconSvg(getCloneIconType(topTask.recipeId))}</span>
-            <div><small>最適合透過影分身來協作的工作流程</small><strong>${topTask.title}</strong><p>占目前人工工作量 ${Math.round(topTask.loadShare)}%。可交由「${topTask.cloneTag}」協助${getAgentSupportScope(topTask)}，每月預估可釋放 ${formatHours(topTask.savedMonthlyMinutes / 60)} ${getTimeUnit()}、約 ${formatTokens(topTask.savedTokensMonthly)} tokens 的工作量，相當於 ${formatCurrency(topTask.savedCostMonthlyTwd)} 的成本。</p></div>
+            <div><small>最適合透過影分身來協作的工作流程</small><strong>${topTask.title}</strong><p>占目前人工工作量 ${Math.round(topTask.loadShare)}%。可交由「${topTask.cloneTag}」協助${getAgentSupportScope(topTask)}，每月預估可釋放 ${formatHours(topTask.savedMonthlyMinutes / 60)} ${getTimeUnit()}，省下 ${formatCurrency(topTask.savedCostMonthlyTwd)}，相當於 ${formatTokens(topTask.savedTokensMonthly)} tokens 的費用。</p></div>
         </aside>
     </div>`;
 }
@@ -982,7 +987,7 @@ function renderWorkflowImpactCard(task, index) {
             <div><span>目前投入</span><strong>${formatHours(task.currentMonthlyMinutes / 60)} ${getTimeUnit()}／月</strong></div>
             <span class="workflow-arrow" aria-hidden="true">${iconSvg('arrow-right')}</span>
             <div><span>導入後</span><strong>${formatHours(task.targetMonthlyMinutes / 60)} ${getTimeUnit()}／月</strong></div>
-            <div class="saved-highlight"><span>每月省下</span><strong>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</strong><small>${formatTokens(task.savedTokensMonthly)} tokens</small><small>${formatCurrency(task.savedCostMonthlyTwd)}</small></div>
+            <div class="saved-highlight"><span>每月省下</span><strong>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</strong><small>${formatCurrency(task.savedCostMonthlyTwd)}</small><small>≈ ${formatTokens(task.savedTokensMonthly)} tokens</small></div>
         </div>
     </article>`;
 }
@@ -1164,7 +1169,7 @@ async function createReportBlob(result) {
         ['目前每月花費', formatCurrency(result.cost.currentMonthlyTwd), false],
         ['導入後每月花費', formatCurrency(result.cost.targetMonthlyTwd), false],
         ['每月可釋放金額', formatCurrency(result.cost.savedMonthlyTwd), true],
-        ['等效 Token 工作量', `${formatTokens(result.tokens.savedMonthly)} tokens`, true]
+        ['每月節省 Token', `${formatTokens(result.tokens.savedMonthly)} tokens`, true]
     ];
     costMetrics.forEach((metric, index) => {
         const x = left + 24 + index * 228;
@@ -1199,7 +1204,7 @@ async function createReportBlob(result) {
         canvasText(ctx, `目前 ${formatHours(task.currentMonthlyMinutes / 60)} ${getTimeUnit()}`, left + 465, y + 32, `600 12px ${font}`, '#AAB5C8');
         canvasText(ctx, `導入後 ${formatHours(task.targetMonthlyMinutes / 60)} ${getTimeUnit()}`, left + 465, y + 60, `600 12px ${font}`, '#AAB5C8');
         canvasText(ctx, `每月省下 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()} · ${formatCurrency(task.savedCostMonthlyTwd)}`, width - left - 18, y + 40, `800 14px ${font}`, '#20C9EB', 'right');
-        canvasText(ctx, `約 ${formatTokens(task.savedTokensMonthly)} tokens 工作量`, width - left - 18, y + 62, `600 11px ${font}`, '#8391A7', 'right');
+        canvasText(ctx, `≈ 節省 ${formatTokens(task.savedTokensMonthly)} tokens`, width - left - 18, y + 62, `600 11px ${font}`, '#8391A7', 'right');
         y += taskRowHeight;
     });
 
@@ -1233,7 +1238,7 @@ async function createReportBlob(result) {
     });
     y += 354;
 
-    wrapCanvasText(ctx, 'SCI（Shadow-Clone Index）採 100 分制，依人工負擔釋放比例校準；分數越高，代表越多工作可交由影分身協作。時間與成本仍依實際填答分鐘計算。完整設備配置可依常用軟體、資料容量與團隊規模彈性調整。', left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
+    wrapCanvasText(ctx, `SCI（Shadow-Clone Index）採 100 分制，依人工負擔釋放比例校準；分數越高，代表越多工作可交由影分身協作。時間與成本依實際填答分鐘計算；Token 數以每 1M tokens 約 NT$ ${result.tokens.twdPerMillionTokens} 的市場均價換算，僅供規模參考。完整設備配置可依常用軟體、資料容量與團隊規模彈性調整。`, left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
     canvasText(ctx, `${result.scoringVersion} · ${result.recipeCatalogVersion} · ${result.hardwareCatalogVersion}`, left, height - 38, `500 9px ${font}`, '#4F5C70');
     canvasText(ctx, 'ASUS AGENTIC AI', width - left, height - 38, `700 11px ${font}`, '#20C9EB', 'right');
 
