@@ -1,22 +1,18 @@
 'use strict';
 
 const VERSIONS = Object.freeze({
-    scoring: 'sci-index-v3',
+    scoring: 'sci-index-v4',
+    workflows: 'workflow-model-v1',
     recipes: 'recipes-v1',
-    hardware: 'hardware-v2'
+    hardware: 'hardware-v3'
 });
 
 const SCI_CONFIG = Object.freeze({
-    scaleMax: 100,
-    achievableMax: 90,
-    referenceReliefPercent: 75
+    scaleMax: 100
 });
 
-// 暫定換算基準：以市場主流模型混合 input/output 的平均價格，每 100 萬 tokens 約 NT$ 190。
-// 節省金額 ÷ 此單價 = 等於省下多少 tokens 的費用。
-const TOKEN_CONFIG = Object.freeze({
-    twdPerMillionTokens: 190
-});
+const COST_PERIOD_HOURS = Object.freeze({ hour: 1, week: 40, month: 160 });
+const TOKEN_CONFIG = Object.freeze({ twdPerMillionTokens: 190 });
 
 function twdToTokens(twd) {
     return twd / TOKEN_CONFIG.twdPerMillionTokens * 1000000;
@@ -88,7 +84,7 @@ const scaleDescriptions = Object.freeze({
     B08: ['15 分鐘錄音', '30 分鐘錄音', '90 分鐘錄音']
 });
 
-function makeRecipe(id, persona, title, workUnit, assist, review, manual, agent, profiles, cloneTag, roleTags, featured = false, tiers = [1, 1, 2]) {
+function makeRecipe(id, persona, title, workUnit, assist, review, manual, _legacyAgentMinutes, profiles, cloneTag, roleTags, featured = false, tiers = [1, 1, 2]) {
     const descriptions = scaleDescriptions[id];
     return Object.freeze({
         id, persona, title, workUnit, assist, review, profiles, cloneTag, roleTags, featured,
@@ -97,9 +93,9 @@ function makeRecipe(id, persona, title, workUnit, assist, review, manual, agent,
         softwareValidationStatus: 'pending',
         recipeVersion: '1.0',
         scales: Object.freeze({
-            small: Object.freeze({ label: '低負載', description: descriptions[0], manualMinutes: manual * 0.6, agentHumanMinutes: agent * 0.6, baseTier: tiers[0] }),
-            standard: Object.freeze({ label: '中負載', description: descriptions[1], manualMinutes: manual, agentHumanMinutes: agent, baseTier: tiers[1] }),
-            large: Object.freeze({ label: '高負載', description: descriptions[2], manualMinutes: manual * 2.5, agentHumanMinutes: agent * 2.5, baseTier: tiers[2] })
+            small: Object.freeze({ label: '低負載', description: descriptions[0], manualMinutes: manual * 0.6, baseTier: tiers[0] }),
+            standard: Object.freeze({ label: '中負載', description: descriptions[1], manualMinutes: manual, baseTier: tiers[1] }),
+            large: Object.freeze({ label: '高負載', description: descriptions[2], manualMinutes: manual * 2.5, baseTier: tiers[2] })
         })
     });
 }
@@ -134,49 +130,83 @@ const recipeCatalog = Object.freeze([
 ]);
 
 const hardwareCatalog = Object.freeze({
-    entry: Object.freeze({
-        label: '創作啟航型｜影分身協作工作站',
-        amd: { name: 'AMD 高效運算平台', cpu: 'AMD Ryzen 7 9700X', mb: 'ASUS B850 系列主機板' },
-        intel: { name: 'Intel 高效運算平台', cpu: 'Intel Core Ultra 7 265K', mb: 'ASUS Z890 系列主機板' },
-        shared: { gpu: 'NVIDIA GeForce RTX 5070 Ti 16GB', ram: '64GB DDR5', ssd: '2TB PCIe 4.0 M.2 NVMe', case: 'ROG Strix Helios II', cooling: 'TUF GAMING 360 水冷散熱', psu: '850W 金牌電源供應器' },
-        components: {
+    a: Object.freeze({
+        label: 'A 級影分身戰力',
+        strength: Object.freeze({ grade: 'A', meter: 20, label: '初階協作', capacity: '適合日常內容、文件與單一工作流', description: '從地端文件整理、內容生成與一般資料工作開始建立影分身流程。' }),
+        models: Object.freeze([
+            Object.freeze({ name: 'Agent Pioneer-A', mb: 'AMD B850', cpu: 'AMD Ryzen 7 9700X', gpu: 'NVIDIA GeForce RTX 5070 12GB／RTX 5060 Ti 16GB', ram: '64GB（32GB×2）DDR5 5600／6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'ASUS PRIME AP303', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 750W／850W 金牌' }),
+            Object.freeze({ name: 'Agent Pioneer-I', mb: 'Intel B860', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB／RTX 5060 Ti 16GB', ram: '64GB（32GB×2）DDR5 5600／6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'ASUS PRIME AP303', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 750W／850W 金牌' })
+        ]),
+        components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 7 9000 系列', intel: 'Intel Core Ultra 7 桌上型處理器（系列 2）' },
-            mb: { amd: 'ASUS TUF Gaming B850 系列', intel: 'ASUS TUF Gaming Z890 系列' },
-            gpu: { all: 'ASUS Prime GeForce RTX 5070 Ti 系列' }
-        }
+            mb: { amd: 'ASUS TUF Gaming B850 系列', intel: 'ASUS TUF Gaming B860 系列' },
+            gpu: { all: 'ASUS GeForce RTX 5060 Ti／RTX 5070 系列' }
+        })
     }),
-    mainstream: Object.freeze({
-        label: '專業協作型｜多工影分身工作站',
-        amd: { name: 'AMD 多工創作平台', cpu: 'AMD Ryzen 9 9900X', mb: 'ASUS B850／X870 系列主機板' },
-        intel: { name: 'Intel 多工創作平台', cpu: 'Intel Core Ultra 7 265K', mb: 'ASUS Z890 系列主機板' },
-        shared: { gpu: 'NVIDIA GeForce RTX 5080 16GB', ram: '64GB DDR5，可擴充至 128GB', ssd: '2TB PCIe 4.0，可擴充至 4TB', case: 'ROG Cronox ARGB', cooling: 'ROG STRIX LC III 360 ARGB 水冷散熱', psu: '1000W 金牌電源供應器' },
-        components: {
-            cpu: { amd: 'AMD Ryzen 9 9000 系列', intel: 'Intel Core Ultra 7 桌上型處理器（系列 2）' },
-            mb: { amd: 'ASUS ROG Strix B850／X870E 系列', intel: 'ASUS ROG Strix Z890 系列' },
-            gpu: { all: 'ASUS ProArt GeForce RTX 5080 系列' }
-        }
+    aplus: Object.freeze({
+        label: 'A+ 級影分身戰力',
+        strength: Object.freeze({ grade: 'A+', meter: 40, label: '進階協作', capacity: '適合多項內容與資料工作流', description: '提供更多顯示記憶體、系統記憶體與多工具並行空間。' }),
+        models: Object.freeze([
+            Object.freeze({ name: 'Agent Professional-A', mb: 'AMD B850／X870', cpu: 'AMD Ryzen 9 9900X', gpu: 'AI Pro R9700 32GB／RTX 5070 12GB／RTX 5060 Ti 16GB', ram: '64GB／128GB DDR5 6000MHz', ssd: '2TB／4TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX／TUF 850W／1000W 金牌' }),
+            Object.freeze({ name: 'Agent Professional-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 7 265K', gpu: 'AI Pro R9700 32GB／RTX 5070 12GB／RTX 5060 Ti 16GB', ram: '64GB／128GB DDR5 6000MHz', ssd: '2TB／4TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX／TUF 850W／1000W 金牌' }),
+            Object.freeze({ name: 'ASUS／ROG NUC', mb: '不適用（整合式系統）', cpu: 'Intel Core Ultra 9', gpu: 'NVIDIA GeForce RTX 5070 Laptop GPU 12GB GDDR7', ram: '16GB DDR5-6400 CSO-DIMM×2', ssd: '1TB M.2 2280 NVMe PCIe 4.0 SSD', case: 'NUC 整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '不適用（整合式系統）' })
+        ]),
+        components: Object.freeze({
+            cpu: { amd: 'AMD Ryzen 9 9900X 系列', intel: 'Intel Core Ultra 7／Ultra 9 系列' },
+            mb: { amd: 'ASUS ROG Strix B850／X870 系列', intel: 'ASUS ROG Strix Z890 系列' },
+            gpu: { all: 'ASUS GeForce RTX 5060 Ti／RTX 5070 系列或 AI Pro R9700' }
+        })
     }),
-    high: Object.freeze({
-        label: '高效指揮型｜進階影分身工作站',
-        amd: { name: 'AMD 旗艦運算平台', cpu: 'AMD Ryzen 9 9950X', mb: 'ASUS X870E 系列主機板' },
-        intel: { name: 'Intel 旗艦運算平台', cpu: 'Intel Core Ultra 9 285K', mb: 'ASUS Z890 系列主機板' },
-        shared: { gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB DDR5', ssd: '4TB PCIe 4.0／5.0 NVMe', case: 'ROG Cronox ARGB', cooling: 'ROG RYUJIN III 360 ARGB 水冷散熱', psu: 'ROG THOR III 1200W 電源供應器' },
-        components: {
-            cpu: { amd: 'AMD Ryzen 9 9000 系列', intel: 'Intel Core Ultra 9 桌上型處理器（系列 2）' },
+    s: Object.freeze({
+        label: 'S 級影分身戰力',
+        strength: Object.freeze({ grade: 'S', meter: 60, label: '高效協作', capacity: '適合高負載創作與多流程持續運行', description: '以 RTX 5090 級顯示卡與高階桌上型平台承接高負載地端模型及創作流程。' }),
+        models: Object.freeze([
+            Object.freeze({ name: 'Agent Master-A', mb: 'AMD X870E', cpu: 'AMD Ryzen 9 9950X', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '64GB／128GB DDR5 6000MHz', ssd: '2TB／4TB PCIe 4.0／5.0', case: 'ROG Strix Helios', cooling: 'ProArt LC 420／ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III' }),
+            Object.freeze({ name: 'Agent Master-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 9 285K', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB（32GB×4）DDR5 6000MHz', ssd: '4TB PCIe 4.0／5.0', case: 'ROG Strix Helios', cooling: 'ProArt LC 420／ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III 1000W／1200W' })
+        ]),
+        components: Object.freeze({
+            cpu: { amd: 'AMD Ryzen 9 9950X 系列', intel: 'Intel Core Ultra 9 285K 系列' },
             mb: { amd: 'ASUS ROG Crosshair X870E 系列', intel: 'ASUS ROG Maximus Z890 系列' },
             gpu: { all: 'ASUS ROG Astral GeForce RTX 5090 系列' }
-        }
+        })
+    }),
+    splus: Object.freeze({
+        label: 'S+ 級影分身戰力',
+        strength: Object.freeze({ grade: 'S+', meter: 80, label: '專業算力協作', capacity: '適合大型模型、專業資料與高併發工作', description: '面向工作站級顯示卡、大容量記憶體或整合式 Blackwell 平台。' }),
+        models: Object.freeze([
+            Object.freeze({ name: 'ET700I W7', mb: 'Intel W790', cpu: 'Intel Xeon W-3400', gpu: 'NVIDIA RTX 6000 Ada', ram: '512GB RDIMM DDR5 4800', ssd: '2TB／4TB PCIe 4.0', case: 'ROG Cronox ARGB', cooling: '不適用／依工作站配置', psu: '1300W' }),
+            Object.freeze({ name: 'RTX DGX／Spark', mb: '不適用（整合式系統）', cpu: 'NVIDIA DGX／Spark', gpu: 'NVIDIA Blackwell', ram: '64GB／128GB', ssd: '1TB／2TB', case: 'DGX Spark 整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '不適用（整合式系統）' })
+        ]),
+        components: Object.freeze({
+            cpu: { amd: 'NVIDIA GB10 Grace Blackwell Superchip', intel: 'Intel Xeon W-3400 系列', leftLabel: 'NVIDIA 平台', rightLabel: 'Intel 工作站' },
+            mb: { amd: 'NVIDIA DGX Spark 整合平台', intel: 'Intel W790 工作站平台', leftLabel: 'NVIDIA 平台', rightLabel: 'Intel 工作站' },
+            gpu: { all: 'NVIDIA RTX 6000 Ada／Blackwell 工作站系列' }
+        })
+    }),
+    ss: Object.freeze({
+        label: 'SS 級影分身戰力',
+        strength: Object.freeze({ grade: 'SS', meter: 100, label: '極致算力協作', capacity: '適合超大型算力需求與極重工作負載', description: '為高 SCI 且需要大量影分身工作持續並行的極重度情境提供最高階地端算力。' }),
+        models: Object.freeze([
+            Object.freeze({ name: 'ET900N G3', mb: '整合式 NVIDIA GB300 平台', cpu: 'Grace 72-Core Neoverse V2', gpu: 'NVIDIA GB300 Grace Blackwell Ultra', ram: '748GB', ssd: '8TB', case: 'ET900N G3 整合式機箱', integratedChassis: true, cooling: '整合式散熱', psu: '1600W Titanium' })
+        ]),
+        components: Object.freeze({
+            cpu: { all: 'NVIDIA Grace 72-Core Neoverse V2' },
+            mb: { all: 'NVIDIA GB300 整合式運算平台' },
+            gpu: { all: 'NVIDIA GB300 Grace Blackwell Ultra' }
+        })
     })
 });
 
 const campaignConfig = Object.freeze({
     tutorials: [], promotions: [],
     productLinks: {
-        systems: { entry: '', mainstream: '', high: '' },
+        systems: { a: '', aplus: '', s: '', splus: '', ss: '' },
         components: {
-            entry: { cpu: '', mb: '', gpu: '' },
-            mainstream: { cpu: '', mb: '', gpu: '' },
-            high: { cpu: '', mb: '', gpu: '' }
+            a: { cpu: '', mb: '', gpu: '' },
+            aplus: { cpu: '', mb: '', gpu: '' },
+            s: { cpu: '', mb: '', gpu: '' },
+            splus: { cpu: '', mb: '', gpu: '' },
+            ss: { cpu: '', mb: '', gpu: '' }
         }
     }
 });
@@ -194,6 +224,8 @@ const assessmentState = {
     taskAnswers: {},
     archivedAnswers: {},
     executionNeeds: { parallelBand: '', usersBand: '' },
+    costAmountTwd: '',
+    costPeriod: 'hour',
     hourlyCostTwd: '',
     result: null
 };
@@ -217,6 +249,8 @@ function initialize() {
         parallelOptions: document.getElementById('parallel-options'),
         usersOptions: document.getElementById('users-options'),
         hourlyCost: document.getElementById('hourly-cost'),
+        costPeriod: document.getElementById('cost-period'),
+        costConversion: document.getElementById('cost-conversion'),
         loadWarning: document.getElementById('load-warning'),
         backButton: document.getElementById('back-button'),
         nextButton: document.getElementById('next-button'),
@@ -230,10 +264,8 @@ function initialize() {
     document.getElementById('reset-button').addEventListener('click', resetAssessment);
     elements.backButton.addEventListener('click', previousStep);
     elements.nextButton.addEventListener('click', nextStep);
-    elements.hourlyCost.addEventListener('change', event => {
-        assessmentState.hourlyCostTwd = event.target.value;
-        invalidateResult();
-    });
+    elements.hourlyCost.addEventListener('input', syncCostSettings);
+    elements.costPeriod.addEventListener('change', syncCostSettings);
     document.querySelectorAll('[data-go-step]').forEach(button => {
         button.addEventListener('click', () => goToStep(Number(button.dataset.goStep)));
     });
@@ -620,7 +652,35 @@ function restoreSharedOptions() {
     document.querySelectorAll('input[name="parallel-band"]').forEach(input => { input.checked = input.value === assessmentState.executionNeeds.parallelBand; });
     document.querySelectorAll('input[name="users-band"]').forEach(input => { input.checked = input.value === assessmentState.executionNeeds.usersBand; });
     elements.usersFieldset.hidden = assessmentState.persona !== 'smb';
-    elements.hourlyCost.value = assessmentState.hourlyCostTwd;
+    elements.hourlyCost.value = assessmentState.costAmountTwd;
+    elements.costPeriod.value = assessmentState.costPeriod;
+    updateCostConversion();
+}
+
+function syncCostSettings() {
+    assessmentState.costAmountTwd = elements.hourlyCost.value;
+    assessmentState.costPeriod = elements.costPeriod.value;
+    assessmentState.hourlyCostTwd = normalizeHourlyCost(assessmentState.costAmountTwd, assessmentState.costPeriod);
+    updateCostConversion();
+    invalidateResult();
+}
+
+function normalizeHourlyCost(amount, period) {
+    const numericAmount = Number(amount);
+    const hours = COST_PERIOD_HOURS[period] || COST_PERIOD_HOURS.hour;
+    return Number.isFinite(numericAmount) ? numericAmount / hours : 0;
+}
+
+function updateCostConversion() {
+    const amount = Number(elements.hourlyCost.value);
+    const period = elements.costPeriod.value;
+    if (!Number.isFinite(amount) || amount <= 0) {
+        elements.costConversion.textContent = '目前將以每小時成本計算。';
+        return;
+    }
+    const hourlyCost = normalizeHourlyCost(amount, period);
+    const assumption = period === 'week' ? '（每週以 40 小時換算）' : period === 'month' ? '（每月以 160 小時換算）' : '';
+    elements.costConversion.textContent = `換算後為 ${formatCurrencyRate(hourlyCost)}／小時${assumption}`;
 }
 
 function renderLoadWarning() {
@@ -742,10 +802,10 @@ function validateStep3() {
     }
     if (!assessmentState.executionNeeds.parallelBand) return showError('請選擇通常同時處理幾項工作。', elements.parallelOptions.querySelector('input'));
     if (assessmentState.persona === 'smb' && !assessmentState.executionNeeds.usersBand) return showError('請選擇同時使用這套流程的人數。', elements.usersOptions.querySelector('input'));
-    assessmentState.hourlyCostTwd = elements.hourlyCost.value.trim();
-    if (assessmentState.hourlyCostTwd === '') return showError('請填寫執行這些工作流程所需花費的金額。', elements.hourlyCost);
-    const cost = Number(assessmentState.hourlyCostTwd);
-    if (!Number.isFinite(cost) || cost <= 0 || cost > 100000) return showError('執行這些工作流程的金額必須大於 0，且不可超過 NT$100,000。', elements.hourlyCost);
+    syncCostSettings();
+    if (assessmentState.costAmountTwd === '') return showError('請填寫執行這些工作的成本費用。', elements.hourlyCost);
+    const cost = Number(assessmentState.costAmountTwd);
+    if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return showError('成本費用必須大於 0，且不可超過 NT$10,000,000。', elements.hourlyCost);
     return true;
 }
 
@@ -756,6 +816,8 @@ function createAssessmentSnapshot() {
         selectedRecipeIds: assessmentState.selectedRecipeIds,
         taskAnswers: assessmentState.taskAnswers,
         executionNeeds: assessmentState.executionNeeds,
+        costAmountTwd: assessmentState.costAmountTwd,
+        costPeriod: assessmentState.costPeriod,
         hourlyCostTwd: assessmentState.hourlyCostTwd,
         scope: 'selected-workflows'
     }));
@@ -770,7 +832,9 @@ function calculateAssessment(snapshot) {
         const baseline = scale.manualMinutes;
         const current = Number(answer.currentHumanMinutes);
         const effectiveBaseline = Math.max(baseline, current);
-        const target = Math.min(current, scale.agentHumanMinutes);
+        const workflowMetrics = calculateWorkflowMetrics(recipeId);
+        const workflowTargetMinutes = effectiveBaseline * workflowMetrics.retainedHumanRatio;
+        const target = Math.min(current, workflowTargetMinutes);
         const currentMonthlyMinutes = monthlyFrequency * current;
         const targetMonthlyMinutes = monthlyFrequency * target;
         return {
@@ -786,7 +850,7 @@ function calculateAssessment(snapshot) {
             baselineMinutes: baseline,
             effectiveBaselineMinutes: effectiveBaseline,
             currentMinutes: current,
-            agentReferenceMinutes: scale.agentHumanMinutes,
+            agentReferenceMinutes: workflowTargetMinutes,
             targetMinutes: target,
             monthlyFrequency,
             baselineMonthlyMinutes: monthlyFrequency * effectiveBaseline,
@@ -798,7 +862,8 @@ function calculateAssessment(snapshot) {
             review: recipe.review,
             cloneTag: recipe.cloneTag,
             profiles: recipe.profiles,
-            evidenceStatus: recipe.evidenceStatus
+            evidenceStatus: recipe.evidenceStatus,
+            workflowMetrics
         };
     });
     const totals = taskResults.reduce((sum, task) => {
@@ -812,18 +877,19 @@ function calculateAssessment(snapshot) {
     const currentSci = calculateSciScore(rawCurrentRelief);
     const targetSci = calculateSciScore(rawTargetRelief);
     const savedHours = Math.max(0, (totals.current - totals.target) / 60);
+    const displayedSavedHours = roundHoursForDisplay(savedHours);
     const hourlyCost = Number(snapshot.hourlyCostTwd);
     const currentHours = totals.current / 60;
     const targetHours = totals.target / 60;
-    const loadingReductionPercent = totals.current > 0 ? Math.max(0, (totals.current - totals.target) / totals.current * 100) : 0;
     taskResults.forEach(task => {
         task.loadShare = totals.current > 0 ? task.currentMonthlyMinutes / totals.current * 100 : 0;
+        task.baselineLoadShare = totals.baseline > 0 ? task.baselineMonthlyMinutes / totals.baseline * 100 : 0;
         task.reliefRate = task.currentMonthlyMinutes > 0 ? task.savedMonthlyMinutes / task.currentMonthlyMinutes * 100 : 0;
+        task.targetReliefRate = task.baselineMonthlyMinutes > 0 ? clamp(100 * (1 - task.targetMonthlyMinutes / task.baselineMonthlyMinutes), 0, 100) : 0;
         task.reliefShare = totals.current > 0 ? task.savedMonthlyMinutes / totals.current * 100 : 0;
-        task.savedCostMonthlyTwd = task.savedMonthlyMinutes / 60 * hourlyCost;
-        task.savedTokensMonthly = twdToTokens(task.savedCostMonthlyTwd);
+        task.savedCostMonthlyTwd = roundHoursForDisplay(task.savedMonthlyMinutes / 60) * hourlyCost;
     });
-    const recommendation = routeHardware(snapshot, taskResults);
+    const recommendation = routeHardware(snapshot, taskResults, { currentSci, targetSci });
     const cloneMap = new Map();
     taskResults.forEach(task => {
         if (!cloneMap.has(task.cloneTag)) {
@@ -841,6 +907,7 @@ function calculateAssessment(snapshot) {
         scoringVersion: VERSIONS.scoring,
         recipeCatalogVersion: VERSIONS.recipes,
         hardwareCatalogVersion: VERSIONS.hardware,
+        workflowCatalogVersion: VERSIONS.workflows,
         generatedAt: new Date().toISOString(),
         timezone: 'Asia/Taipei',
         persona: snapshot.persona,
@@ -854,24 +921,23 @@ function calculateAssessment(snapshot) {
             rawCurrentRelief,
             rawTargetRelief
         },
-        workload: { reductionPercent: loadingReductionPercent },
-        time: { currentHoursMonthly: currentHours, targetHoursMonthly: targetHours, savedHoursMonthly: savedHours },
+        workload: { humanPercent: 100 - targetSci, clonePercent: targetSci },
+        time: { currentHoursMonthly: currentHours, targetHoursMonthly: targetHours, savedHoursMonthly: displayedSavedHours },
         cost: {
             kind: 'labor-value',
             hourlyCostTwd: hourlyCost,
+            inputAmountTwd: Number(snapshot.costAmountTwd),
+            inputPeriod: snapshot.costPeriod,
             currentMonthlyTwd: currentHours * hourlyCost,
             targetMonthlyTwd: targetHours * hourlyCost,
-            savedMonthlyTwd: savedHours * hourlyCost,
-            savedAnnualTwd: savedHours * hourlyCost * 12,
-            monthlyTwd: savedHours * hourlyCost,
-            annualTwd: savedHours * hourlyCost * 12
+            savedMonthlyTwd: displayedSavedHours * hourlyCost,
+            savedAnnualTwd: displayedSavedHours * hourlyCost * 12,
+            monthlyTwd: displayedSavedHours * hourlyCost,
+            annualTwd: displayedSavedHours * hourlyCost * 12
         },
         tokens: {
             twdPerMillionTokens: TOKEN_CONFIG.twdPerMillionTokens,
-            currentMonthly: twdToTokens(currentHours * hourlyCost),
-            targetMonthly: twdToTokens(targetHours * hourlyCost),
-            savedMonthly: twdToTokens(savedHours * hourlyCost),
-            savedAnnual: twdToTokens(savedHours * hourlyCost * 12)
+            savedMonthly: twdToTokens(displayedSavedHours * hourlyCost)
         },
         taskResults: taskResults.sort((a, b) => b.currentMonthlyMinutes - a.currentMonthlyMinutes || a.selectionIndex - b.selectionIndex),
         clones: [...cloneMap.values()],
@@ -880,47 +946,50 @@ function calculateAssessment(snapshot) {
     });
 }
 
-function routeHardware(snapshot, taskResults) {
-    let tier = Math.max(...taskResults.map(task => getRecipe(task.recipeId).scales[task.scale].baseTier), 1);
+function routeHardware(snapshot, taskResults, sciScores) {
+    const gradeKeys = ['a', 'aplus', 's', 'splus', 'ss'];
+    const baseTier = Math.max(...taskResults.map(task => getRecipe(task.recipeId).scales[task.scale].baseTier), 1);
+    let gradeIndex = clamp(baseTier - 1, 0, 2);
     let needsReview = false;
     const reasons = [];
-    const heavyTask = taskResults.slice().sort((a, b) => getRecipe(b.recipeId).scales[b.scale].baseTier - getRecipe(a.recipeId).scales[a.scale].baseTier)[0];
-    if (heavyTask) reasons.push(`${heavyTask.title}採用${heavyTask.scaleLabel}規模，是本次配置等級的主要依據。`);
     const parallel = snapshot.executionNeeds.parallelBand;
-    const hasLargeMedia = taskResults.some(task => task.scale === 'large' && task.profiles.includes('media'));
-    const hasLargeKnowledge = taskResults.some(task => task.scale === 'large' && task.profiles.includes('knowledge'));
-    if (parallel === '2' && (hasLargeMedia || hasLargeKnowledge)) tier = Math.max(tier, 2);
-    if (parallel === '3-4') {
-        tier = Math.max(tier, 2);
-        if (hasLargeMedia) tier = 3;
-        reasons.push('你預計同時處理 3 至 4 項工作，因此提高多工具與記憶體負載候選。');
-    }
-    if (parallel === '5+') {
-        needsReview = true;
-        reasons.push('5 項以上同時執行超出首版已確認的單機情境，需要進一步評估。');
-    }
-    if (parallel === '2') reasons.push('約 2 項同時處理已納入配置路由。');
-    if (parallel === 'unknown') reasons.push('目前先以依序處理情境提供候選，實際同時執行能力仍需確認。');
+    const largeTasks = taskResults.filter(task => task.scale === 'large');
+    const hasLargeMediaOrCoding = largeTasks.some(task => task.profiles.some(profile => ['media', 'coding'].includes(profile)));
+    const totalBaselineMinutes = taskResults.reduce((sum, task) => sum + task.baselineMonthlyMinutes, 0);
+    const totalBaselineHours = totalBaselineMinutes / 60;
+    const weightedComputeIntensity = totalBaselineMinutes > 0
+        ? taskResults.reduce((sum, task) => sum + task.workflowMetrics.computeIntensity * task.baselineMonthlyMinutes, 0) / totalBaselineMinutes
+        : 1;
+
+    if (parallel === '2' && largeTasks.length) gradeIndex = Math.max(gradeIndex, 1);
+    if (parallel === '3-4') gradeIndex = Math.max(gradeIndex, hasLargeMediaOrCoding ? 2 : 1);
+    if (parallel === '5+') gradeIndex = Math.max(gradeIndex, 2);
     if (snapshot.persona === 'smb') {
-        if (snapshot.executionNeeds.usersBand === '2-5') {
-            tier = Math.max(tier, 2);
-            reasons.push('2 至 5 人同時使用，因此至少提供 Mainstream 候選。');
-        }
-        if (['6-10', '10+'].includes(snapshot.executionNeeds.usersBand)) {
-            needsReview = true;
-            tier = Math.max(tier, 2);
-            reasons.push('6 人以上同時使用需要部署與並行負載評估。');
-        }
+        if (snapshot.executionNeeds.usersBand === '2-5') gradeIndex = Math.max(gradeIndex, 1);
+        if (snapshot.executionNeeds.usersBand === '6-10') gradeIndex = Math.max(gradeIndex, 2);
+        if (snapshot.executionNeeds.usersBand === '10+') gradeIndex = Math.max(gradeIndex, 3);
     }
     taskResults.forEach(task => {
-        const weeklyFrequency = task.frequency;
-        const batchProfiles = task.profiles.some(profile => ['document', 'analytics', 'knowledge', 'monitoring'].includes(profile));
-        if (batchProfiles && ((task.scale === 'standard' && weeklyFrequency > 20) || (task.scale === 'large' && weeklyFrequency > 5))) {
-            tier = Math.max(tier, 2);
+        const batchProfile = task.profiles.some(profile => ['document', 'analytics', 'knowledge', 'monitoring'].includes(profile));
+        if (batchProfile && ((task.scale === 'standard' && task.frequency > 20) || (task.scale === 'large' && task.frequency > 5))) {
+            gradeIndex = Math.max(gradeIndex, 1);
         }
     });
-    tier = clamp(tier, 1, 3);
-    const tierKey = tier === 1 ? 'entry' : tier === 2 ? 'mainstream' : 'high';
+    if (weightedComputeIntensity >= 3.35) gradeIndex = Math.max(gradeIndex, 1);
+    if (weightedComputeIntensity >= 4 && ['3-4', '5+'].includes(parallel)) gradeIndex = Math.max(gradeIndex, 2);
+
+    const sPlusDemand = weightedComputeIntensity >= 3.5
+        && (totalBaselineHours >= 160 || parallel === '5+' || largeTasks.length >= 3);
+    if (sPlusDemand) gradeIndex = Math.max(gradeIndex, 3);
+
+    const ssDemand = sciScores.targetSci >= 75
+        && weightedComputeIntensity >= 3.35
+        && (totalBaselineHours >= 320 || (parallel === '5+' && largeTasks.length >= 3));
+    if (ssDemand) gradeIndex = 4;
+
+    gradeIndex = clamp(gradeIndex, 0, gradeKeys.length - 1);
+    const tierKey = gradeKeys[gradeIndex];
+    const tier = hardwareCatalog[tierKey];
     const profileNames = {
         document: '內容與文件製作', analytics: '資料分析', media: '影音內容處理',
         knowledge: '知識整理', monitoring: '持續追蹤', coding: '程式協作'
@@ -928,31 +997,36 @@ function routeHardware(snapshot, taskResults) {
     const demandSummary = [...new Set(taskResults.flatMap(task => task.profiles).map(profile => profileNames[profile]).filter(Boolean))].slice(0, 3);
     const cloneNames = [...new Set(taskResults.map(task => task.cloneTag))].slice(0, 2);
     const teamText = cloneNames.length > 1 ? `${cloneNames[0]}與${cloneNames[1]}` : cloneNames[0];
+    const modelNames = tier.models.map(model => model.name);
+    reasons.push(`本次工作量約 ${Math.round(totalBaselineHours)} 小時／月，工作流運算強度為 ${weightedComputeIntensity.toFixed(1)}／5。`);
+    if (tierKey === 'ss') reasons.push('高 SCI 代表大量流程可交由影分身處理，搭配極重工作量時需要更高的持續運算與記憶體容量。');
+    if (parallel === '5+' || snapshot.executionNeeds.usersBand === '10+') needsReview = true;
     return {
         tier: tierKey,
-        tierLabel: hardwareCatalog[tierKey].label,
+        grade: tier.strength.grade,
+        tierLabel: tier.label,
         validationStatus: 'pending',
         needsReview,
-        platforms: { amd: { ...hardwareCatalog[tierKey].amd }, intel: { ...hardwareCatalog[tierKey].intel } },
-        sharedParts: { ...hardwareCatalog[tierKey].shared },
-        componentSeries: JSON.parse(JSON.stringify(hardwareCatalog[tierKey].components)),
+        models: tier.models.map(model => ({ ...model })),
+        primaryModel: { ...tier.models[0] },
+        componentSeries: JSON.parse(JSON.stringify(tier.components)),
+        strength: { ...tier.strength },
         reasons: reasons.slice(0, 3),
-        story: `您的任務需求涵蓋${formatChineseList(demandSummary)}，可由${teamText}協同完成；建議配置「${hardwareCatalog[tierKey].label}」，讓影分身團隊保持順暢多工。`
+        story: `您的任務需求涵蓋${formatChineseList(demandSummary)}，可由${teamText}協同完成。建議採用 ${tier.label} 的 ${formatChineseList(modelNames)}，把主要運算與工作檔案留在自己的設備中，降低長期雲端訂閱、用量計價與網路依賴。`
     };
 }
 
 function renderResult() {
     const result = assessmentState.result;
     if (!result) return;
-    document.getElementById('result-summary').textContent = `你的 ${result.taskResults.length} 項工作可由影分身團隊重新分工，每月可釋放 ${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}，省下 ${formatCurrency(result.cost.savedMonthlyTwd)}，相當於 ${formatTokens(result.tokens.savedMonthly)} tokens 的費用。`;
+    document.getElementById('result-summary').textContent = `你的 ${result.taskResults.length} 項工作已完成分析，以下是導入影分身團隊後的工作效益。`;
     document.getElementById('sci-gap').textContent = `+${Math.round(result.sci.gap)} 點`;
-    document.getElementById('current-sci-card').innerHTML = renderSciCard('目前 SCI', result.sci.current, getSciLevel(result.sci.current), 'SCI 採 100 分制；0 代表目前設定為全手動。', 'current', 0);
-    document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', result.sci.target, '本次任務組合', '依本次選擇的任務、頻率與工作方式綜合計算。', 'target', result.sci.current);
+    document.getElementById('current-sci-card').innerHTML = renderSciCard('目前 SCI', result.sci.current, getSciLevel(result.sci.current), '代表目前已由工具或流程承接的人工工作比例。', 'current', 0);
+    document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', result.sci.target, '本次任務組合', `預估有 ${Math.round(result.sci.target)}% 的人工工作可由影分身協助。`, 'target', result.sci.current);
     document.getElementById('metric-highlights').innerHTML = renderMetricHighlights(result);
-    document.getElementById('time-metrics').innerHTML = renderEfficiencyComparison(result);
     document.getElementById('workflow-result-table').innerHTML = renderWorkflowResults(result);
     document.getElementById('clone-list').innerHTML = result.clones.map((clone, index) => renderCloneCard(clone, index)).join('');
-    renderHardware(result.recommendation);
+    renderHardware(result.recommendation, result);
     setResultSectionsHidden(false);
     requestAnimationFrame(animateSciJourney);
 }
@@ -974,25 +1048,16 @@ function renderMetricHighlights(result) {
     return `
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('clock')}</span>
-            <div><span>每月可釋放工時</span><strong>${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}</strong><p>依本次任務與頻率估算</p></div>
+            <div><span>每月釋放工時</span><strong>${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}</strong></div>
         </article>
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('zap')}</span>
-            <div><span>每月節省 Token</span><strong>${formatTokens(result.tokens.savedMonthly)}</strong><p>以每 1M tokens 約 NT$ ${result.tokens.twdPerMillionTokens} 換算</p></div>
+            <div><span>每月節省 Token</span><strong>${formatTokens(result.tokens.savedMonthly)}</strong></div>
         </article>
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('receipt')}</span>
-            <div><span>每月減少花費</span><strong>${formatCurrency(result.cost.savedMonthlyTwd)}</strong><p>依你填寫的每小時執行成本估算</p></div>
+            <div><span>每月省下費用</span><strong>${formatCurrency(result.cost.savedMonthlyTwd)}</strong></div>
         </article>`;
-}
-
-function renderEfficiencyComparison(result) {
-    return `
-        <div class="before-after before-after--compact">
-            <article class="comparison-state comparison-state--before"><span>現在每月投入</span><strong>${formatHours(result.time.currentHoursMonthly)} ${getTimeUnit()}</strong><small>${formatCurrency(result.cost.currentMonthlyTwd)} · ${formatTokens(result.tokens.currentMonthly)} tokens</small></article>
-            <div class="comparison-arrow" aria-hidden="true">${iconSvg('arrow-right')}</div>
-            <article class="comparison-state comparison-state--after"><span>導入影分身後</span><strong>${formatHours(result.time.targetHoursMonthly)} ${getTimeUnit()}</strong><small>${formatCurrency(result.cost.targetMonthlyTwd)} · ${formatTokens(result.tokens.targetMonthly)} tokens</small></article>
-        </div>`;
 }
 
 function renderWorkflowResults(result) {
@@ -1001,41 +1066,45 @@ function renderWorkflowResults(result) {
         ${renderWorkloadOverview(result)}
         <aside class="top-workload-callout">
             <span class="top-workload-callout__icon">${iconSvg(getCloneIconType(topTask.recipeId))}</span>
-            <div><small>最適合透過影分身來協作的工作流程</small><strong>${topTask.title}</strong><p>占目前人工工作量 ${Math.round(topTask.loadShare)}%。可交由「${topTask.cloneTag}」協助${getAgentSupportScope(topTask)}，每月預估可釋放 ${formatHours(topTask.savedMonthlyMinutes / 60)} ${getTimeUnit()}，省下 ${formatCurrency(topTask.savedCostMonthlyTwd)}，相當於 ${formatTokens(topTask.savedTokensMonthly)} tokens 的費用。</p></div>
+            <div><small>最適合透過影分身來協作的工作流程</small><strong>${topTask.title}</strong><p>占目前人工工作量 ${formatPercent(topTask.loadShare)}%。可交由「${topTask.cloneTag}」協助${getAgentSupportScope(topTask)}，每月預估可釋放 ${formatHours(topTask.savedMonthlyMinutes / 60)} ${getTimeUnit()}，相當於 ${formatCurrency(topTask.savedCostMonthlyTwd)} 的人力成本價值。</p></div>
         </aside>
     </div>`;
 }
 
 function renderWorkflowImpactCard(task, index) {
-    const share = Math.max(1, Math.round(task.loadShare));
+    const shadowShare = clamp(task.targetReliefRate, 0, 100);
+    const humanShare = 100 - shadowShare;
     return `<article class="workflow-impact-card">
-        <header><div><span>TASK ${String(index + 1).padStart(2, '0')} · ${task.scaleLabel} · ${task.frequency} 次／週</span><h4>${task.title}</h4></div><strong class="load-chip">目前工作占比 ${share}%</strong></header>
+        <header><div><span>TASK ${String(index + 1).padStart(2, '0')} · ${task.scaleLabel} · ${task.frequency} 次／週</span><h4>${task.title}</h4></div><div class="load-chip" aria-label="人工與影分身處理比例"><span>人工處理 <b>${formatPercent(humanShare)}%</b></span><span>影分身處理 <b>${formatPercent(shadowShare)}%</b></span></div></header>
         <p class="workflow-agent-note"><strong>交由「${task.cloneTag}」協助</strong>${getAgentSupportScope(task)}；每月預估可釋放 <b>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</b>。</p>
         <div class="workflow-impact-grid">
             <div><span>目前投入</span><strong>${formatHours(task.currentMonthlyMinutes / 60)} ${getTimeUnit()}／月</strong></div>
             <span class="workflow-arrow" aria-hidden="true">${iconSvg('arrow-right')}</span>
             <div><span>導入後</span><strong>${formatHours(task.targetMonthlyMinutes / 60)} ${getTimeUnit()}／月</strong></div>
-            <div class="saved-highlight"><span>每月省下</span><strong>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</strong><small>${formatCurrency(task.savedCostMonthlyTwd)}</small><small>≈ ${formatTokens(task.savedTokensMonthly)} tokens</small></div>
+            <div class="saved-highlight"><span>每月可釋放</span><strong>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</strong><small>人力成本價值 ${formatCurrency(task.savedCostMonthlyTwd)}</small></div>
         </div>
     </article>`;
 }
 
 function renderWorkloadOverview(result) {
-    const aiShare = clamp(result.workload.reductionPercent, 0, 100);
+    const aiShare = clamp(result.sci.target, 0, 100);
     const humanShare = 100 - aiShare;
+    const beforeLabels = result.taskResults.map((task, index) => `
+        <span style="--segment:${task.loadShare}%" title="${task.title}"><b>${index + 1}</b></span>`).join('');
     const beforeSegments = result.taskResults.map((task, index) => `
-        <i class="workload-task-segment workload-task-segment--before" style="--segment:${task.loadShare}%;--task-color:${getWorkloadColor(index)};--delay:${index * 70}ms" title="${task.title}：${Math.round(task.loadShare)}%"></i>`).join('');
+        <i class="workload-task-segment workload-task-segment--before" style="--segment:${task.loadShare}%;--task-color:${getWorkloadColor(index)};--delay:${index * 70}ms" title="${task.title}：目前工作占比 ${formatPercent(task.loadShare)}%"></i>`).join('');
     const afterSegments = result.taskResults.map((task, index) => {
-        const remaining = clamp(100 - task.reliefRate, 0, 100);
+        const remaining = clamp(100 - task.targetReliefRate, 0, 100);
+        const assist = 100 - remaining;
         const color = getWorkloadColor(index);
-        return `<button type="button" class="workload-task-segment workload-task-segment--after" style="--segment:${task.loadShare}%;--delay:${240 + index * 70}ms" data-task-toggle="${index}" aria-expanded="false" aria-controls="workload-task-detail" title="${task.title}：其中約 ${100 - Math.round(remaining)}% 可交由影分身協助，點擊查看詳情"><b class="workload-part workload-part--human" style="--portion:${remaining}%;--task-color:${color}"></b><b class="workload-part workload-part--assist" style="--portion:${100 - remaining}%"></b></button>`;
+        return `<button type="button" class="workload-task-segment workload-task-segment--after" style="--segment:${task.loadShare}%;--delay:${240 + index * 70}ms;--task-color:${color}" data-task-toggle="${index}" aria-label="查看 ${task.title} 的協作細項" aria-expanded="false" aria-controls="workload-task-detail" title="${task.title}：目前工作占比 ${formatPercent(task.loadShare)}%，可由影分身協作 ${formatPercent(assist)}%"><b class="workload-part workload-part--human" style="--portion:${remaining}%"></b><b class="workload-part workload-part--assist" style="--portion:${assist}%"></b><span class="workload-segment-index">${index + 1}</span></button>`;
     }).join('');
-    const legend = result.taskResults.map((task, index) => `<span><i style="--task-color:${getWorkloadColor(index)}"></i>${task.title}<b>${Math.round(task.loadShare)}%</b></span>`).join('');
+    const legend = result.taskResults.map((task, index) => `<button type="button" data-task-toggle="${index}" aria-expanded="false" aria-controls="workload-task-detail"><i style="--task-color:${getWorkloadColor(index)}"></i><span>${String(index + 1).padStart(2, '0')} · ${task.title}</span><b>${formatPercent(task.loadShare)}%</b></button>`).join('');
     return `<section class="workload-overview" aria-labelledby="workload-overview-title">
         <header><span>工作量視覺化</span><h4 id="workload-overview-title">影分身介入前後，工作如何重新分配</h4><p>以目前每月人工投入時間為基準，比較各任務占比與可交由影分身協助的部分。</p></header>
         <div class="workload-overall"><div><strong>整體協作比例</strong><span>依本次任務組合估算</span></div><div><div class="workload-overall-track"><i class="workload-overall-human" style="--portion:${humanShare}%"></i><i class="workload-overall-agent" style="--portion:${aiShare}%"></i></div><p><span>人工處理 <b>${Math.round(humanShare)}%</b></span><span>影分身可協助 <b>${Math.round(aiShare)}%</b></span></p></div></div>
-        <div class="workload-chart-row"><div><strong>影分身介入前</strong><small>目前人工工作量</small></div><div class="workload-track" aria-label="影分身介入前各任務工作量占比">${beforeSegments}</div></div>
-        <div class="workload-task-legend">${legend}</div>
+        <div class="workload-task-legend" aria-label="選擇任務查看協作細項">${legend}</div>
+        <div class="workload-chart-row"><div><strong>影分身介入前</strong><small>目前人工投入占比</small></div><div class="workload-track-group"><div class="workload-track-labels" aria-hidden="true">${beforeLabels}</div><div class="workload-track" aria-label="影分身介入前各任務目前工作占比">${beforeSegments}</div></div></div>
         <div class="workload-chart-row"><div><strong>影分身介入後</strong><small>各任務的重新分配</small></div><div><div class="workload-track" aria-label="影分身介入後人工與影分身協助分布，點擊長條可展開該任務詳情">${afterSegments}</div><span class="workload-track-hint"><svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 1 6 0v5a3 3 0 0 1-6 0Z"/><path d="M15 12V6a2 2 0 0 0-4 0M9 13V9a2 2 0 0 0-4 0v6a5 5 0 0 0 5 5h3a5 5 0 0 0 5-5v-1"/></svg>點擊長條，查看該任務的協作細項</span></div></div>
         <div class="workload-state-legend"><span><i class="is-agent-hint"></i>影分身可協助工作區域</span></div>
         <div class="workload-task-detail" id="workload-task-detail" hidden></div>
@@ -1090,25 +1159,23 @@ function renderCloneCard(clone, index) {
     </article>`;
 }
 
-function renderHardware(recommendation) {
-    document.getElementById('hardware-tier').textContent = recommendation.tierLabel;
+function renderHardware(recommendation, result) {
     document.getElementById('hardware-reasons').textContent = recommendation.story;
-    document.getElementById('platform-grid').innerHTML = [
-        ['主機板', 'MB', 'motherboard', recommendation.platforms.amd.mb, recommendation.platforms.intel.mb],
-        ['處理器', 'CPU', 'cpu', recommendation.platforms.amd.cpu, recommendation.platforms.intel.cpu]
-    ].map(([zh, en, icon, amd, intel]) => `<article class="hardware-dual-row">
-        <span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div class="hardware-row-label"><small>${en}</small><strong>${zh}</strong></div>
-        <div class="dual-spec"><span><em>AMD</em>${amd}</span><span><em>Intel</em>${intel}</span></div>
-    </article>`).join('');
-    const partLabels = {
-        gpu: ['顯示卡', 'VGA', 'gpu'], ram: ['記憶體', 'RAM', 'memory'], ssd: ['儲存裝置', 'SSD', 'database'],
-        case: ['機殼', 'CASE', 'case'], cooling: ['散熱系統', 'COOLING', 'fan'], psu: ['電源供應器', 'PSU', 'zap']
+    document.getElementById('shadow-strength').innerHTML = renderShadowStrength(recommendation.strength, result);
+    const modelSpecLabels = {
+        mb: ['主機板', 'MB', 'motherboard'], cpu: ['處理器', 'CPU', 'cpu'], gpu: ['顯示卡', 'VGA', 'gpu'],
+        ram: ['記憶體', 'RAM', 'memory'], ssd: ['儲存裝置', 'SSD', 'database'], case: ['機殼', 'CASE', 'case'],
+        cooling: ['散熱系統', 'COOLING', 'fan'], psu: ['電源供應器', 'PSU', 'zap']
     };
-    document.getElementById('shared-parts').innerHTML = Object.entries(recommendation.sharedParts).map(([key, value]) => {
-        const [zh, en, icon] = partLabels[key];
-        return `<article class="hardware-menu-row"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${value}</p></article>`;
-    }).join('');
-    document.getElementById('system-purchase-cta').innerHTML = renderPurchaseLink('前往選購推薦整機', campaignConfig.productLinks.systems[recommendation.tier], 'system');
+    document.getElementById('platform-grid').innerHTML = recommendation.models.map(model => `<article class="hardware-model-card">
+        <header><div><span>推薦整機</span><h4>${model.name}</h4></div></header>
+        <span class="hardware-grade-stamp" aria-label="影分身戰力 ${recommendation.grade} 級"><small>影分身戰力</small><strong>${recommendation.grade}</strong></span>
+        <div class="hardware-model-specs">${Object.entries(modelSpecLabels).filter(([key]) => !(key === 'case' && model.integratedChassis)).map(([key, [zh, en, icon]]) => `<div class="hardware-model-spec"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${model[key]}</p></div>`).join('')}</div>
+    </article>`).join('');
+    const sharedParts = document.getElementById('shared-parts');
+    sharedParts.innerHTML = '';
+    sharedParts.hidden = true;
+    document.getElementById('system-purchase-cta').innerHTML = renderPurchaseLink(`前往選購 ${recommendation.grade} 級推薦整機`, campaignConfig.productLinks.systems[recommendation.tier], 'system');
     const componentLabels = {
         cpu: ['處理器系列', 'CPU', 'cpu', '選購處理器系列'],
         mb: ['主機板系列', 'MB', 'motherboard', '選購主機板系列'],
@@ -1118,11 +1185,31 @@ function renderHardware(recommendation) {
         const [zh, en, icon, cta] = componentLabels[key];
         const specs = series.all
             ? `<p class="component-series-single">${series.all}</p>`
-            : `<div class="dual-spec"><span><em>AMD 平台</em>${series.amd}</span><span><em>Intel 平台</em>${series.intel}</span></div>`;
+            : `<div class="dual-spec"><span><em>${series.leftLabel || 'AMD 平台'}</em>${series.amd}</span><span><em>${series.rightLabel || 'Intel 平台'}</em>${series.intel}</span></div>`;
         const link = campaignConfig.productLinks.components[recommendation.tier][key];
         return `<article class="component-series-card"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div class="component-series-card__heading"><small>${en}</small><strong>${zh}</strong></div><div class="component-series-card__spec">${specs}</div>${renderPurchaseLink(cta, link, key)}</article>`;
     }).join('');
     selectHardwareTab('system');
+}
+
+function renderShadowStrength(strength, result) {
+    const comparisons = getLocalValueComparisons(result);
+    return `<article class="shadow-strength-card">
+        <div class="shadow-strength-card__score"><span>影分身戰力</span><strong>${strength.grade}</strong><b>級</b></div>
+        <div class="shadow-strength-card__body"><div><strong>${strength.label}</strong><span>${strength.capacity}</span></div><div class="shadow-strength-meter" aria-label="影分身戰力 ${strength.grade} 級"><i style="--strength:${strength.meter}%"></i></div><p>${strength.description} 戰力分為 A、A+、S、S+、SS；等級越高，代表設備能為地端模型、多工具與平行工作提供更多運算餘裕。此為依設備規格與本次工作負載提供的相對建議，不代表特定模型的固定速度倍數；完整配置仍可依常用軟體、資料容量與團隊規模調整。</p></div>
+        <div class="local-value-comparisons">${comparisons.map(item => `<article><div><span>目前痛點</span><p>${item.before}</p></div><i aria-hidden="true">→</i><div><span>地端影分身</span><p>${item.after}</p></div></article>`).join('')}</div>
+    </article>`;
+}
+
+function getLocalValueComparisons(result) {
+    const lowSciPain = result.sci.current < 35
+        ? '目前 SCI 偏低，重複工作仍大量占用人工時間。'
+        : '既有工具各自運作，工作仍需要人工來回串接。';
+    return [
+        { before: lowSciPain, after: '讓固定流程交由地端影分身持續協作，逐步釋放人工工作量。' },
+        { before: '雲端服務按月訂閱或按量計價，工作增加時支出也可能持續增加。', after: '把主要運算轉成自己的設備算力，降低長期訂閱與用量費依賴。' },
+        { before: '工作檔案需要上傳，流程也容易受到連線、額度與服務方案調整影響。', after: '資料與模型流程留在地端，建立可持續使用及擴充的工作環境。' }
+    ];
 }
 
 function renderPurchaseLink(label, href, kind) {
@@ -1186,8 +1273,10 @@ async function previewReport(trigger) {
 async function createReportBlob(result) {
     const width = 1080;
     const taskRowHeight = 146;
-    const costHeight = result.cost ? 118 : 68;
-    const height = 1570 + result.taskResults.length * taskRowHeight + costHeight;
+    const hardwareCardHeight = 326;
+    const hardwareCardGap = 18;
+    const additionalHardwareHeight = Math.max(0, result.recommendation.models.length - 1) * (hardwareCardHeight + hardwareCardGap);
+    const height = 1566 + result.taskResults.length * taskRowHeight + additionalHardwareHeight;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -1230,9 +1319,9 @@ async function createReportBlob(result) {
     canvasText(ctx, `提升 ${Math.round(result.sci.gap)} 點`, left + 244, y + 154, `700 14px ${font}`, '#55D6A6');
     const metricX = left + 448;
     const reportMetrics = [
-        ['目前人工／月', `${formatHours(result.time.currentHoursMonthly)} ${getTimeUnit()}`],
-        ['預估可釋放／月', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
-        ['導入後人工／月', `${formatHours(result.time.targetHoursMonthly)} ${getTimeUnit()}`]
+        ['每月釋放工時', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
+        ['每月節省 Token', formatTokens(result.tokens.savedMonthly)],
+        ['每月省下費用', formatCurrency(result.cost.savedMonthlyTwd)]
     ];
     reportMetrics.forEach((metric, index) => {
         const x = metricX + index * 168;
@@ -1241,25 +1330,12 @@ async function createReportBlob(result) {
     });
 
     y += 246;
-    roundedRect(ctx, left, y, contentWidth, 94, 14, 'rgba(32,201,235,.07)', 'rgba(32,201,235,.26)');
-    const costMetrics = [
-        ['目前每月花費', formatCurrency(result.cost.currentMonthlyTwd), false],
-        ['導入後每月花費', formatCurrency(result.cost.targetMonthlyTwd), false],
-        ['每月可釋放金額', formatCurrency(result.cost.savedMonthlyTwd), true],
-        ['每月節省 Token', `${formatTokens(result.tokens.savedMonthly)} tokens`, true]
-    ];
-    costMetrics.forEach((metric, index) => {
-        const x = left + 24 + index * 228;
-        canvasText(ctx, metric[0], x, y + 32, `600 11px ${font}`, '#AAB5C8');
-        canvasText(ctx, metric[1], x, y + 70, `800 20px ${font}`, metric[2] ? '#20C9EB' : '#FFFFFF');
-    });
-    y += 122;
 
     canvasText(ctx, '影分身介入前後，工作如何重新分配', left, y + 22, `800 21px ${font}`, '#FFFFFF');
-    canvasText(ctx, '以目前每月人工投入時間為基準', left, y + 44, `500 11px ${font}`, '#8391A7');
+    canvasText(ctx, '以同一批工作全人工完成所需時間為基準', left, y + 44, `500 11px ${font}`, '#8391A7');
     const barX = left + 150;
     const barWidth = contentWidth - 150;
-    const aiShare = clamp(result.workload.reductionPercent, 0, 100);
+    const aiShare = clamp(result.sci.target, 0, 100);
     const humanShare = 100 - aiShare;
     canvasText(ctx, '整體協作比例', left, y + 78, `700 11px ${font}`, '#AAB5C8');
     drawOverallDistributionBar(ctx, barX, y + 65, barWidth, 22, humanShare, aiShare);
@@ -1276,12 +1352,12 @@ async function createReportBlob(result) {
     result.taskResults.forEach((task, index) => {
         roundedRect(ctx, left, y, contentWidth, 128, 12, index % 2 ? '#121D2B' : '#101826');
         canvasText(ctx, `TASK ${String(index + 1).padStart(2, '0')} · ${task.title}`, left + 20, y + 29, `700 15px ${font}`, '#F5F7FB');
-        canvasText(ctx, `${task.scaleLabel} · ${task.frequency} 次／週 · 目前工作占比 ${Math.round(task.loadShare)}%`, left + 20, y + 55, `500 11px ${font}`, '#8391A7');
+        canvasText(ctx, `${task.scaleLabel} · ${task.frequency} 次／週 · 目前工作占比 ${formatPercent(task.loadShare)}%`, left + 20, y + 55, `500 11px ${font}`, '#8391A7');
         wrapCanvasText(ctx, `由「${task.cloneTag}」協助${getAgentSupportScope(task)}；每月預估可釋放 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}。`, left + 20, y + 80, 420, 16, 2, `600 11px ${font}`, '#20C9EB');
         canvasText(ctx, `目前 ${formatHours(task.currentMonthlyMinutes / 60)} ${getTimeUnit()}`, left + 465, y + 32, `600 12px ${font}`, '#AAB5C8');
         canvasText(ctx, `導入後 ${formatHours(task.targetMonthlyMinutes / 60)} ${getTimeUnit()}`, left + 465, y + 60, `600 12px ${font}`, '#AAB5C8');
-        canvasText(ctx, `每月省下 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()} · ${formatCurrency(task.savedCostMonthlyTwd)}`, width - left - 18, y + 40, `800 14px ${font}`, '#20C9EB', 'right');
-        canvasText(ctx, `≈ 節省 ${formatTokens(task.savedTokensMonthly)} tokens`, width - left - 18, y + 62, `600 11px ${font}`, '#8391A7', 'right');
+        canvasText(ctx, `每月可釋放 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}`, width - left - 18, y + 40, `800 14px ${font}`, '#20C9EB', 'right');
+        canvasText(ctx, `人力成本價值 ${formatCurrency(task.savedCostMonthlyTwd)}`, width - left - 18, y + 62, `600 11px ${font}`, '#8391A7', 'right');
         y += taskRowHeight;
     });
 
@@ -1296,27 +1372,25 @@ async function createReportBlob(result) {
     });
     y += Math.ceil(result.clones.length / 3) * 44 + 34;
 
-    roundedRect(ctx, left, y, contentWidth, 326, 18, 'rgba(20,121,232,.13)', 'rgba(32,201,235,.28)');
-    canvasText(ctx, result.recommendation.tierLabel, left + 24, y + 36, `800 18px ${font}`, '#20C9EB');
-    canvasText(ctx, '主機板 MB', left + 24, y + 78, `700 11px ${font}`, '#6F7E94');
-    canvasText(ctx, `AMD｜${result.recommendation.platforms.amd.mb}`, left + 180, y + 78, `600 11px ${font}`, '#DCE3ED');
-    canvasText(ctx, `Intel｜${result.recommendation.platforms.intel.mb}`, left + 550, y + 78, `600 11px ${font}`, '#DCE3ED');
-    canvasText(ctx, '處理器 CPU', left + 24, y + 122, `700 11px ${font}`, '#6F7E94');
-    canvasText(ctx, `AMD｜${result.recommendation.platforms.amd.cpu}`, left + 180, y + 122, `600 11px ${font}`, '#DCE3ED');
-    canvasText(ctx, `Intel｜${result.recommendation.platforms.intel.cpu}`, left + 550, y + 122, `600 11px ${font}`, '#DCE3ED');
-    const partLabels = { gpu: '顯示卡 VGA', ram: '記憶體 RAM', ssd: '儲存裝置 SSD', case: '機殼 CASE', cooling: '散熱系統', psu: '電源供應器 PSU' };
-    Object.entries(result.recommendation.sharedParts).forEach(([key, value], index) => {
-        const column = index % 3;
-        const row = Math.floor(index / 3);
-        const x = left + 24 + column * 302;
-        const itemY = y + 170 + row * 70;
-        canvasText(ctx, partLabels[key], x, itemY, `600 10px ${font}`, '#6F7E94');
-        wrapCanvasText(ctx, value, x, itemY + 22, 280, 16, 2, `700 10px ${font}`, '#FFFFFF');
+    const hardwareLabels = { mb: '主機板 MB', cpu: '處理器 CPU', gpu: '顯示卡 VGA', ram: '記憶體 RAM', ssd: '儲存裝置 SSD', case: '機殼 CASE', cooling: '散熱系統', psu: '電源供應器 PSU' };
+    result.recommendation.models.forEach((hardware, hardwareIndex) => {
+        roundedRect(ctx, left, y, contentWidth, hardwareCardHeight, 18, 'rgba(20,121,232,.13)', 'rgba(32,201,235,.28)');
+        canvasText(ctx, hardware.name, left + 24, y + 36, `800 18px ${font}`, '#20C9EB');
+        canvasText(ctx, `推薦機台 ${hardwareIndex + 1}／${result.recommendation.models.length} · 整機配置`, left + 24, y + 58, `600 11px ${font}`, '#8391A7');
+        drawHardwareGradeStamp(ctx, result.recommendation.strength.grade, width - left - 48, y + 44, font);
+        Object.entries(hardwareLabels).filter(([key]) => !(key === 'case' && hardware.integratedChassis)).forEach(([key, label], index) => {
+            const column = index % 4;
+            const row = Math.floor(index / 4);
+            const x = left + 24 + column * 232;
+            const itemY = y + 96 + row * 82;
+            canvasText(ctx, label, x, itemY, `600 10px ${font}`, '#6F7E94');
+            wrapCanvasText(ctx, hardware[key], x, itemY + 21, 214, 15, 3, `700 10px ${font}`, '#FFFFFF');
+        });
+        y += hardwareCardHeight + hardwareCardGap;
     });
-    y += 354;
 
-    wrapCanvasText(ctx, `SCI（Shadow-Clone Index）採 100 分制，依人工負擔釋放比例校準；分數越高，代表越多工作可交由影分身協作。時間與成本依實際填答分鐘計算；Token 數以每 1M tokens 約 NT$ ${result.tokens.twdPerMillionTokens} 的市場均價換算，僅供規模參考。完整設備配置可依常用軟體、資料容量與團隊規模彈性調整。`, left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
-    canvasText(ctx, `${result.scoringVersion} · ${result.recipeCatalogVersion} · ${result.hardwareCatalogVersion}`, left, height - 38, `500 9px ${font}`, '#4F5C70');
+    wrapCanvasText(ctx, `SCI（Shadow-Clone Index）採 100 分制，代表相對於全人工基準，可由影分身協助承接的人工工作比例。影分身戰力採 A、A+、S、S+、SS 五級，代表推薦設備的相對地端運算餘裕，不是固定速度倍數。費用依使用者填寫的時／週／月成本統一換算；Token 為費用等值估算。`, left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
+    canvasText(ctx, `${result.scoringVersion} · ${result.workflowCatalogVersion} · ${result.recipeCatalogVersion} · ${result.hardwareCatalogVersion}`, left, height - 38, `500 9px ${font}`, '#4F5C70');
     canvasText(ctx, 'ASUS AGENTIC AI', width - left, height - 38, `700 11px ${font}`, '#20C9EB', 'right');
 
     return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Canvas export failed')), 'image/png', 1));
@@ -1328,22 +1402,22 @@ function openSciInfoModal(trigger) {
             <header>
                 <span class="step-kicker">SCI 說明</span>
                 <h2 id="modal-title">SCI（影分身指數）怎麼算？</h2>
-                <p>SCI 用來衡量「您擺脫了多少雜務」與「影分身能背景並行處理多少工作」，分數越高，代表越多工作可以交由影分身團隊協助。</p>
+                <p>SCI 用來衡量相對於全人工完成同一批工作的基準，有多少人工工作可由既有工具、流程或影分身協助承接。</p>
             </header>
-            <div class="sci-info-formula">SCI = (1 − <span>本體目前被迫兼任的雜役角色數量</span> ／ <span>完成該任務所需的總專業分工數</span>) × (<span>影子團隊可背景並行處理的流程數</span> ／ <span>總任務流程數</span>) × 100%</div>
+            <div class="sci-info-formula">SCI = (1 − <span>人工投入時間</span> ／ <span>同一批工作全人工完成所需時間</span>) × 100</div>
             <div class="sci-info-examples">
                 <article>
-                    <strong>本體解放率</strong>
-                    <span>你擺脫了多少雜務比例</span>
-                    <p>例：一項工作共需 4 個角色分工，如果你一個人兼任 3 個雜役角色，兼任比例就是 3/4＝75%；你獲得的解放率就是 1－75%＝25%（代表你還有 75% 的雜務纏身）。如果你 0 兼任，解放率就是 100%。</p>
+                    <strong>目前 SCI</strong>
+                    <span>現在已被工具或流程承接的比例</span>
+                    <p>以你填寫的目前人工時間，和同範圍工作的全人工基準比較。若目前仍完全手動，SCI 就接近 0。</p>
                 </article>
                 <article>
-                    <strong>自動化涵蓋率</strong>
-                    <span>電腦能幫多少比例</span>
-                    <p>例：全部有 10 個步驟流程，如果 AI 影分身團隊可以背景同時處理 8 個，涵蓋率就是 8/10＝80%。</p>
+                    <strong>導入後 SCI</strong>
+                    <span>影分身預估可承接的比例</span>
+                    <p>例如導入後 SCI 為 67，代表約 67% 的全人工工作量可由影分身協助，仍有約 33% 需要人工處理。</p>
                 </article>
             </div>
-            <p class="sci-info-note">本工具依您選擇的任務、頻率與工作方式，換算出對應的本體解放率與自動化涵蓋率；實際計算細節會依任務類型微調，但代表的概念一致。</p>
+            <p class="sci-info-note">導入後人工時間會納入各任務流程中的必要操作、審核與例外處理，再換算成每月分鐘數加總；頻率只負責加權工作量，不會另外替 SCI 加分。報告中的整體協作比例與導入後 SCI 使用同一數值。</p>
         </div>`;
     openModal(trigger);
 }
@@ -1399,6 +1473,8 @@ function resetAssessment() {
         taskAnswers: {},
         archivedAnswers: {},
         executionNeeds: { parallelBand: '', usersBand: '' },
+        costAmountTwd: '',
+        costPeriod: 'hour',
         hourlyCostTwd: '',
         result: null
     });
@@ -1419,7 +1495,31 @@ function getReferenceMinutes(recipe, scale, mode) {
     const scaleData = recipe.scales[scale];
     const modeData = modeCatalog[mode];
     if (!scaleData || !modeData) return NaN;
-    return scaleData.manualMinutes * modeData.baselineWeight + scaleData.agentHumanMinutes * modeData.agentWeight;
+    const workflowTarget = scaleData.manualMinutes * calculateWorkflowMetrics(recipe.id).retainedHumanRatio;
+    return scaleData.manualMinutes * modeData.baselineWeight + workflowTarget * modeData.agentWeight;
+}
+
+function calculateWorkflowMetrics(recipeId) {
+    const model = workflowProcessCatalog[recipeId];
+    if (!model) throw new Error(`Missing workflow process model: ${recipeId}`);
+    const totals = model.steps.reduce((sum, step) => {
+        const retained = clamp((1 - step.delegation) + step.delegation * step.review + step.delegation * step.exceptionRate * step.exceptionEffort, 0, 1);
+        sum.share += step.share;
+        sum.retainedHumanRatio += step.share * retained;
+        sum.coverage += step.share * step.delegation;
+        sum.autonomousWork += step.share * step.delegation * (1 - step.review);
+        sum.computeIntensity += step.share * step.compute;
+        return sum;
+    }, { share: 0, retainedHumanRatio: 0, coverage: 0, autonomousWork: 0, computeIntensity: 0 });
+    if (Math.abs(totals.share - 1) > 0.0001) throw new Error(`Workflow shares must total 1: ${recipeId}`);
+    return Object.freeze({
+        retainedHumanRatio: clamp(totals.retainedHumanRatio, 0, 1),
+        coverageRate: clamp(totals.coverage * 100, 0, 100),
+        autonomyRate: totals.coverage > 0 ? clamp(totals.autonomousWork / totals.coverage * 100, 0, 100) : 0,
+        computeIntensity: clamp(totals.computeIntensity, 1, 5),
+        stepCount: model.steps.length,
+        modelVersion: model.version
+    });
 }
 
 function isAnswerComplete(answer) {
@@ -1527,8 +1627,7 @@ function formatChineseList(items) {
 }
 
 function calculateSciScore(rawReliefPercent) {
-    const calibrated = rawReliefPercent * SCI_CONFIG.achievableMax / SCI_CONFIG.referenceReliefPercent;
-    return clamp(calibrated, 0, SCI_CONFIG.achievableMax);
+    return clamp(rawReliefPercent, 0, SCI_CONFIG.scaleMax);
 }
 
 function getSciLevel(score) {
@@ -1560,6 +1659,14 @@ function formatHours(value) {
     return new Intl.NumberFormat('zh-TW', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
 }
 
+function formatPercent(value) {
+    return new Intl.NumberFormat('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 1 }).format(Number(value) || 0);
+}
+
+function roundHoursForDisplay(value) {
+    return Math.round((Number(value) + Number.EPSILON) * 10) / 10;
+}
+
 function formatMinutes(value) {
     return new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 1 }).format(value);
 }
@@ -1570,7 +1677,13 @@ function formatInputNumber(value) {
 }
 
 function formatCurrency(value) {
-    return `NT$ ${new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 0 }).format(value)}`;
+    const numericValue = Number(value) || 0;
+    const sign = numericValue < 0 ? '-' : '';
+    return `${sign}NT$ ${new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 0 }).format(Math.abs(numericValue))}`;
+}
+
+function formatCurrencyRate(value) {
+    return `NT$ ${new Intl.NumberFormat('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value) || 0)}`;
 }
 
 function formatTokens(value) {
@@ -1611,7 +1724,7 @@ function drawTaskDistributionBar(ctx, tasks, x, y, width, height, splitForAgent,
         ctx.fillStyle = getWorkloadColor(index);
         ctx.fillRect(offset, y, segmentWidth, height);
         if (splitForAgent) {
-            const remaining = clamp(100 - task.reliefRate, 0, 100);
+            const remaining = clamp(100 - task.targetReliefRate, 0, 100);
             const assistX = offset + segmentWidth * remaining / 100;
             const assistWidth = segmentWidth * (100 - remaining) / 100;
             ctx.fillStyle = '#55D6A6';
@@ -1656,6 +1769,30 @@ function roundedRect(ctx, x, y, width, height, radius, fill, stroke = null) {
         ctx.lineWidth = 1;
         ctx.stroke();
     }
+}
+
+function drawHardwareGradeStamp(ctx, grade, x, y, font) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(-8 * Math.PI / 180);
+    ctx.strokeStyle = 'rgba(32,201,235,.82)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 31, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([3, 3]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(0, 0, 26, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#20C9EB';
+    ctx.font = `800 7px ${font}`;
+    ctx.fillText('影分身戰力', 0, -7);
+    ctx.font = `900 23px ${font}`;
+    ctx.fillText(String(grade), 0, 15);
+    ctx.restore();
 }
 
 function canvasText(ctx, text, x, y, font, color, align = 'left') {

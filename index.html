@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="依照日常工作、使用頻率與人工成本，計算 AI 影分身可釋放的時間與成本，並取得專屬設備配置建議。">
+    <meta name="description" content="依照日常工作與工作量，計算 SCI 影分身指數與影分身戰力，找到適合建立地端影分身團隊的設備配置。">
     <title>ASUS Agentic AI｜SCI 影分身工作效益評估</title>
-    <link rel="stylesheet" href="styles.css?v=20261001b">
+    <link rel="stylesheet" href="styles.css?v=20261001c">
 </head>
 <body>
     <a class="skip-link" href="#assessment">跳至評估內容</a>
@@ -30,7 +30,7 @@
         <section class="intro" aria-labelledby="page-title">
             <p class="eyebrow">Shadow-Clone Index</p>
             <h1 id="page-title">打造專屬於你的影分身團隊！</h1>
-            <p>依照你的任務、工作量與人工時間，計算可釋放的時間與成本，並找到適合影分身團隊的設備配置。</p>
+            <p>算出你的 SCI 與影分身戰力，找到適合的地端設備，讓工作檔案與影分身流程留在自己手上，降低長期雲端訂閱與用量依賴。</p>
         </section>
 
         <nav class="progress" aria-label="評估進度">
@@ -90,9 +90,20 @@
                         <div class="segmented" id="users-options"></div>
                         <p class="field-help">人數只影響設備負載，不會自動把節省時間乘上人數。</p>
                     </fieldset>
-                    <div class="field-block">
-                        <label for="hourly-cost">你平常執行工作流程所需花費的金額（如雲端訂閱費／Token 計價費用…等） <span class="required-mark">必填</span></label>
-                        <div class="input-prefix"><span>NT$</span><input id="hourly-cost" type="number" min="1" max="100000" step="1" inputmode="numeric" placeholder="例如 300" required aria-required="true"><span>／小時</span></div>
+                    <div class="cost-settings">
+                        <div class="field-block">
+                            <label for="hourly-cost">你認為執行這些工作的成本費用 <span class="required-mark">必填</span></label>
+                            <div class="cost-input-row">
+                                <div class="input-prefix"><span>NT$</span><input id="hourly-cost" type="number" min="1" max="10000000" step="1" inputmode="numeric" placeholder="例如 300" required aria-required="true"></div>
+                                <select id="cost-period" aria-label="成本費用計價週期">
+                                    <option value="hour">每小時</option>
+                                    <option value="week">每週</option>
+                                    <option value="month">每月</option>
+                                </select>
+                            </div>
+                            <p class="field-help">可填入你認為執行這些工作的成本，或目前支付的雲端服務訂閱費。預設以每小時計算，也可改為每週或每月；系統會統一換算後產生報告。</p>
+                            <p class="cost-conversion" id="cost-conversion">目前將以每小時成本計算。</p>
+                        </div>
                     </div>
                     <div class="load-warning" id="load-warning" hidden></div>
                 </section>
@@ -121,7 +132,6 @@
                 <section class="metric-section" aria-labelledby="time-metrics-title">
                     <h3 id="time-metrics-title" class="visually-hidden">已選工作範圍的時間效益</h3>
                     <div class="metric-highlights" id="metric-highlights"></div>
-                    <div class="metric-compare" id="time-metrics"></div>
                 </section>
 
                 <section class="clone-section" aria-labelledby="clone-title">
@@ -141,12 +151,10 @@
                 <section class="hardware-section" id="hardware-section" aria-labelledby="hardware-title">
                     <div class="hardware-heading">
                         <div><span>專屬設備建議</span><h3 id="hardware-title">最適合打造您影分身團隊的電腦設備</h3></div>
-                        <strong id="hardware-tier"></strong>
                     </div>
-                    <p class="hardware-story" id="hardware-reasons"></p>
                     <div class="hardware-tabs" role="tablist" aria-label="設備推薦類型">
-                        <button type="button" role="tab" id="hardware-tab-system" aria-controls="hardware-panel-system" aria-selected="true" data-hardware-tab="system">整機 PBA 配置</button>
-                        <button type="button" role="tab" id="hardware-tab-components" aria-controls="hardware-panel-components" aria-selected="false" data-hardware-tab="components">單買關鍵零組件</button>
+                        <button type="button" role="tab" id="hardware-tab-system" aria-controls="hardware-panel-system" aria-selected="true" data-hardware-tab="system">整機</button>
+                        <button type="button" role="tab" id="hardware-tab-components" aria-controls="hardware-panel-components" aria-selected="false" data-hardware-tab="components">零組件</button>
                     </div>
                     <div class="hardware-panel" id="hardware-panel-system" role="tabpanel" aria-labelledby="hardware-tab-system">
                         <div class="platform-grid" id="platform-grid"></div>
@@ -154,10 +162,11 @@
                         <div class="hardware-cta" id="system-purchase-cta"></div>
                     </div>
                     <div class="hardware-panel" id="hardware-panel-components" role="tabpanel" aria-labelledby="hardware-tab-components" hidden>
-                        <div class="component-panel-intro"><strong>不更換整機，也能先升級關鍵效能</strong><p>依本次任務需求推薦 CPU、主機板與顯示卡系列；實際選購時請確認處理器插槽、電源與機殼空間。</p></div>
+                        <div class="component-panel-intro"><strong>不更換整機，也能先補強地端影分身戰力</strong><p>依本次任務需求推薦 CPU、主機板與顯示卡系列，優先擴充本機模型與多工具工作流的運算餘裕；選購前請確認處理器插槽、電源與機殼空間。</p></div>
                         <div class="component-series-grid" id="component-series-grid"></div>
                     </div>
-                    <p class="hardware-disclaimer">完整配置可依常用軟體、資料容量與團隊規模彈性調整。</p>
+                    <p class="hardware-story" id="hardware-reasons"></p>
+                    <div id="shadow-strength"></div>
                 </section>
 
                 <div class="result-actions">
@@ -192,6 +201,7 @@
         </section>
     </div>
 
-    <script src="app.js?v=20261001b"></script>
+    <script src="workflow-data.js?v=20261001a"></script>
+    <script src="app.js?v=20261001c"></script>
 </body>
 </html>
