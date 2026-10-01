@@ -144,8 +144,19 @@
                         <strong id="hardware-tier"></strong>
                     </div>
                     <p class="hardware-story" id="hardware-reasons"></p>
-                    <div class="platform-grid" id="platform-grid"></div>
-                    <div class="shared-parts" id="shared-parts"></div>
+                    <div class="hardware-tabs" role="tablist" aria-label="設備推薦類型">
+                        <button type="button" role="tab" id="hardware-tab-system" aria-controls="hardware-panel-system" aria-selected="true" data-hardware-tab="system">整機 PBA 配置</button>
+                        <button type="button" role="tab" id="hardware-tab-components" aria-controls="hardware-panel-components" aria-selected="false" data-hardware-tab="components">單買關鍵零組件</button>
+                    </div>
+                    <div class="hardware-panel" id="hardware-panel-system" role="tabpanel" aria-labelledby="hardware-tab-system">
+                        <div class="platform-grid" id="platform-grid"></div>
+                        <div class="shared-parts" id="shared-parts"></div>
+                        <div class="hardware-cta" id="system-purchase-cta"></div>
+                    </div>
+                    <div class="hardware-panel" id="hardware-panel-components" role="tabpanel" aria-labelledby="hardware-tab-components" hidden>
+                        <div class="component-panel-intro"><strong>不更換整機，也能先升級關鍵效能</strong><p>依本次任務需求推薦 CPU、主機板與顯示卡系列；實際選購時請確認處理器插槽、電源與機殼空間。</p></div>
+                        <div class="component-series-grid" id="component-series-grid"></div>
+                    </div>
                     <p class="hardware-disclaimer">完整配置可依常用軟體、資料容量與團隊規模彈性調整。</p>
                 </section>
 

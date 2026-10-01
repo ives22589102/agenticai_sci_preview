@@ -3,7 +3,7 @@
 const VERSIONS = Object.freeze({
     scoring: 'sci-index-v3',
     recipes: 'recipes-v1',
-    hardware: 'hardware-v1'
+    hardware: 'hardware-v2'
 });
 
 const SCI_CONFIG = Object.freeze({
@@ -138,23 +138,48 @@ const hardwareCatalog = Object.freeze({
         label: '創作啟航型｜影分身協作工作站',
         amd: { name: 'AMD 高效運算平台', cpu: 'AMD Ryzen 7 9700X', mb: 'ASUS B850 系列主機板' },
         intel: { name: 'Intel 高效運算平台', cpu: 'Intel Core Ultra 7 265K', mb: 'ASUS Z890 系列主機板' },
-        shared: { gpu: 'AMD Radeon AI PRO R9700 32GB', ram: '64GB DDR5', ssd: '2TB PCIe 4.0 M.2 NVMe', case: 'ROG Strix Helios II', cooling: 'TUF GAMING 360 水冷散熱', psu: '850W 金牌電源供應器' }
+        shared: { gpu: 'NVIDIA GeForce RTX 5070 Ti 16GB', ram: '64GB DDR5', ssd: '2TB PCIe 4.0 M.2 NVMe', case: 'ROG Strix Helios II', cooling: 'TUF GAMING 360 水冷散熱', psu: '850W 金牌電源供應器' },
+        components: {
+            cpu: { amd: 'AMD Ryzen 7 9000 系列', intel: 'Intel Core Ultra 7 桌上型處理器（系列 2）' },
+            mb: { amd: 'ASUS TUF Gaming B850 系列', intel: 'ASUS TUF Gaming Z890 系列' },
+            gpu: { all: 'ASUS Prime GeForce RTX 5070 Ti 系列' }
+        }
     }),
     mainstream: Object.freeze({
         label: '專業協作型｜多工影分身工作站',
         amd: { name: 'AMD 多工創作平台', cpu: 'AMD Ryzen 9 9900X', mb: 'ASUS B850／X870 系列主機板' },
         intel: { name: 'Intel 多工創作平台', cpu: 'Intel Core Ultra 7 265K', mb: 'ASUS Z890 系列主機板' },
-        shared: { gpu: 'AMD Radeon AI PRO R9700 32GB', ram: '64GB DDR5，可擴充至 128GB', ssd: '2TB PCIe 4.0，可擴充至 4TB', case: 'ROG Cronox ARGB', cooling: 'ROG STRIX LC III 360 ARGB 水冷散熱', psu: '1000W 金牌電源供應器' }
+        shared: { gpu: 'NVIDIA GeForce RTX 5080 16GB', ram: '64GB DDR5，可擴充至 128GB', ssd: '2TB PCIe 4.0，可擴充至 4TB', case: 'ROG Cronox ARGB', cooling: 'ROG STRIX LC III 360 ARGB 水冷散熱', psu: '1000W 金牌電源供應器' },
+        components: {
+            cpu: { amd: 'AMD Ryzen 9 9000 系列', intel: 'Intel Core Ultra 7 桌上型處理器（系列 2）' },
+            mb: { amd: 'ASUS ROG Strix B850／X870E 系列', intel: 'ASUS ROG Strix Z890 系列' },
+            gpu: { all: 'ASUS ProArt GeForce RTX 5080 系列' }
+        }
     }),
     high: Object.freeze({
         label: '高效指揮型｜進階影分身工作站',
         amd: { name: 'AMD 旗艦運算平台', cpu: 'AMD Ryzen 9 9950X', mb: 'ASUS X870E 系列主機板' },
         intel: { name: 'Intel 旗艦運算平台', cpu: 'Intel Core Ultra 9 285K', mb: 'ASUS Z890 系列主機板' },
-        shared: { gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB DDR5', ssd: '4TB PCIe 4.0／5.0 NVMe', case: 'ROG Cronox ARGB', cooling: 'ROG RYUJIN III 360 ARGB 水冷散熱', psu: 'ROG THOR III 1200W 電源供應器' }
+        shared: { gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB DDR5', ssd: '4TB PCIe 4.0／5.0 NVMe', case: 'ROG Cronox ARGB', cooling: 'ROG RYUJIN III 360 ARGB 水冷散熱', psu: 'ROG THOR III 1200W 電源供應器' },
+        components: {
+            cpu: { amd: 'AMD Ryzen 9 9000 系列', intel: 'Intel Core Ultra 9 桌上型處理器（系列 2）' },
+            mb: { amd: 'ASUS ROG Crosshair X870E 系列', intel: 'ASUS ROG Maximus Z890 系列' },
+            gpu: { all: 'ASUS ROG Astral GeForce RTX 5090 系列' }
+        }
     })
 });
 
-const campaignConfig = Object.freeze({ tutorials: [], promotions: [], productLinks: {} });
+const campaignConfig = Object.freeze({
+    tutorials: [], promotions: [],
+    productLinks: {
+        systems: { entry: '', mainstream: '', high: '' },
+        components: {
+            entry: { cpu: '', mb: '', gpu: '' },
+            mainstream: { cpu: '', mb: '', gpu: '' },
+            high: { cpu: '', mb: '', gpu: '' }
+        }
+    }
+});
 const modeCatalog = Object.freeze({
     manual: { label: '大多手動', baselineWeight: 1, agentWeight: 0 },
     assisted: { label: 'AI 輔助，但仍手動串接', baselineWeight: 0.58, agentWeight: 0.42 },
@@ -225,6 +250,8 @@ function initialize() {
         const trigger = event.target.closest('[data-task-toggle]');
         if (trigger) toggleTaskDetail(Number(trigger.dataset.taskToggle));
     });
+    document.getElementById('hardware-section').addEventListener('click', handleHardwareInteraction);
+    document.getElementById('hardware-section').addEventListener('keydown', handleHardwareKeydown);
     document.querySelectorAll('[data-close-modal]').forEach(element => element.addEventListener('click', closeModal));
     document.addEventListener('keydown', handleModalKeys);
 
@@ -908,6 +935,7 @@ function routeHardware(snapshot, taskResults) {
         needsReview,
         platforms: { amd: { ...hardwareCatalog[tierKey].amd }, intel: { ...hardwareCatalog[tierKey].intel } },
         sharedParts: { ...hardwareCatalog[tierKey].shared },
+        componentSeries: JSON.parse(JSON.stringify(hardwareCatalog[tierKey].components)),
         reasons: reasons.slice(0, 3),
         story: `您的任務需求涵蓋${formatChineseList(demandSummary)}，可由${teamText}協同完成；建議配置「${hardwareCatalog[tierKey].label}」，讓影分身團隊保持順暢多工。`
     };
@@ -1080,6 +1108,55 @@ function renderHardware(recommendation) {
         const [zh, en, icon] = partLabels[key];
         return `<article class="hardware-menu-row"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${value}</p></article>`;
     }).join('');
+    document.getElementById('system-purchase-cta').innerHTML = renderPurchaseLink('前往選購推薦整機', campaignConfig.productLinks.systems[recommendation.tier], 'system');
+    const componentLabels = {
+        cpu: ['處理器系列', 'CPU', 'cpu', '選購處理器系列'],
+        mb: ['主機板系列', 'MB', 'motherboard', '選購主機板系列'],
+        gpu: ['顯示卡系列', 'VGA', 'gpu', '選購顯示卡系列']
+    };
+    document.getElementById('component-series-grid').innerHTML = Object.entries(recommendation.componentSeries).map(([key, series]) => {
+        const [zh, en, icon, cta] = componentLabels[key];
+        const specs = series.all
+            ? `<p class="component-series-single">${series.all}</p>`
+            : `<div class="dual-spec"><span><em>AMD 平台</em>${series.amd}</span><span><em>Intel 平台</em>${series.intel}</span></div>`;
+        const link = campaignConfig.productLinks.components[recommendation.tier][key];
+        return `<article class="component-series-card"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div class="component-series-card__heading"><small>${en}</small><strong>${zh}</strong></div><div class="component-series-card__spec">${specs}</div>${renderPurchaseLink(cta, link, key)}</article>`;
+    }).join('');
+    selectHardwareTab('system');
+}
+
+function renderPurchaseLink(label, href, kind) {
+    const available = Boolean(href);
+    return `<a class="button button--accent hardware-buy-link ${available ? '' : 'is-placeholder'}" href="${available ? href : '#'}" data-buy-link="${kind}" ${available ? 'target="_blank" rel="noopener noreferrer"' : 'aria-disabled="true" title="導購連結準備中"'}>${label}${available ? '' : '<small>連結準備中</small>'}</a>`;
+}
+
+function handleHardwareInteraction(event) {
+    const tab = event.target.closest('[data-hardware-tab]');
+    if (tab) {
+        selectHardwareTab(tab.dataset.hardwareTab);
+        return;
+    }
+    const buyLink = event.target.closest('[data-buy-link]');
+    if (buyLink?.getAttribute('aria-disabled') === 'true') event.preventDefault();
+}
+
+function handleHardwareKeydown(event) {
+    const activeTab = event.target.closest('[data-hardware-tab]');
+    if (!activeTab || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    const nextTab = activeTab.dataset.hardwareTab === 'system' ? 'components' : 'system';
+    selectHardwareTab(nextTab);
+    document.querySelector(`[data-hardware-tab="${nextTab}"]`)?.focus();
+}
+
+function selectHardwareTab(tabName) {
+    document.querySelectorAll('[data-hardware-tab]').forEach(button => {
+        const selected = button.dataset.hardwareTab === tabName;
+        button.setAttribute('aria-selected', String(selected));
+        button.tabIndex = selected ? 0 : -1;
+    });
+    document.getElementById('hardware-panel-system').hidden = tabName !== 'system';
+    document.getElementById('hardware-panel-components').hidden = tabName !== 'components';
 }
 
 async function previewReport(trigger) {
