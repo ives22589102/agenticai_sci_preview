@@ -3,34 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="依照日常工作與工作量，計算 SCI 影分身指數與影分身戰力，找到適合建立地端影分身團隊的設備配置。">
-    <title>ASUS Agentic AI｜SCI 影分身工作效益評估</title>
-    <link rel="stylesheet" href="styles.css?v=20261001c">
+    <meta name="description" content="盤點日常工作，打造在高效能地端設備上運行的影分身軍團，提升 SCI 並釋放更多工作時間。">
+    <meta name="theme-color" content="#0b111a">
+    <title>ASUS Agentic AI｜SCI 工作效益評估 V2</title>
+    <link rel="stylesheet" href="styles.css?v=2.2.0">
 </head>
 <body>
     <a class="skip-link" href="#assessment">跳至評估內容</a>
 
     <header class="site-header">
         <div class="site-header__inner">
-            <a class="brand" href="#" aria-label="ASUS Agentic AI 首頁">
+            <a class="brand" href="#assessment" aria-label="回到 SCI 評估內容頂端">
                 <span class="brand__mark" aria-hidden="true">A</span>
                 <span>
                     <strong>ASUS <em>Agentic AI</em></strong>
-                    <small>SCI 影分身工作效益評估</small>
+                    <small>SCI 工作效益評估 · V2</small>
                 </span>
             </a>
-            <div class="header-actions">
-               
-                <button class="button button--quiet" type="button" id="reset-button">重新評估</button>
-            </div>
+            <div class="header-actions"><span class="draft-status" id="draft-status" aria-live="polite">步驟 1／4</span><button class="button button--quiet" type="button" id="reset-button">重新評估</button></div>
         </div>
     </header>
 
     <main id="assessment" class="page-shell">
         <section class="intro" aria-labelledby="page-title">
-            <p class="eyebrow">Shadow-Clone Index</p>
-            <h1 id="page-title">打造專屬於你的影分身團隊！</h1>
-            <p>算出你的 SCI 與影分身戰力，找到適合的地端設備，讓工作檔案與影分身流程留在自己手上，降低長期雲端訂閱與用量依賴。</p>
+            <div class="intro__copy">
+                <p class="eyebrow">Shadow-Clone Index · 4 分鐘評估</p>
+                <h1 id="page-title">用地端高效能設備，<br>打造你的影分身軍團</h1>
+                <p>盤點日常工作，找出適合交給影分身協作的流程；用自己的算力建立更完整的工作軍團，同時提升 SCI、釋放時間與雲端支出。</p>
+            </div>
+            <aside class="outcome-preview" aria-label="完成評估後可獲得的結果">
+                <span><b>01</b><strong>組建影分身軍團</strong><small>找出每項工作需要的專長</small></span>
+                <span><b>02</b><strong>讓算力留在地端</strong><small>減少訂閱、額度與連線依賴</small></span>
+                <span><b>03</b><strong>升級設備與 SCI</strong><small>用更高戰力承載更多工作流</small></span>
+            </aside>
         </section>
 
         <nav class="progress" aria-label="評估進度">
@@ -48,13 +53,9 @@
                 <header class="step-header">
                     <span class="step-kicker">Step 1</span>
                     <h2 id="step-1-title" tabindex="-1">你的主要工作身分</h2>
-                    <p>選擇最接近目前工作的族群。這只會調整任務清單，不會直接影響分數或設備等級。</p>
+                    <p>選擇最接近目前工作的族群。</p>
                 </header>
                 <div class="persona-grid" id="persona-grid"></div>
-                <div class="role-tag-panel" id="role-tag-panel" hidden>
-                    <h3>哪個方向最接近你？<span>選填，只調整任務排序</span></h3>
-                    <div class="choice-row" id="role-tags"></div>
-                </div>
             </section>
 
             <section class="step" id="step-2" data-step="2" aria-labelledby="step-2-title" hidden>
@@ -62,49 +63,66 @@
                     <div>
                         <span class="step-kicker">Step 2</span>
                         <h2 id="step-2-title" tabindex="-1">你平常需要處理哪些工作？</h2>
-                        <p>選擇你平常會處理的完整工作流程。8 項任務均為同一層級，最多選 6 項。</p>
+                        <p>選擇 1–6 項你經常處理的工作；可先評估最花時間的項目。</p>
                     </div>
-                    <div class="selection-count" aria-live="polite"><strong id="selected-count">0</strong><span>／6 已選</span></div>
+                    <div class="selection-count" aria-live="polite"><span>已選</span><strong id="selected-count">0</strong><span>／6 項</span></div>
                 </header>
                 <div class="recipe-grid" id="recipe-grid"></div>
+                <button class="text-button missing-work-button" type="button" id="missing-work-button">找不到我的工作</button>
             </section>
 
             <section class="step" id="step-3" data-step="3" aria-labelledby="step-3-title" hidden>
                 <header class="step-header">
                     <span class="step-kicker">Step 3</span>
                     <h2 id="step-3-title" tabindex="-1">這些工作通常花你多少時間？</h2>
-                    <p>依序選擇每週執行頻率、工作負載 Loading 與目前做法，再確認每次需要投入的人工時間。</p>
                 </header>
+                <div class="task-progress-summary" id="task-progress-summary" aria-live="polite"></div>
                 <div class="task-settings" id="task-settings"></div>
                 <section class="shared-settings" aria-labelledby="shared-settings-title">
                     <div class="section-heading">
-                        <span>共同設定</span>
+                        <span>最後確認</span>
                         <h3 id="shared-settings-title">你的使用情境</h3>
                     </div>
-                    <fieldset>
-                        <legend>通常需要同時處理幾項工作？</legend>
-                        <div class="segmented" id="parallel-options"></div>
-                    </fieldset>
-                    <fieldset id="users-fieldset" hidden>
-                        <legend>同時使用這套流程的人數</legend>
-                        <div class="segmented" id="users-options"></div>
-                        <p class="field-help">人數只影響設備負載，不會自動把節省時間乘上人數。</p>
-                    </fieldset>
-                    <div class="cost-settings">
+                    <section class="settings-group" aria-labelledby="value-settings-title">
+                        <header><span>01</span><div><h4 id="value-settings-title">目前工作流程的花費成本</h4></div></header>
                         <div class="field-block">
-                            <label for="hourly-cost">你認為執行這些工作的成本費用 <span class="required-mark">必填</span></label>
+                            <label for="hourly-cost">你認為執行這些工作的成本 <span>必填</span></label>
                             <div class="cost-input-row">
-                                <div class="input-prefix"><span>NT$</span><input id="hourly-cost" type="number" min="1" max="10000000" step="1" inputmode="numeric" placeholder="例如 300" required aria-required="true"></div>
+                                <div class="input-prefix"><span>NT$</span><input id="hourly-cost" type="number" min="1" max="10000000" step="1" inputmode="numeric" placeholder="例如 300"></div>
                                 <select id="cost-period" aria-label="成本費用計價週期">
                                     <option value="hour">每小時</option>
                                     <option value="week">每週</option>
                                     <option value="month">每月</option>
                                 </select>
                             </div>
-                            <p class="field-help">可填入你認為執行這些工作的成本，或目前支付的雲端服務訂閱費。預設以每小時計算，也可改為每週或每月；系統會統一換算後產生報告。</p>
+                            <div class="conversion-hours" id="conversion-hours" hidden><label for="period-hours">每月工作時數</label><input id="period-hours" type="number" min="1" max="744" step="1" inputmode="numeric" value="160"></div>
                             <p class="cost-conversion" id="cost-conversion">目前將以每小時成本計算。</p>
                         </div>
-                    </div>
+                        <fieldset class="cloud-usage-fieldset">
+                            <legend>你目前有使用雲端 AI 嗎？</legend>
+                            <div class="segmented" id="cloud-usage-options"></div>
+                        </fieldset>
+                        <section class="cloud-paid-options" id="cloud-paid-options" aria-labelledby="cloud-paid-title" hidden>
+                            <h5 id="cloud-paid-title">選擇訂閱方案</h5>
+                            <div class="cloud-plan-options" id="cloud-plan-options"></div>
+                            <div class="field-block cloud-other-field">
+                                <label for="cloud-other-cost">其他 AI／雲端工具支出 <span>選填</span></label>
+                                <div class="input-prefix"><span>NT$</span><input id="cloud-other-cost" type="number" min="0" max="10000000" step="1" inputmode="numeric" placeholder="例如 1,200"><span>／月</span></div>
+                                <p class="cloud-cost-total" id="cloud-cost-total">目前雲端支出合計：NT$ 0／月</p>
+                            </div>
+                        </section>
+                    </section>
+                    <section class="settings-group" aria-labelledby="device-settings-title">
+                        <header><span>02</span><div><h4 id="device-settings-title">工作流程使用方式</h4></div></header>
+                        <fieldset>
+                            <legend>你平常會同時執行幾個任務？</legend>
+                            <div class="segmented" id="parallel-options"></div>
+                        </fieldset>
+                        <fieldset id="users-fieldset" hidden>
+                            <legend>有多少人會同時使用這台設備的 AI 流程？</legend>
+                            <div class="segmented" id="users-options"></div>
+                        </fieldset>
+                    </section>
                     <div class="load-warning" id="load-warning" hidden></div>
                 </section>
             </section>
@@ -113,13 +131,17 @@
                 <header class="result-header">
                     <div>
                         <span class="step-kicker">Step 4</span>
-                        <h2 id="step-4-title" tabindex="-1">你的影分身工作效益報告</h2>
-                        <p id="result-summary"></p>
+                        <h2 id="step-4-title" tabindex="-1">你的影分身導入報告</h2>
                     </div>
-                    <span class="estimate-badge">依你的任務即時計算</span>
+                    <aside class="report-clone-summary" aria-labelledby="clone-title">
+                        <h3 id="clone-title" class="visually-hidden">本次影分身規劃</h3>
+                        <p id="clone-list"></p>
+                    </aside>
                 </header>
 
-                <section class="sci-overview" aria-labelledby="sci-overview-title">
+                <nav class="report-nav" aria-label="報告區塊導航"><a href="#report-summary">效益總覽</a><a href="#workflow-results-title">任務明細</a><a href="#hardware-title">設備建議</a></nav>
+
+                <section class="sci-overview" id="report-summary" aria-labelledby="sci-overview-title">
                     <h3 id="sci-overview-title" class="visually-hidden">SCI 指數比較</h3>
                     <div class="sci-card sci-card--current" id="current-sci-card"></div>
                     <div class="sci-bridge" aria-hidden="true">
@@ -130,31 +152,25 @@
                 </section>
 
                 <section class="metric-section" aria-labelledby="time-metrics-title">
-                    <h3 id="time-metrics-title" class="visually-hidden">已選工作範圍的時間效益</h3>
+                    <div class="section-heading"><h3 id="time-metrics-title">導入影分身後，每月能釋放多少？</h3></div>
                     <div class="metric-highlights" id="metric-highlights"></div>
-                </section>
-
-                <section class="clone-section" aria-labelledby="clone-title">
-                    <div class="section-heading"><span>依任務生成</span><h3 id="clone-title">你的影分身團隊</h3></div>
-                    <div class="clone-list" id="clone-list"></div>
-                    <p>每位影分身各自承接一段工作流程，從資料整理、內容生成到任務追蹤協同完成。</p>
                 </section>
 
                 <section class="workflow-results" aria-labelledby="workflow-results-title">
                     <div class="section-heading section-heading--split">
-                        <div><span>逐項比較</span><h3 id="workflow-results-title">每項工作前後會有什麼變化</h3></div>
-                        <button class="text-button" type="button" data-go-step="3">調整任務與頻率</button>
+                        <div><h3 id="workflow-results-title">哪些工作交給影分身？</h3></div>
                     </div>
                     <div id="workflow-result-table"></div>
                 </section>
 
                 <section class="hardware-section" id="hardware-section" aria-labelledby="hardware-title">
                     <div class="hardware-heading">
-                        <div><span>專屬設備建議</span><h3 id="hardware-title">最適合打造您影分身團隊的電腦設備</h3></div>
+                        <div><h3 id="hardware-title">用自己的設備運行這組影分身</h3></div>
                     </div>
-                    <div class="hardware-tabs" role="tablist" aria-label="設備推薦類型">
-                        <button type="button" role="tab" id="hardware-tab-system" aria-controls="hardware-panel-system" aria-selected="true" data-hardware-tab="system">整機</button>
-                        <button type="button" role="tab" id="hardware-tab-components" aria-controls="hardware-panel-components" aria-selected="false" data-hardware-tab="components">零組件</button>
+                    <div id="shadow-strength"></div>
+                    <div class="hardware-tabs" role="tablist" aria-label="設備建議類型">
+                        <button type="button" role="tab" id="hardware-tab-system" aria-controls="hardware-panel-system" aria-selected="true" data-hardware-tab="system">購買整台電腦</button>
+                        <button type="button" role="tab" id="hardware-tab-components" aria-controls="hardware-panel-components" aria-selected="false" data-hardware-tab="components">升級現有電腦</button>
                     </div>
                     <div class="hardware-panel" id="hardware-panel-system" role="tabpanel" aria-labelledby="hardware-tab-system">
                         <div class="platform-grid" id="platform-grid"></div>
@@ -162,19 +178,22 @@
                         <div class="hardware-cta" id="system-purchase-cta"></div>
                     </div>
                     <div class="hardware-panel" id="hardware-panel-components" role="tabpanel" aria-labelledby="hardware-tab-components" hidden>
-                        <div class="component-panel-intro"><strong>不更換整機，也能先補強地端影分身戰力</strong><p>依本次任務需求推薦 CPU、主機板與顯示卡系列，優先擴充本機模型與多工具工作流的運算餘裕；選購前請確認處理器插槽、電源與機殼空間。</p></div>
+                        <div class="component-panel-intro"><strong>先從影響最大的關鍵零組件升級</strong><p>以下是依任務需求提供的升級方向，不代表已確認與你現有電腦相容；選購前請確認處理器插槽、記憶體、電源與機殼空間。</p></div>
                         <div class="component-series-grid" id="component-series-grid"></div>
                     </div>
-                    <p class="hardware-story" id="hardware-reasons"></p>
-                    <div id="shadow-strength"></div>
+                    <aside class="deployment-path"><strong>買到設備後怎麼開始？</strong><ol><li>確認要在地端執行的任務與資料來源</li><li>安裝相容的模型、工具與流程</li><li>保留人工確認節點後再逐步擴充</li></ol></aside>
                 </section>
 
                 <div class="result-actions">
-                    <div class="result-actions__group">
-                        <button class="button button--secondary" type="button" data-go-step="2">調整任務與頻率</button>
-                        <button class="button button--secondary" type="button" id="result-reset-button">重新測試</button>
+                    <div class="result-actions__main">
+                        <a class="button button--accent" href="#hardware-title">查看推薦設備</a>
+                        <button class="button button--secondary" type="button" id="report-preview-button">下載報告</button>
+                        <details class="estimate-actions">
+                            <summary class="button button--quiet">調整估算</summary>
+                            <div><button type="button" data-go-step="2">修改任務</button><button type="button" data-go-step="3">修改時間</button></div>
+                        </details>
                     </div>
-                    <button class="button button--accent" type="button" id="report-preview-button">下載報告</button>
+                    <button class="text-button result-reset-link" type="button" id="result-reset-button">重新測試</button>
                 </div>
             </section>
 
@@ -189,8 +208,7 @@
     </main>
 
     <footer class="site-footer">
-        <p>© 2026 ASUSTeK Computer Inc.｜SCI 影分身工作效益評估</p>
-        <p>本工具不要求上傳訂單、論文、錄音或其他工作檔案。</p>
+        <p>© 2026 ASUSTeK Computer Inc.｜SCI 工作效益評估 V2</p>
     </footer>
 
     <div class="modal" id="modal" hidden>
@@ -201,7 +219,7 @@
         </section>
     </div>
 
-    <script src="workflow-data.js?v=20261001a"></script>
-    <script src="app.js?v=20261001c"></script>
+    <script src="workflow-data.js?v=2.2.0"></script>
+    <script src="app.js?v=2.2.0"></script>
 </body>
 </html>

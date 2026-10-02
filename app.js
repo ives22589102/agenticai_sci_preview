@@ -1,10 +1,10 @@
 'use strict';
 
 const VERSIONS = Object.freeze({
-    scoring: 'sci-index-v4',
-    workflows: 'workflow-model-v1',
-    recipes: 'recipes-v1',
-    hardware: 'hardware-v3'
+    scoring: 'sci-index-v5',
+    workflows: 'workflow-model-v2',
+    recipes: 'recipes-v2',
+    hardware: 'hardware-v4'
 });
 
 const SCI_CONFIG = Object.freeze({
@@ -12,11 +12,36 @@ const SCI_CONFIG = Object.freeze({
 });
 
 const COST_PERIOD_HOURS = Object.freeze({ hour: 1, week: 40, month: 160 });
-const TOKEN_CONFIG = Object.freeze({ twdPerMillionTokens: 190 });
-
-function twdToTokens(twd) {
-    return twd / TOKEN_CONFIG.twdPerMillionTokens * 1000000;
+const TOKEN_CONFIG = Object.freeze({ costPerTokenTwd: 0.00016, tokensPerTwd: 6250, label: '1 Token = NT$0.00016' });
+const USD_TWD_RATE = 31.92;
+function createCloudPlan(id, brandId, brand, plan, monthlyUsd) {
+    return Object.freeze({
+        id,
+        brandId,
+        brand,
+        plan,
+        monthlyUsd,
+        monthlyTwd: Math.round(monthlyUsd * USD_TWD_RATE)
+    });
 }
+
+const CLOUD_PLAN_CATALOG = Object.freeze([
+    createCloudPlan('chatgpt-free', 'chatgpt', 'ChatGPT', 'Free', 0),
+    createCloudPlan('chatgpt-go', 'chatgpt', 'ChatGPT', 'Go', 8),
+    createCloudPlan('chatgpt-plus', 'chatgpt', 'ChatGPT', 'Plus', 20),
+    createCloudPlan('chatgpt-pro-100', 'chatgpt', 'ChatGPT', 'Pro 100', 100),
+    createCloudPlan('chatgpt-pro-200', 'chatgpt', 'ChatGPT', 'Pro 200', 200),
+    createCloudPlan('chatgpt-pro-500', 'chatgpt', 'ChatGPT', 'Pro 500', 500),
+    createCloudPlan('gemini-free', 'gemini', 'Gemini', 'Free', 0),
+    createCloudPlan('gemini-ai-plus', 'gemini', 'Gemini', 'Google AI Plus', 4.99),
+    createCloudPlan('gemini-ai-pro', 'gemini', 'Gemini', 'Google AI Pro', 19.99),
+    createCloudPlan('gemini-ai-ultra-5x', 'gemini', 'Gemini', 'Google AI Ultra 5x', 99.99),
+    createCloudPlan('gemini-ai-ultra-20x', 'gemini', 'Gemini', 'Google AI Ultra 20x', 199.99),
+    createCloudPlan('claude-free', 'claude', 'Claude', 'Free', 0),
+    createCloudPlan('claude-pro', 'claude', 'Claude', 'Pro', 20),
+    createCloudPlan('claude-max-5x', 'claude', 'Claude', 'Max 5x', 100),
+    createCloudPlan('claude-max-20x', 'claude', 'Claude', 'Max 20x', 200)
+]);
 
 const personaCatalog = Object.freeze({
     soho: {
@@ -93,9 +118,9 @@ function makeRecipe(id, persona, title, workUnit, assist, review, manual, _legac
         softwareValidationStatus: 'pending',
         recipeVersion: '1.0',
         scales: Object.freeze({
-            small: Object.freeze({ label: '低負載', description: descriptions[0], manualMinutes: manual * 0.6, baseTier: tiers[0] }),
-            standard: Object.freeze({ label: '中負載', description: descriptions[1], manualMinutes: manual, baseTier: tiers[1] }),
-            large: Object.freeze({ label: '高負載', description: descriptions[2], manualMinutes: manual * 2.5, baseTier: tiers[2] })
+            small: Object.freeze({ label: '少量', description: descriptions[0], manualMinutes: manual * 0.6, baseTier: tiers[0] }),
+            standard: Object.freeze({ label: '參考量', description: descriptions[1], manualMinutes: manual, baseTier: tiers[1] }),
+            large: Object.freeze({ label: '大量', description: descriptions[2], manualMinutes: manual * 2.5, baseTier: tiers[2] })
         })
     });
 }
@@ -134,8 +159,8 @@ const hardwareCatalog = Object.freeze({
         label: 'A 級影分身戰力',
         strength: Object.freeze({ grade: 'A', meter: 20, label: '初階協作', capacity: '適合日常內容、文件與單一工作流', description: '從地端文件整理、內容生成與一般資料工作開始建立影分身流程。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'Agent Pioneer-A', mb: 'AMD B850', cpu: 'AMD Ryzen 7 9700X', gpu: 'NVIDIA GeForce RTX 5070 12GB／RTX 5060 Ti 16GB', ram: '64GB（32GB×2）DDR5 5600／6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'ASUS PRIME AP303', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 750W／850W 金牌' }),
-            Object.freeze({ name: 'Agent Pioneer-I', mb: 'Intel B860', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB／RTX 5060 Ti 16GB', ram: '64GB（32GB×2）DDR5 5600／6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'ASUS PRIME AP303', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 750W／850W 金牌' })
+            Object.freeze({ name: 'Agent Pioneer-A', mb: 'AMD B850', cpu: 'AMD Ryzen 7 9700X', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '64GB（32GB×2）DDR5 6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'ASUS PRIME AP303', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 850W 金牌' }),
+            Object.freeze({ name: 'Agent Pioneer-I', mb: 'Intel B860', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '64GB（32GB×2）DDR5 6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'ASUS PRIME AP303', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 850W 金牌' })
         ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 7 9000 系列', intel: 'Intel Core Ultra 7 桌上型處理器（系列 2）' },
@@ -147,8 +172,8 @@ const hardwareCatalog = Object.freeze({
         label: 'A+ 級影分身戰力',
         strength: Object.freeze({ grade: 'A+', meter: 40, label: '進階協作', capacity: '適合多項內容與資料工作流', description: '提供更多顯示記憶體、系統記憶體與多工具並行空間。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'Agent Professional-A', mb: 'AMD B850／X870', cpu: 'AMD Ryzen 9 9900X', gpu: 'AI Pro R9700 32GB／RTX 5070 12GB／RTX 5060 Ti 16GB', ram: '64GB／128GB DDR5 6000MHz', ssd: '2TB／4TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX／TUF 850W／1000W 金牌' }),
-            Object.freeze({ name: 'Agent Professional-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 7 265K', gpu: 'AI Pro R9700 32GB／RTX 5070 12GB／RTX 5060 Ti 16GB', ram: '64GB／128GB DDR5 6000MHz', ssd: '2TB／4TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX／TUF 850W／1000W 金牌' }),
+            Object.freeze({ name: 'Agent Professional-A', mb: 'AMD X870', cpu: 'AMD Ryzen 9 9900X', gpu: 'AMD Radeon AI PRO R9700 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
+            Object.freeze({ name: 'Agent Professional-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
             Object.freeze({ name: 'ASUS／ROG NUC', mb: '不適用（整合式系統）', cpu: 'Intel Core Ultra 9', gpu: 'NVIDIA GeForce RTX 5070 Laptop GPU 12GB GDDR7', ram: '16GB DDR5-6400 CSO-DIMM×2', ssd: '1TB M.2 2280 NVMe PCIe 4.0 SSD', case: 'NUC 整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '不適用（整合式系統）' })
         ]),
         components: Object.freeze({
@@ -161,8 +186,8 @@ const hardwareCatalog = Object.freeze({
         label: 'S 級影分身戰力',
         strength: Object.freeze({ grade: 'S', meter: 60, label: '高效協作', capacity: '適合高負載創作與多流程持續運行', description: '以 RTX 5090 級顯示卡與高階桌上型平台承接高負載地端模型及創作流程。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'Agent Master-A', mb: 'AMD X870E', cpu: 'AMD Ryzen 9 9950X', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '64GB／128GB DDR5 6000MHz', ssd: '2TB／4TB PCIe 4.0／5.0', case: 'ROG Strix Helios', cooling: 'ProArt LC 420／ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III' }),
-            Object.freeze({ name: 'Agent Master-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 9 285K', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB（32GB×4）DDR5 6000MHz', ssd: '4TB PCIe 4.0／5.0', case: 'ROG Strix Helios', cooling: 'ProArt LC 420／ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III 1000W／1200W' })
+            Object.freeze({ name: 'Agent Master-A', mb: 'AMD X870E', cpu: 'AMD Ryzen 9 9950X', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Strix Helios', cooling: 'ProArt LC 420', psu: 'ROG THOR III 1200W' }),
+            Object.freeze({ name: 'Agent Master-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 9 285K', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB（32GB×4）DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Strix Helios', cooling: 'ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III 1200W' })
         ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 9 9950X 系列', intel: 'Intel Core Ultra 9 285K 系列' },
@@ -174,8 +199,8 @@ const hardwareCatalog = Object.freeze({
         label: 'S+ 級影分身戰力',
         strength: Object.freeze({ grade: 'S+', meter: 80, label: '專業算力協作', capacity: '適合大型模型、專業資料與高併發工作', description: '面向工作站級顯示卡、大容量記憶體或整合式 Blackwell 平台。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'ET700I W7', mb: 'Intel W790', cpu: 'Intel Xeon W-3400', gpu: 'NVIDIA RTX 6000 Ada', ram: '512GB RDIMM DDR5 4800', ssd: '2TB／4TB PCIe 4.0', case: 'ROG Cronox ARGB', cooling: '不適用／依工作站配置', psu: '1300W' }),
-            Object.freeze({ name: 'RTX DGX／Spark', mb: '不適用（整合式系統）', cpu: 'NVIDIA DGX／Spark', gpu: 'NVIDIA Blackwell', ram: '64GB／128GB', ssd: '1TB／2TB', case: 'DGX Spark 整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '不適用（整合式系統）' })
+            Object.freeze({ name: 'ET700I W7', mb: 'Intel W790', cpu: 'Intel Xeon W-3400', gpu: 'NVIDIA RTX 6000 Ada', ram: '512GB RDIMM DDR5 4800', ssd: '4TB PCIe 4.0', case: 'ROG Cronox ARGB', cooling: '依工作站配置', psu: '1300W' }),
+            Object.freeze({ name: 'RTX DGX／Spark', mb: '不適用（整合式系統）', cpu: 'NVIDIA DGX／Spark', gpu: 'NVIDIA Blackwell', ram: '128GB', ssd: '2TB', case: 'DGX Spark 整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '不適用（整合式系統）' })
         ]),
         components: Object.freeze({
             cpu: { amd: 'NVIDIA GB10 Grace Blackwell Superchip', intel: 'Intel Xeon W-3400 系列', leftLabel: 'NVIDIA 平台', rightLabel: 'Intel 工作站' },
@@ -211,8 +236,8 @@ const campaignConfig = Object.freeze({
     }
 });
 const modeCatalog = Object.freeze({
-    manual: { label: '大多手動', baselineWeight: 1, agentWeight: 0 },
-    assisted: { label: 'AI 輔助，但仍手動串接', baselineWeight: 0.58, agentWeight: 0.42 },
+    manual: { label: '主要手動完成', baselineWeight: 1, agentWeight: 0 },
+    assisted: { label: '使用 AI 協助', baselineWeight: 0.58, agentWeight: 0.42 },
     automated: { label: '已有自動化流程', baselineWeight: 0.18, agentWeight: 0.82 }
 });
 
@@ -226,7 +251,11 @@ const assessmentState = {
     executionNeeds: { parallelBand: '', usersBand: '' },
     costAmountTwd: '',
     costPeriod: 'hour',
+    periodHours: 160,
     hourlyCostTwd: '',
+    cloudUsage: '',
+    cloudPlans: [],
+    cloudOtherCostTwd: '',
     result: null
 };
 
@@ -240,8 +269,6 @@ document.addEventListener('DOMContentLoaded', initialize);
 function initialize() {
     Object.assign(elements, {
         personaGrid: document.getElementById('persona-grid'),
-        rolePanel: document.getElementById('role-tag-panel'),
-        roleTags: document.getElementById('role-tags'),
         recipeGrid: document.getElementById('recipe-grid'),
         selectedCount: document.getElementById('selected-count'),
         taskSettings: document.getElementById('task-settings'),
@@ -250,7 +277,15 @@ function initialize() {
         usersOptions: document.getElementById('users-options'),
         hourlyCost: document.getElementById('hourly-cost'),
         costPeriod: document.getElementById('cost-period'),
+        periodHours: document.getElementById('period-hours'),
+        conversionHours: document.getElementById('conversion-hours'),
         costConversion: document.getElementById('cost-conversion'),
+        cloudUsageOptions: document.getElementById('cloud-usage-options'),
+        cloudPaidOptions: document.getElementById('cloud-paid-options'),
+        cloudPlanOptions: document.getElementById('cloud-plan-options'),
+        cloudOtherCost: document.getElementById('cloud-other-cost'),
+        cloudCostTotal: document.getElementById('cloud-cost-total'),
+        taskProgressSummary: document.getElementById('task-progress-summary'),
         loadWarning: document.getElementById('load-warning'),
         backButton: document.getElementById('back-button'),
         nextButton: document.getElementById('next-button'),
@@ -261,18 +296,21 @@ function initialize() {
         modalContent: document.getElementById('modal-content')
     });
 
-    document.getElementById('reset-button').addEventListener('click', resetAssessment);
+    document.getElementById('reset-button').addEventListener('click', requestResetAssessment);
     elements.backButton.addEventListener('click', previousStep);
     elements.nextButton.addEventListener('click', nextStep);
     elements.hourlyCost.addEventListener('input', syncCostSettings);
     elements.costPeriod.addEventListener('change', syncCostSettings);
+    elements.periodHours.addEventListener('input', syncCostSettings);
+    elements.cloudOtherCost.addEventListener('input', syncCloudSettings);
     document.querySelectorAll('[data-go-step]').forEach(button => {
         button.addEventListener('click', () => goToStep(Number(button.dataset.goStep)));
     });
     document.querySelectorAll('[data-progress-trigger]').forEach(button => {
         button.addEventListener('click', () => handleProgressStepClick(Number(button.dataset.progressTrigger)));
     });
-    document.getElementById('result-reset-button').addEventListener('click', resetAssessment);
+    document.getElementById('result-reset-button').addEventListener('click', requestResetAssessment);
+    document.getElementById('missing-work-button').addEventListener('click', event => openMissingWorkModal(event.currentTarget));
     document.getElementById('report-preview-button').addEventListener('click', event => previewReport(event.currentTarget));
     document.querySelector('.sci-overview').addEventListener('click', event => {
         const trigger = event.target.closest('#sci-info-trigger');
@@ -293,21 +331,37 @@ function initialize() {
 }
 
 function renderPersonaSelection() {
+    elements.personaGrid.setAttribute('role', 'radiogroup');
+    elements.personaGrid.setAttribute('aria-label', '主要工作身分');
     elements.personaGrid.innerHTML = Object.entries(personaCatalog).map(([key, persona]) => `
-        <button class="persona-card ${assessmentState.persona === key ? 'is-selected' : ''}" type="button" data-persona="${key}" aria-pressed="${assessmentState.persona === key}">
+        <label class="persona-card ${assessmentState.persona === key ? 'is-selected' : ''}" data-persona="${key}">
+            <input type="radio" name="persona" value="${key}" ${assessmentState.persona === key ? 'checked' : ''}>
             <span class="persona-icon" aria-hidden="true">${persona.icon}</span>
-            <h3>${persona.name}</h3>
-            <p>${persona.description}</p>
-            <small>${persona.note}</small>
-        </button>
+            <span class="persona-card__copy"><strong>${persona.name}</strong><span>${persona.description}</span></span>
+            <i aria-hidden="true">✓</i>
+        </label>
     `).join('');
-    elements.personaGrid.querySelectorAll('[data-persona]').forEach(button => {
-        button.addEventListener('click', () => selectPersona(button.dataset.persona));
+    elements.personaGrid.querySelectorAll('input[name="persona"]').forEach(input => {
+        input.addEventListener('change', () => selectPersona(input.value));
     });
-    renderRoleTags();
 }
 
 function selectPersona(personaKey) {
+    if (assessmentState.persona && assessmentState.persona !== personaKey && assessmentState.selectedRecipeIds.length) {
+        renderPersonaSelection();
+        elements.modalContent.innerHTML = `<div class="confirm-reset"><span class="step-kicker">更換工作身分</span><h2 id="modal-title">要切換到其他族群嗎？</h2><p>任務清單會跟著改變，目前已選任務與時間設定將清除。</p><div><button class="button button--quiet" type="button" data-close-modal>保留目前身分</button><button class="button button--accent" type="button" id="confirm-persona-button">確認切換</button></div></div>`;
+        elements.modalContent.querySelector('[data-close-modal]').addEventListener('click', closeModal);
+        document.getElementById('confirm-persona-button').addEventListener('click', () => {
+            closeModal();
+            applyPersonaSelection(personaKey);
+        });
+        openModal(elements.personaGrid.querySelector(`input[value="${assessmentState.persona}"]`));
+        return;
+    }
+    applyPersonaSelection(personaKey);
+}
+
+function applyPersonaSelection(personaKey) {
     if (assessmentState.persona !== personaKey) {
         assessmentState.persona = personaKey;
         assessmentState.roleTag = null;
@@ -322,51 +376,31 @@ function selectPersona(personaKey) {
     updateNavigation();
 }
 
-function renderRoleTags() {
-    if (!assessmentState.persona) {
-        elements.rolePanel.hidden = true;
-        return;
-    }
-    const persona = personaCatalog[assessmentState.persona];
-    elements.rolePanel.hidden = false;
-    elements.roleTags.innerHTML = [
-        `<label class="choice-chip"><input type="radio" name="role-tag" value="" ${!assessmentState.roleTag ? 'checked' : ''}><span>不指定</span></label>`,
-        ...persona.roleTags.map(([value, label]) => `<label class="choice-chip"><input type="radio" name="role-tag" value="${value}" ${assessmentState.roleTag === value ? 'checked' : ''}><span>${label}</span></label>`)
-    ].join('');
-    elements.roleTags.querySelectorAll('input').forEach(input => {
-        input.addEventListener('change', () => {
-            assessmentState.roleTag = input.value || null;
-            if (assessmentState.currentStep === 2) renderRecipeSelection();
-        });
-    });
-}
-
 function getPersonaRecipes() {
     const recipes = recipeCatalog.filter(recipe => recipe.persona === assessmentState.persona);
-    return recipes.slice().sort((a, b) => {
-        const aTag = assessmentState.roleTag && a.roleTags.includes(assessmentState.roleTag) ? 1 : 0;
-        const bTag = assessmentState.roleTag && b.roleTags.includes(assessmentState.roleTag) ? 1 : 0;
-        return bTag - aTag || a.id.localeCompare(b.id);
-    });
+    return recipes.slice().sort((a, b) => a.id.localeCompare(b.id));
 }
 
 function renderRecipeSelection() {
     const recipes = getPersonaRecipes();
+    const limitReached = assessmentState.selectedRecipeIds.length >= 6;
+    const openDetailIds = new Set([...elements.recipeGrid.querySelectorAll('.recipe-detail[open]')].map(detail => detail.closest('[data-recipe-card]')?.dataset.recipeCard).filter(Boolean));
     elements.recipeGrid.innerHTML = recipes.map(recipe => {
         const selected = assessmentState.selectedRecipeIds.includes(recipe.id);
         return `
-            <article class="recipe-card ${selected ? 'is-selected' : ''}" data-recipe-card="${recipe.id}">
+            <article class="recipe-card ${selected ? 'is-selected' : ''} ${limitReached && !selected ? 'is-limit-reached' : ''}" data-recipe-card="${recipe.id}">
                 <label class="recipe-select">
-                    <input type="checkbox" value="${recipe.id}" ${selected ? 'checked' : ''} aria-describedby="recipe-summary-${recipe.id}">
+                    <input type="checkbox" value="${recipe.id}" ${selected ? 'checked' : ''} ${limitReached && !selected ? 'disabled' : ''} aria-describedby="recipe-summary-${recipe.id}">
                     <span>
                         <strong>${recipe.title}</strong>
-                        <p id="recipe-summary-${recipe.id}">一次工作量：${recipe.workUnit}</p>
+                        <p id="recipe-summary-${recipe.id}">${getRecipeContext(recipe)}</p>
                     </span>
+                    ${limitReached && !selected ? '<em>已達上限</em>' : ''}
                 </label>
-                <details class="recipe-detail">
-                    <summary>查看流程與人工確認項目</summary>
+                <details class="recipe-detail" ${openDetailIds.has(recipe.id) ? 'open' : ''}>
+                    <summary>查看 AI 可協助的流程</summary>
                     <div class="recipe-detail__body">
-                        <div><h4>影分身可協助</h4><p>${recipe.assist}</p></div>
+                        <div><h4>AI 可協助</h4><p>${recipe.assist}</p></div>
                         <div><h4>你仍需確認</h4><p>${recipe.review}</p></div>
                     </div>
                 </details>
@@ -414,60 +448,46 @@ function createDefaultAnswer(recipeId) {
         period: 'week',
         currentMode: '',
         currentHumanMinutes: '',
-        timeSource: 'reference'
+        timeSource: '',
+        timeConfirmed: false
     };
 }
 
-function renderFrequencyOptions(selectedValue) {
-    const values = [...Array.from({ length: 30 }, (_, index) => index + 1), 40, 50, 75, 100];
-    return `<option value="">請選擇</option>${values.map(value => `<option value="${value}" ${String(selectedValue) === String(value) ? 'selected' : ''}>${value}</option>`).join('')}`;
+function renderPeriodOptions(selectedValue) {
+    return [['day', '每天'], ['week', '每週'], ['month', '每月']].map(([value, label]) => `<option value="${value}" ${selectedValue === value ? 'selected' : ''}>${label}</option>`).join('');
 }
 
 function renderTaskSettings() {
     const ordered = assessmentState.selectedRecipeIds.map(getRecipe);
+    const openTaskIds = new Set([...elements.taskSettings.querySelectorAll('[data-task-id][open]')].map(card => card.dataset.taskId));
     let openedIncomplete = false;
     elements.taskSettings.innerHTML = ordered.map((recipe, index) => {
         const answer = assessmentState.taskAnswers[recipe.id] || createDefaultAnswer(recipe.id);
-        answer.period = 'week';
         assessmentState.taskAnswers[recipe.id] = answer;
         const complete = isAnswerComplete(answer);
-        const shouldOpen = !complete && !openedIncomplete;
-        if (shouldOpen) openedIncomplete = true;
+        const shouldOpen = openTaskIds.has(recipe.id) || (!openTaskIds.size && !complete && !openedIncomplete);
+        if (!openTaskIds.size && shouldOpen) openedIncomplete = true;
         const reference = getReferenceMinutes(recipe, answer.scale, answer.currentMode);
         const hasReference = Number.isFinite(reference);
+        const monthlyFrequency = frequencyToMonthly(answer.frequency, answer.period);
         return `
             <details class="task-setting ${complete ? 'is-complete' : ''}" data-task-id="${recipe.id}" ${shouldOpen ? 'open' : ''}>
                 <summary>
                     <span class="task-summary-title"><span class="task-index">${index + 1}</span><span><strong>${recipe.title}</strong><small>${summarizeAnswer(recipe, answer)}</small></span></span>
-                    <span class="completion-state ${complete ? 'is-complete' : ''}">${complete ? '已完成' : '待填寫'}</span>
                 </summary>
                 <div class="task-setting__body">
-                    <div class="field-grid">
-                        <div class="field-block">
-                            <label for="frequency-${recipe.id}">執行頻率</label>
-                            <div class="frequency-sentence">
-                                <span>這項工作每週要做</span>
-                                <select id="frequency-${recipe.id}" data-field="frequency" aria-label="選擇執行次數">${renderFrequencyOptions(answer.frequency)}</select>
-                                <span>次</span>
-                            </div>
+                    <div class="task-field-sequence">
+                        <div class="task-field-step">
+                            <span class="field-number">1</span><div class="field-block"><label for="frequency-${recipe.id}">多常做一次？</label><div class="frequency-sentence"><select data-field="period" aria-label="選擇執行週期">${renderPeriodOptions(answer.period)}</select><input id="frequency-${recipe.id}" data-field="frequency" type="number" min="1" max="1000" step="1" inputmode="numeric" value="${answer.frequency}" placeholder="次數"><span>次</span></div><p class="field-help" data-monthly-frequency>${monthlyFrequency > 0 ? `約每月 ${formatInputNumber(monthlyFrequency)} 次` : '例如每週 2 次或每月 1 次'}</p></div>
                         </div>
-                        <fieldset>
-                            <legend>工作負載 <span class="legend-en">Loading</span></legend>
-                            <div class="scale-options">
-                                ${Object.entries(recipe.scales).map(([key, scale]) => `<label class="scale-option"><input type="radio" name="scale-${recipe.id}" value="${key}" ${answer.scale === key ? 'checked' : ''}><span><b>${scale.label}</b></span></label>`).join('')}
-                            </div>
-                        </fieldset>
-                        <fieldset>
-                            <legend>目前做法</legend>
-                            <div class="mode-options">
-                                ${Object.entries(modeCatalog).map(([key, mode]) => `<label><input type="radio" name="mode-${recipe.id}" value="${key}" ${answer.currentMode === key ? 'checked' : ''}>${mode.label}</label>`).join('')}
-                            </div>
-                        </fieldset>
-                        <div class="field-block">
-                            <label for="minutes-${recipe.id}">目前每次人工投入時間</label>
-                            <div class="input-prefix"><input id="minutes-${recipe.id}" data-field="currentHumanMinutes" type="number" min="0.1" max="10080" step="0.1" inputmode="decimal" value="${answer.currentHumanMinutes === '' ? '' : formatInputNumber(answer.currentHumanMinutes)}" placeholder="選完負載與做法後自動帶入" ${hasReference ? '' : 'disabled'}><span>分鐘</span></div>
-                            <span class="reference-value" data-reference-value>${hasReference ? `系統依此任務、工作負載與目前做法推算：${formatMinutes(reference)} 分鐘` : '選完工作負載與目前做法後，系統會自動推算時間'}</span>
-                            <p class="field-help">已包含操作、整理、檢查與修改時間，也可直接調整成你的實際數字。</p>
+                        <div class="task-field-step">
+                            <span class="field-number">2</span><fieldset><legend>這項工作約占你整體工時多少？</legend><div class="scale-options loading-options">${Object.keys(recipe.scales).map(key => { const loading = getLoadingMeta(key); return `<label class="scale-option loading-option"><input type="radio" name="scale-${recipe.id}" value="${key}" ${answer.scale === key ? 'checked' : ''}><span><i class="loading-meter" aria-hidden="true">${[1, 2, 3].map(level => `<em class="${level <= loading.level ? 'is-active' : ''}"></em>`).join('')}</i><b>${loading.label}</b></span></label>`; }).join('')}</div></fieldset>
+                        </div>
+                        <div class="task-field-step">
+                            <span class="field-number">3</span><fieldset><legend>現在怎麼完成？</legend><div class="mode-options">${Object.entries(modeCatalog).map(([key, mode]) => `<label><input type="radio" name="mode-${recipe.id}" value="${key}" ${answer.currentMode === key ? 'checked' : ''}><span><b>${mode.label}</b><small>${getModeDescription(key)}</small></span></label>`).join('')}</div></fieldset>
+                        </div>
+                        <div class="task-field-step">
+                            <span class="field-number">4</span><div class="field-block"><label for="minutes-${recipe.id}">每次人工投入時間</label><div class="input-prefix time-input"><input id="minutes-${recipe.id}" data-field="currentHumanMinutes" type="number" min="0.1" max="10080" step="0.1" inputmode="decimal" value="${answer.currentHumanMinutes === '' ? '' : formatInputNumber(answer.currentHumanMinutes)}" placeholder="完成前面設定後自動帶入"><span>分鐘</span></div><span class="reference-value" data-reference-value>${hasReference ? `已先套用參考估算：${formatMinutes(reference)} 分鐘／次，可直接修改` : '完成工時占比與目前做法後，系統會先帶入參考估算'}</span><p class="field-help">包含資料準備、操作、整理、檢查與修改。</p></div>
                         </div>
                     </div>
                 </div>
@@ -476,6 +496,7 @@ function renderTaskSettings() {
     }).join('');
 
     elements.taskSettings.querySelectorAll('[data-task-id]').forEach(card => bindTaskCard(card));
+    updateTaskProgressSummary();
     renderLoadWarning();
 }
 
@@ -484,8 +505,9 @@ function bindTaskCard(card) {
     card.querySelector('summary').addEventListener('click', () => handleTaskSummaryClick(card));
     card.querySelectorAll(`input[name="scale-${recipeId}"]`).forEach(input => input.addEventListener('change', () => updateAnswerScale(recipeId, input.value)));
     card.querySelectorAll(`input[name="mode-${recipeId}"]`).forEach(input => input.addEventListener('change', () => updateAnswerMode(recipeId, input.value)));
-    card.querySelector('[data-field="frequency"]').addEventListener('change', event => updateSimpleAnswer(recipeId, 'frequency', event.target.value));
-    card.querySelector('[data-field="currentHumanMinutes"]').addEventListener('change', event => updateHumanMinutes(recipeId, event.target.value));
+    card.querySelector('[data-field="frequency"]').addEventListener('input', event => updateSimpleAnswer(recipeId, 'frequency', event.target.value));
+    card.querySelector('[data-field="period"]').addEventListener('change', event => updateSimpleAnswer(recipeId, 'period', event.target.value));
+    card.querySelector('[data-field="currentHumanMinutes"]').addEventListener('input', event => updateHumanMinutes(recipeId, event.target.value));
 }
 
 function updateAnswerScale(recipeId, scale) {
@@ -494,6 +516,7 @@ function updateAnswerScale(recipeId, scale) {
     if (answer.currentMode && answer.timeSource !== 'custom') {
         answer.currentHumanMinutes = getReferenceMinutes(getRecipe(recipeId), scale, answer.currentMode);
         answer.timeSource = 'reference';
+        answer.timeConfirmed = true;
     }
     invalidateResult();
     refreshTaskEstimate(recipeId);
@@ -505,6 +528,7 @@ function updateAnswerMode(recipeId, mode) {
     if (answer.scale && answer.timeSource !== 'custom') {
         answer.currentHumanMinutes = getReferenceMinutes(getRecipe(recipeId), answer.scale, mode);
         answer.timeSource = 'reference';
+        answer.timeConfirmed = true;
     }
     invalidateResult();
     refreshTaskEstimate(recipeId);
@@ -514,6 +538,7 @@ function updateHumanMinutes(recipeId, value) {
     const answer = assessmentState.taskAnswers[recipeId];
     answer.currentHumanMinutes = value;
     answer.timeSource = 'custom';
+    answer.timeConfirmed = Number(value) > 0;
     invalidateResult();
     const card = elements.taskSettings.querySelector(`[data-task-id="${recipeId}"]`);
     updateTaskCardStatus(recipeId);
@@ -524,27 +549,23 @@ function updateSimpleAnswer(recipeId, field, value) {
     assessmentState.taskAnswers[recipeId][field] = value;
     invalidateResult();
     updateTaskCardStatus(recipeId);
+    const card = elements.taskSettings.querySelector(`[data-task-id="${recipeId}"]`);
+    const monthlyLabel = card?.querySelector('[data-monthly-frequency]');
+    if (monthlyLabel) {
+        const answer = assessmentState.taskAnswers[recipeId];
+        const monthly = frequencyToMonthly(answer.frequency, answer.period);
+        monthlyLabel.textContent = monthly > 0 ? `約每月 ${formatInputNumber(monthly)} 次` : '例如每週 2 次或每月 1 次';
+    }
     renderLoadWarning();
 }
 
 function refreshTaskEstimate(recipeId) {
-    const answer = assessmentState.taskAnswers[recipeId];
-    const recipe = getRecipe(recipeId);
     const card = elements.taskSettings.querySelector(`[data-task-id="${recipeId}"]`);
     if (!card) return;
-    const reference = getReferenceMinutes(recipe, answer.scale, answer.currentMode);
-    const hasReference = Number.isFinite(reference);
-    const referenceLabel = card.querySelector('[data-reference-value]');
-    if (referenceLabel) referenceLabel.textContent = hasReference
-        ? `系統依此任務、工作負載與目前做法推算：${formatMinutes(reference)} 分鐘`
-        : '選完工作負載與目前做法後，系統會自動推算時間';
-    const minutesInput = card.querySelector('[data-field="currentHumanMinutes"]');
-    if (minutesInput) minutesInput.disabled = !hasReference;
-    if (answer.timeSource !== 'custom') {
-        if (minutesInput) minutesInput.value = answer.currentHumanMinutes === '' ? '' : formatInputNumber(answer.currentHumanMinutes);
-    }
-    updateTaskCardStatus(recipeId);
-    renderLoadWarning();
+    const wasOpen = card.open;
+    renderTaskSettings();
+    const refreshedCard = elements.taskSettings.querySelector(`[data-task-id="${recipeId}"]`);
+    if (refreshedCard) refreshedCard.open = wasOpen;
 }
 
 function updateTaskCardStatus(recipeId) {
@@ -555,28 +576,13 @@ function updateTaskCardStatus(recipeId) {
     const complete = isAnswerComplete(answer);
     card.classList.toggle('is-complete', complete);
     const summary = card.querySelector('.task-summary-title small');
-    const stateLabel = card.querySelector('.completion-state');
     if (summary) summary.textContent = summarizeAnswer(recipe, answer);
-    if (stateLabel) {
-        stateLabel.textContent = complete ? '已完成' : '待填寫';
-        stateLabel.classList.toggle('is-complete', complete);
-        stateLabel.classList.toggle('is-error', !complete && card.classList.contains('has-error'));
-    }
     if (complete) clearTaskErrors(recipeId);
     else if (card.classList.contains('has-error')) markTaskErrors(recipeId, false);
+    updateTaskProgressSummary();
 }
 
 function handleTaskSummaryClick(targetCard) {
-    const currentOpenCards = [...elements.taskSettings.querySelectorAll('[data-task-id][open]')].filter(card => card !== targetCard);
-    if (targetCard.open && !isAnswerComplete(assessmentState.taskAnswers[targetCard.dataset.taskId])) {
-        markTaskErrors(targetCard.dataset.taskId, false);
-    }
-    currentOpenCards.forEach(currentOpen => {
-        const currentId = currentOpen.dataset.taskId;
-        if (!isAnswerComplete(assessmentState.taskAnswers[currentId])) {
-            markTaskErrors(currentId, false);
-        }
-    });
     clearError();
 }
 
@@ -587,10 +593,10 @@ function getMissingTaskFields(recipeId) {
     const missing = [];
     const frequency = Number(answer.frequency);
     const minutes = Number(answer.currentHumanMinutes);
-    if (!Number.isInteger(frequency) || frequency < 1 || frequency > 100) missing.push(card.querySelector('[data-field="frequency"]'));
+    if (!Number.isInteger(frequency) || frequency <= 0 || frequency > 1000) missing.push(card.querySelector('[data-field="frequency"]'));
     if (!answer.scale) missing.push(card.querySelector('.scale-options'));
     if (!answer.currentMode) missing.push(card.querySelector('.mode-options'));
-    if (answer.scale && answer.currentMode && (!Number.isFinite(minutes) || minutes < 0.1 || minutes > 10080)) {
+    if (answer.scale && answer.currentMode && (!answer.timeSource || !answer.timeConfirmed || !Number.isFinite(minutes) || minutes < 0.1 || minutes > 10080)) {
         missing.push(card.querySelector('[data-field="currentHumanMinutes"]'));
     }
     return missing.filter(Boolean);
@@ -608,11 +614,6 @@ function markTaskErrors(recipeId, focusFirst = false) {
     card.open = true;
     card.classList.add('has-error');
     missing.forEach(element => element.classList.add('field-error'));
-    const stateLabel = card.querySelector('.completion-state');
-    if (stateLabel) {
-        stateLabel.textContent = '請補填';
-        stateLabel.classList.add('is-error');
-    }
     if (focusFirst) {
         missing[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
         missing[0].focus?.({ preventScroll: true });
@@ -625,8 +626,13 @@ function clearTaskErrors(recipeId) {
     if (!card) return;
     card.classList.remove('has-error');
     card.querySelectorAll('.field-error').forEach(element => element.classList.remove('field-error'));
-    const stateLabel = card.querySelector('.completion-state');
-    stateLabel?.classList.remove('is-error');
+}
+
+function updateTaskProgressSummary() {
+    if (!elements.taskProgressSummary) return;
+    const total = assessmentState.selectedRecipeIds.length;
+    const complete = assessmentState.selectedRecipeIds.filter(id => isAnswerComplete(assessmentState.taskAnswers[id])).length;
+    elements.taskProgressSummary.innerHTML = `<span><b>${complete}</b>／${total} 項已完成</span><i style="--progress:${total ? complete / total * 100 : 0}%" aria-hidden="true"></i>`;
 }
 
 function renderSharedOptions() {
@@ -634,10 +640,28 @@ function renderSharedOptions() {
         ['1', '多半依序'], ['2', '約 2 項同時'], ['3-4', '3 至 4 項同時'], ['5+', '5 項以上'], ['unknown', '不確定']
     ];
     const usersOptions = [
-        ['1', '單人'], ['2-5', '2 至 5 人'], ['6-10', '6 至 10 人'], ['10+', '10 人以上']
+        ['1', '單人'], ['2-5', '2 至 5 人'], ['6-10', '6 至 10 人'], ['11+', '11 人以上']
+    ];
+    const cloudBrands = [
+        ['chatgpt', 'ChatGPT'],
+        ['gemini', 'Gemini'],
+        ['claude', 'Claude']
+    ];
+    const cloudUsageOptions = [
+        ['none', '未使用 AI'],
+        ['free', '使用免費 AI'],
+        ['paid', '訂閱 AI']
     ];
     elements.parallelOptions.innerHTML = parallelOptions.map(([value, label]) => `<label><input type="radio" name="parallel-band" value="${value}"><span>${label}</span></label>`).join('');
     elements.usersOptions.innerHTML = usersOptions.map(([value, label]) => `<label><input type="radio" name="users-band" value="${value}"><span>${label}</span></label>`).join('');
+    elements.cloudUsageOptions.innerHTML = cloudUsageOptions.map(([value, label]) => `<label><input type="radio" name="cloud-usage" value="${value}"><span>${label}</span></label>`).join('');
+    elements.cloudPlanOptions.innerHTML = cloudBrands.map(([brandId, brand]) => {
+        const plans = CLOUD_PLAN_CATALOG.filter(plan => plan.brandId === brandId && plan.monthlyTwd > 0);
+        return `<details class="cloud-service-group" data-cloud-provider="${brandId}">
+            <summary><strong>${brand}</strong><span data-cloud-brand-summary="${brandId}">選擇方案</span></summary>
+            <div class="cloud-service-plans">${plans.map(plan => `<label class="cloud-plan-option"><input type="checkbox" name="cloud-plan-${brandId}" value="${plan.id}" data-cloud-plan><span><strong>${plan.plan}</strong><small>${formatCurrency(plan.monthlyTwd)}／月</small></span><b aria-hidden="true">✓</b></label>`).join('')}</div>
+        </details>`;
+    }).join('');
     elements.parallelOptions.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
         assessmentState.executionNeeds.parallelBand = input.value;
         invalidateResult();
@@ -646,40 +670,110 @@ function renderSharedOptions() {
         assessmentState.executionNeeds.usersBand = input.value;
         invalidateResult();
     }));
+    elements.cloudUsageOptions.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
+        assessmentState.cloudUsage = input.value;
+        if (input.value !== 'paid') clearCloudPaidSelection();
+        syncCloudSettings();
+        invalidateResult();
+    }));
+    elements.cloudPlanOptions.querySelectorAll('[data-cloud-plan]').forEach(input => input.addEventListener('change', () => {
+        if (input.checked) {
+            elements.cloudPlanOptions.querySelectorAll(`input[name="${input.name}"]`).forEach(sibling => {
+                if (sibling !== input) sibling.checked = false;
+            });
+        }
+        assessmentState.cloudPlans = [...elements.cloudPlanOptions.querySelectorAll('[data-cloud-plan]:checked')].map(item => item.value);
+        input.closest('details')?.removeAttribute('open');
+        updateCloudProviderSummaries();
+        syncCloudSettings();
+        invalidateResult();
+    }));
+    elements.cloudPlanOptions.querySelectorAll('.cloud-service-group').forEach(group => group.addEventListener('toggle', () => {
+        if (!group.open) return;
+        elements.cloudPlanOptions.querySelectorAll('.cloud-service-group[open]').forEach(other => {
+            if (other !== group) other.removeAttribute('open');
+        });
+    }));
+}
+
+function clearCloudPaidSelection() {
+    assessmentState.cloudPlans = [];
+    assessmentState.cloudOtherCostTwd = '';
+    elements.cloudPlanOptions.querySelectorAll('[data-cloud-plan]').forEach(input => { input.checked = false; });
+    elements.cloudOtherCost.value = '';
+    updateCloudProviderSummaries();
+}
+
+function updateCloudProviderSummaries() {
+    elements.cloudPlanOptions.querySelectorAll('[data-cloud-brand-summary]').forEach(summary => {
+        const selected = assessmentState.cloudPlans.map(id => CLOUD_PLAN_CATALOG.find(plan => plan.id === id)).find(plan => plan?.brandId === summary.dataset.cloudBrandSummary);
+        summary.textContent = selected ? `${selected.plan} · ${formatCurrency(selected.monthlyTwd)}` : '選擇方案';
+    });
 }
 
 function restoreSharedOptions() {
     document.querySelectorAll('input[name="parallel-band"]').forEach(input => { input.checked = input.value === assessmentState.executionNeeds.parallelBand; });
     document.querySelectorAll('input[name="users-band"]').forEach(input => { input.checked = input.value === assessmentState.executionNeeds.usersBand; });
+    document.querySelectorAll('input[name="cloud-usage"]').forEach(input => { input.checked = input.value === assessmentState.cloudUsage; });
+    document.querySelectorAll('[data-cloud-plan]').forEach(input => { input.checked = assessmentState.cloudPlans.includes(input.value); });
     elements.usersFieldset.hidden = assessmentState.persona !== 'smb';
     elements.hourlyCost.value = assessmentState.costAmountTwd;
     elements.costPeriod.value = assessmentState.costPeriod;
+    elements.periodHours.value = assessmentState.periodHours;
+    elements.cloudOtherCost.value = assessmentState.cloudOtherCostTwd;
+    updateCloudProviderSummaries();
+    syncCloudSettings();
     updateCostConversion();
 }
 
 function syncCostSettings() {
+    const previousPeriod = assessmentState.costPeriod;
     assessmentState.costAmountTwd = elements.hourlyCost.value;
     assessmentState.costPeriod = elements.costPeriod.value;
-    assessmentState.hourlyCostTwd = normalizeHourlyCost(assessmentState.costAmountTwd, assessmentState.costPeriod);
+    if (previousPeriod !== assessmentState.costPeriod && assessmentState.costPeriod !== 'hour') {
+        assessmentState.periodHours = assessmentState.costPeriod === 'week' ? 40 : 160;
+        elements.periodHours.value = String(assessmentState.periodHours);
+    }
+    assessmentState.periodHours = validNumber(elements.periodHours.value, assessmentState.costPeriod === 'week' ? 40 : 160);
+    assessmentState.hourlyCostTwd = normalizeHourlyCost(assessmentState.costAmountTwd, assessmentState.costPeriod, assessmentState.periodHours);
     updateCostConversion();
     invalidateResult();
 }
 
-function normalizeHourlyCost(amount, period) {
+function syncCloudSettings() {
+    elements.cloudPaidOptions.hidden = assessmentState.cloudUsage !== 'paid';
+    if (assessmentState.cloudUsage === 'paid') assessmentState.cloudOtherCostTwd = elements.cloudOtherCost.value;
+    const total = assessmentState.cloudUsage === 'paid'
+        ? getCloudMonthlyCost(assessmentState.cloudPlans, assessmentState.cloudOtherCostTwd)
+        : 0;
+    elements.cloudCostTotal.textContent = `目前雲端支出合計：${formatCurrency(total)}／月`;
+}
+
+function getCloudMonthlyCost(planIds, otherCost) {
+    const planTotal = (planIds || []).reduce((sum, id) => sum + (CLOUD_PLAN_CATALOG.find(plan => plan.id === id)?.monthlyTwd || 0), 0);
+    const other = Number(otherCost);
+    return planTotal + (Number.isFinite(other) && other > 0 ? other : 0);
+}
+
+function normalizeHourlyCost(amount, period, customHours) {
     const numericAmount = Number(amount);
-    const hours = COST_PERIOD_HOURS[period] || COST_PERIOD_HOURS.hour;
+    const hours = period === 'hour' ? 1 : validNumber(customHours, COST_PERIOD_HOURS[period] || 1);
     return Number.isFinite(numericAmount) ? numericAmount / hours : 0;
 }
 
 function updateCostConversion() {
     const amount = Number(elements.hourlyCost.value);
     const period = elements.costPeriod.value;
+    elements.conversionHours.hidden = period === 'hour';
+    const hoursLabel = elements.conversionHours.querySelector('label');
+    if (hoursLabel) hoursLabel.textContent = period === 'week' ? '每週工作時數' : '每月工作時數';
     if (!Number.isFinite(amount) || amount <= 0) {
-        elements.costConversion.textContent = '目前將以每小時成本計算。';
+        elements.costConversion.textContent = '請填入目前工作流程的成本。';
         return;
     }
-    const hourlyCost = normalizeHourlyCost(amount, period);
-    const assumption = period === 'week' ? '（每週以 40 小時換算）' : period === 'month' ? '（每月以 160 小時換算）' : '';
+    const periodHours = period === 'hour' ? 1 : validNumber(elements.periodHours.value, period === 'week' ? 40 : 160);
+    const hourlyCost = normalizeHourlyCost(amount, period, periodHours);
+    const assumption = period === 'week' ? `（每週以 ${periodHours} 小時換算）` : period === 'month' ? `（每月以 ${periodHours} 小時換算）` : '';
     elements.costConversion.textContent = `換算後為 ${formatCurrencyRate(hourlyCost)}／小時${assumption}`;
 }
 
@@ -700,8 +794,7 @@ function renderLoadWarning() {
 function estimateCurrentMonthlyHours() {
     return assessmentState.selectedRecipeIds.reduce((sum, id) => {
         const answer = assessmentState.taskAnswers[id];
-        const frequency = validNumber(answer?.frequency, 0);
-        const monthlyFrequency = frequency * 52 / 12;
+        const monthlyFrequency = frequencyToMonthly(answer?.frequency, answer?.period);
         return sum + monthlyFrequency * validNumber(answer?.currentHumanMinutes, 0) / 60;
     }, 0);
 }
@@ -709,7 +802,7 @@ function estimateCurrentMonthlyHours() {
 function nextStep() {
     clearError();
     if (assessmentState.currentStep === 1) {
-        if (!assessmentState.persona) return showError('請先選擇主要工作身分。', elements.personaGrid.querySelector('button'));
+        if (!assessmentState.persona) return showError('請先選擇主要工作身分。', elements.personaGrid.querySelector('input'));
         goToStep(2);
         return;
     }
@@ -764,6 +857,7 @@ function goToStep(step) {
 }
 
 function updateStepUI(moveFocus) {
+    document.body.dataset.step = String(assessmentState.currentStep);
     document.querySelectorAll('.step').forEach(section => { section.hidden = Number(section.dataset.step) !== assessmentState.currentStep; });
     document.querySelectorAll('[data-progress-step]').forEach(item => {
         const step = Number(item.dataset.progressStep);
@@ -777,6 +871,8 @@ function updateStepUI(moveFocus) {
     document.getElementById('progress-fill').style.width = `${((assessmentState.currentStep - 1) / 3) * 100}%`;
     elements.navigation.hidden = assessmentState.currentStep === 4;
     elements.backButton.hidden = assessmentState.currentStep === 1;
+    const draftStatus = document.getElementById('draft-status');
+    if (draftStatus) draftStatus.textContent = `步驟 ${assessmentState.currentStep}／4`;
     updateNavigation();
     clearError();
     if (moveFocus) {
@@ -788,24 +884,42 @@ function updateStepUI(moveFocus) {
 
 function updateNavigation() {
     elements.nextButton.disabled = assessmentState.currentStep === 1 && !assessmentState.persona;
-    elements.nextButton.textContent = assessmentState.currentStep === 3 ? '查看我的影分身效益' : '下一步';
+    elements.nextButton.textContent = assessmentState.currentStep === 1
+        ? '選擇日常任務'
+        : assessmentState.currentStep === 2
+            ? '填寫時間與頻率'
+            : '查看我的影分身效益';
 }
 
 function validateStep3() {
+    let firstIncomplete = null;
+    let firstIncompleteRecipe = null;
     for (const recipeId of assessmentState.selectedRecipeIds) {
         const card = elements.taskSettings.querySelector(`[data-task-id="${recipeId}"]`);
         if (!isAnswerComplete(assessmentState.taskAnswers[recipeId])) {
             card.open = true;
             const firstMissing = markTaskErrors(recipeId, false);
-            return showError(`請補完「${getRecipe(recipeId).title}」的紅框欄位。`, firstMissing || card.querySelector('summary'));
+            if (!firstIncomplete) {
+                firstIncomplete = firstMissing || card.querySelector('summary');
+                firstIncompleteRecipe = getRecipe(recipeId);
+            }
         }
     }
-    if (!assessmentState.executionNeeds.parallelBand) return showError('請選擇通常同時處理幾項工作。', elements.parallelOptions.querySelector('input'));
+    if (firstIncomplete) return showError(`請補完「${firstIncompleteRecipe.title}」的紅框欄位。`, firstIncomplete);
+    if (!assessmentState.executionNeeds.parallelBand) return showError('請選擇平常會同時執行幾個任務。', elements.parallelOptions.querySelector('input'));
     if (assessmentState.persona === 'smb' && !assessmentState.executionNeeds.usersBand) return showError('請選擇同時使用這套流程的人數。', elements.usersOptions.querySelector('input'));
     syncCostSettings();
-    if (assessmentState.costAmountTwd === '') return showError('請填寫執行這些工作的成本費用。', elements.hourlyCost);
     const cost = Number(assessmentState.costAmountTwd);
-    if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return showError('成本費用必須大於 0，且不可超過 NT$10,000,000。', elements.hourlyCost);
+    if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return showError('請填入大於 0 的工作流程成本，且不可超過 NT$10,000,000。', elements.hourlyCost);
+    syncCloudSettings();
+    if (!assessmentState.cloudUsage) return showError('請選擇目前是否使用雲端 AI。', elements.cloudUsageOptions.querySelector('input'));
+    if (assessmentState.cloudUsage === 'paid' && !assessmentState.cloudPlans.length && !(Number(assessmentState.cloudOtherCostTwd) > 0)) {
+        return showError('請選擇至少一個訂閱方案，或填入其他 AI 支出。', elements.cloudPlanOptions.querySelector('summary'));
+    }
+    if (assessmentState.cloudUsage === 'paid' && assessmentState.cloudOtherCostTwd !== '') {
+        const cloudCost = Number(assessmentState.cloudOtherCostTwd);
+        if (!Number.isFinite(cloudCost) || cloudCost < 0 || cloudCost > 10000000) return showError('其他雲端支出不可小於 0，且不可超過 NT$10,000,000。', elements.cloudOtherCost);
+    }
     return true;
 }
 
@@ -818,7 +932,11 @@ function createAssessmentSnapshot() {
         executionNeeds: assessmentState.executionNeeds,
         costAmountTwd: assessmentState.costAmountTwd,
         costPeriod: assessmentState.costPeriod,
+        periodHours: assessmentState.periodHours,
         hourlyCostTwd: assessmentState.hourlyCostTwd,
+        cloudUsage: assessmentState.cloudUsage,
+        cloudPlans: assessmentState.cloudPlans,
+        cloudOtherCostTwd: assessmentState.cloudOtherCostTwd,
         scope: 'selected-workflows'
     }));
 }
@@ -828,7 +946,7 @@ function calculateAssessment(snapshot) {
         const recipe = getRecipe(recipeId);
         const answer = snapshot.taskAnswers[recipeId];
         const scale = recipe.scales[answer.scale];
-        const monthlyFrequency = Number(answer.frequency) * 52 / 12;
+        const monthlyFrequency = frequencyToMonthly(answer.frequency, answer.period);
         const baseline = scale.manualMinutes;
         const current = Number(answer.currentHumanMinutes);
         const effectiveBaseline = Math.max(baseline, current);
@@ -843,9 +961,9 @@ function calculateAssessment(snapshot) {
             title: recipe.title,
             workUnit: recipe.workUnit,
             scale: answer.scale,
-            scaleLabel: scale.label,
+            scaleLabel: getLoadingMeta(answer.scale).label,
             frequency: Number(answer.frequency),
-            period: 'week',
+            period: answer.period,
             currentMode: answer.currentMode,
             baselineMinutes: baseline,
             effectiveBaselineMinutes: effectiveBaseline,
@@ -881,6 +999,11 @@ function calculateAssessment(snapshot) {
     const hourlyCost = Number(snapshot.hourlyCostTwd);
     const currentHours = totals.current / 60;
     const targetHours = totals.target / 60;
+    const laborSavedMonthlyTwd = displayedSavedHours * hourlyCost;
+    const cloudMonthlyTwd = snapshot.cloudUsage === 'paid'
+        ? getCloudMonthlyCost(snapshot.cloudPlans, snapshot.cloudOtherCostTwd)
+        : 0;
+    const totalSavedMonthlyTwd = laborSavedMonthlyTwd + cloudMonthlyTwd;
     taskResults.forEach(task => {
         task.loadShare = totals.current > 0 ? task.currentMonthlyMinutes / totals.current * 100 : 0;
         task.baselineLoadShare = totals.baseline > 0 ? task.baselineMonthlyMinutes / totals.baseline * 100 : 0;
@@ -898,6 +1021,8 @@ function calculateAssessment(snapshot) {
                 recipeId: task.recipeId,
                 taskTitle: task.title,
                 capability: task.assist,
+                review: task.review,
+                savedMonthlyMinutes: task.savedMonthlyMinutes,
                 profiles: task.profiles
             });
         }
@@ -925,19 +1050,32 @@ function calculateAssessment(snapshot) {
         time: { currentHoursMonthly: currentHours, targetHoursMonthly: targetHours, savedHoursMonthly: displayedSavedHours },
         cost: {
             kind: 'labor-value',
+            hasLaborValue: hourlyCost > 0,
             hourlyCostTwd: hourlyCost,
-            inputAmountTwd: Number(snapshot.costAmountTwd),
+            inputAmountTwd: snapshot.costAmountTwd === '' ? null : Number(snapshot.costAmountTwd),
             inputPeriod: snapshot.costPeriod,
+            periodHours: snapshot.periodHours,
             currentMonthlyTwd: currentHours * hourlyCost,
             targetMonthlyTwd: targetHours * hourlyCost,
-            savedMonthlyTwd: displayedSavedHours * hourlyCost,
-            savedAnnualTwd: displayedSavedHours * hourlyCost * 12,
-            monthlyTwd: displayedSavedHours * hourlyCost,
-            annualTwd: displayedSavedHours * hourlyCost * 12
+            laborSavedMonthlyTwd,
+            cloudSavedMonthlyTwd: cloudMonthlyTwd,
+            savedMonthlyTwd: totalSavedMonthlyTwd,
+            savedAnnualTwd: totalSavedMonthlyTwd * 12,
+            monthlyTwd: totalSavedMonthlyTwd,
+            annualTwd: totalSavedMonthlyTwd * 12
         },
         tokens: {
-            twdPerMillionTokens: TOKEN_CONFIG.twdPerMillionTokens,
-            savedMonthly: twdToTokens(displayedSavedHours * hourlyCost)
+            status: 'converted',
+            savedMonthly: totalSavedMonthlyTwd * TOKEN_CONFIG.tokensPerTwd,
+            tokensPerTwd: TOKEN_CONFIG.tokensPerTwd,
+            costPerTokenTwd: TOKEN_CONFIG.costPerTokenTwd,
+            note: `依 ${TOKEN_CONFIG.label} 換算。`
+        },
+        cloud: {
+            usage: snapshot.cloudUsage,
+            selectedPlans: snapshot.cloudPlans,
+            currentMonthlyTwd: cloudMonthlyTwd,
+            reducibleMonthlyTwd: cloudMonthlyTwd
         },
         taskResults: taskResults.sort((a, b) => b.currentMonthlyMinutes - a.currentMonthlyMinutes || a.selectionIndex - b.selectionIndex),
         clones: [...cloneMap.values()],
@@ -967,7 +1105,7 @@ function routeHardware(snapshot, taskResults, sciScores) {
     if (snapshot.persona === 'smb') {
         if (snapshot.executionNeeds.usersBand === '2-5') gradeIndex = Math.max(gradeIndex, 1);
         if (snapshot.executionNeeds.usersBand === '6-10') gradeIndex = Math.max(gradeIndex, 2);
-        if (snapshot.executionNeeds.usersBand === '10+') gradeIndex = Math.max(gradeIndex, 3);
+        if (snapshot.executionNeeds.usersBand === '11+') gradeIndex = Math.max(gradeIndex, 3);
     }
     taskResults.forEach(task => {
         const batchProfile = task.profiles.some(profile => ['document', 'analytics', 'knowledge', 'monitoring'].includes(profile));
@@ -990,17 +1128,9 @@ function routeHardware(snapshot, taskResults, sciScores) {
     gradeIndex = clamp(gradeIndex, 0, gradeKeys.length - 1);
     const tierKey = gradeKeys[gradeIndex];
     const tier = hardwareCatalog[tierKey];
-    const profileNames = {
-        document: '內容與文件製作', analytics: '資料分析', media: '影音內容處理',
-        knowledge: '知識整理', monitoring: '持續追蹤', coding: '程式協作'
-    };
-    const demandSummary = [...new Set(taskResults.flatMap(task => task.profiles).map(profile => profileNames[profile]).filter(Boolean))].slice(0, 3);
-    const cloneNames = [...new Set(taskResults.map(task => task.cloneTag))].slice(0, 2);
-    const teamText = cloneNames.length > 1 ? `${cloneNames[0]}與${cloneNames[1]}` : cloneNames[0];
-    const modelNames = tier.models.map(model => model.name);
     reasons.push(`本次工作量約 ${Math.round(totalBaselineHours)} 小時／月，工作流運算強度為 ${weightedComputeIntensity.toFixed(1)}／5。`);
     if (tierKey === 'ss') reasons.push('高 SCI 代表大量流程可交由影分身處理，搭配極重工作量時需要更高的持續運算與記憶體容量。');
-    if (parallel === '5+' || snapshot.executionNeeds.usersBand === '10+') needsReview = true;
+    if (parallel === '5+' || snapshot.executionNeeds.usersBand === '11+') needsReview = true;
     return {
         tier: tierKey,
         grade: tier.strength.grade,
@@ -1011,21 +1141,25 @@ function routeHardware(snapshot, taskResults, sciScores) {
         primaryModel: { ...tier.models[0] },
         componentSeries: JSON.parse(JSON.stringify(tier.components)),
         strength: { ...tier.strength },
-        reasons: reasons.slice(0, 3),
-        story: `您的任務需求涵蓋${formatChineseList(demandSummary)}，可由${teamText}協同完成。建議採用 ${tier.label} 的 ${formatChineseList(modelNames)}，把主要運算與工作檔案留在自己的設備中，降低長期雲端訂閱、用量計價與網路依賴。`
+        reasons: reasons.slice(0, 3)
     };
 }
 
 function renderResult() {
     const result = assessmentState.result;
     if (!result) return;
-    document.getElementById('result-summary').textContent = `你的 ${result.taskResults.length} 項工作已完成分析，以下是導入影分身團隊後的工作效益。`;
+    const workHourReleaseRate = result.time.currentHoursMonthly > 0
+        ? clamp((result.time.currentHoursMonthly - result.time.targetHoursMonthly) / result.time.currentHoursMonthly * 100, 0, 100)
+        : 0;
+    const targetScore = Math.round(result.sci.target);
+    const targetDescription = `${getSciNarrative(result.sci.target, 'target')} 導入後 SCI 預估達 <strong>${targetScore} 分</strong>：既有工具、流程與影分身合計可承接約 <strong>${targetScore}% 的全人工工作量</strong>。相較目前，預估可釋放約 <strong>${formatPercent(workHourReleaseRate)}% 的現行人工工時</strong>。`;
     document.getElementById('sci-gap').textContent = `+${Math.round(result.sci.gap)} 點`;
-    document.getElementById('current-sci-card').innerHTML = renderSciCard('目前 SCI', result.sci.current, getSciLevel(result.sci.current), '代表目前已由工具或流程承接的人工工作比例。', 'current', 0);
-    document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', result.sci.target, '本次任務組合', `預估有 ${Math.round(result.sci.target)}% 的人工工作可由影分身協助。`, 'target', result.sci.current);
+    document.getElementById('current-sci-card').innerHTML = renderSciCard('目前 SCI', result.sci.current, getSciLevel(result.sci.current), getSciNarrative(result.sci.current, 'current'), 'current', 0);
+    document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', result.sci.target, '建立本次影分身流程後', targetDescription, 'target', result.sci.current);
     document.getElementById('metric-highlights').innerHTML = renderMetricHighlights(result);
     document.getElementById('workflow-result-table').innerHTML = renderWorkflowResults(result);
-    document.getElementById('clone-list').innerHTML = result.clones.map((clone, index) => renderCloneCard(clone, index)).join('');
+    const cloneNames = result.clones.map(clone => clone.name.replace(/分身$/u, ''));
+    document.getElementById('clone-list').textContent = `本次規劃：${cloneNames.join('、')}，共 ${result.clones.length} 個影分身`;
     renderHardware(result.recommendation, result);
     setResultSectionsHidden(false);
     requestAnimationFrame(animateSciJourney);
@@ -1033,7 +1167,6 @@ function renderResult() {
 
 function setResultSectionsHidden(hidden) {
     document.querySelector('.workflow-results').hidden = hidden;
-    document.querySelector('.clone-section').hidden = hidden;
     document.getElementById('report-preview-button').disabled = hidden;
 }
 
@@ -1041,73 +1174,95 @@ function renderSciCard(label, score, status, description, variant, fromValue) {
     const rounded = Math.round(score);
     const barPercent = clamp(score / SCI_CONFIG.scaleMax * 100, 0, 100);
     const infoButton = variant === 'current' ? '<button type="button" class="sci-info-trigger" id="sci-info-trigger" aria-label="SCI 是什麼？點擊查看計算方式">?</button>' : '';
-    return `<div class="sci-card__top"><span class="sci-card__label"><strong>${label}</strong>${infoButton}</span><span>${status}</span></div><div class="sci-card__score"><strong data-sci-number data-from="${Math.round(fromValue)}" data-value="${rounded}">${Math.round(fromValue)}</strong><span>／${SCI_CONFIG.scaleMax}</span></div><div class="sci-card__bar" aria-hidden="true"><i data-sci-bar style="--score:${barPercent}%"></i></div><p>${description}</p><span class="sci-card__caption">${variant === 'target' ? '本次任務結果' : '現在的位置'}</span>`;
+    return `<div class="sci-card__top"><span class="sci-card__label"><strong>${label}</strong>${infoButton}</span><span>${status}</span></div><div class="sci-card__score"><strong data-sci-number data-from="${Math.round(fromValue)}" data-value="${rounded}">${Math.round(fromValue)}</strong><span>／${SCI_CONFIG.scaleMax}</span></div><div class="sci-card__bar" aria-hidden="true"><i data-sci-bar style="--score:${barPercent}%"></i></div><p>${description}</p>`;
+}
+
+function getSciNarrative(score, variant) {
+    const narratives = [
+        {
+            max: 19,
+            current: '目前的 SCI 偏低，工作仍以人工處理為主，還有許多環節可以運用影分身協作。',
+            target: '預估導入後，可開始讓影分身承接重複性任務，建立第一批可複製的協作流程。'
+        },
+        {
+            max: 39,
+            current: '你已經透過部分工具或流程減少人工投入，但跨任務的協作仍有提升空間。',
+            target: '預估導入後，更多工作可由影分身協助處理，減少人工在任務之間反覆切換。'
+        },
+        {
+            max: 59,
+            current: '你已有一定程度的工具協作基礎，下一步可以串接更多工作環節。',
+            target: '預估導入後，影分身可參與更多工作環節，讓人力更集中在審核與決策。'
+        },
+        {
+            max: 79,
+            current: '多數工作已有工具或流程協助，人工主要投入在較複雜的環節。',
+            target: '預估導入後，多數標準化工作可透過工具、流程與影分身協作完成。'
+        },
+        {
+            max: 100,
+            current: '你的工作已有高度協作基礎，可進一步檢視品質、例外處理與人工審核配置。',
+            target: '預估導入後，人工可更聚焦於品質把關、例外處理及關鍵決策。'
+        }
+    ];
+    const roundedScore = Math.round(score);
+    const narrative = narratives.find(item => roundedScore <= item.max) || narratives[narratives.length - 1];
+    return narrative[variant];
 }
 
 function renderMetricHighlights(result) {
     return `
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('clock')}</span>
-            <div><span>每月釋放工時</span><strong>${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}</strong></div>
-        </article>
-        <article class="impact-hero">
-            <span class="impact-hero__icon">${iconSvg('zap')}</span>
-            <div><span>每月節省 Token</span><strong>${formatTokens(result.tokens.savedMonthly)}</strong></div>
+            <div><span>釋放工時</span><strong>${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}</strong></div>
         </article>
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('receipt')}</span>
-            <div><span>每月省下費用</span><strong>${formatCurrency(result.cost.savedMonthlyTwd)}</strong></div>
+            <div><span>工時價值</span><strong>${formatCurrency(result.cost.laborSavedMonthlyTwd)}</strong></div>
+        </article>
+        <article class="impact-hero">
+            <span class="impact-hero__icon">${iconSvg('zap')}</span>
+            <div><span>約節省</span><strong>${formatTokens(result.tokens.savedMonthly)} 雲端 Token</strong></div>
         </article>`;
 }
 
 function renderWorkflowResults(result) {
-    const topTask = result.taskResults.reduce((highest, task) => task.loadShare > highest.loadShare ? task : highest, result.taskResults[0]);
-    return `<div class="workflow-stack">
-        ${renderWorkloadOverview(result)}
-        <aside class="top-workload-callout">
-            <span class="top-workload-callout__icon">${iconSvg(getCloneIconType(topTask.recipeId))}</span>
-            <div><small>最適合透過影分身來協作的工作流程</small><strong>${topTask.title}</strong><p>占目前人工工作量 ${formatPercent(topTask.loadShare)}%。可交由「${topTask.cloneTag}」協助${getAgentSupportScope(topTask)}，每月預估可釋放 ${formatHours(topTask.savedMonthlyMinutes / 60)} ${getTimeUnit()}，相當於 ${formatCurrency(topTask.savedCostMonthlyTwd)} 的人力成本價值。</p></div>
-        </aside>
-    </div>`;
+    return `<div class="workflow-stack">${renderWorkloadOverview(result)}</div>`;
 }
 
 function renderWorkflowImpactCard(task, index) {
     const shadowShare = clamp(task.targetReliefRate, 0, 100);
     const humanShare = 100 - shadowShare;
     return `<article class="workflow-impact-card">
-        <header><div><span>TASK ${String(index + 1).padStart(2, '0')} · ${task.scaleLabel} · ${task.frequency} 次／週</span><h4>${task.title}</h4></div><div class="load-chip" aria-label="人工與影分身處理比例"><span>人工處理 <b>${formatPercent(humanShare)}%</b></span><span>影分身處理 <b>${formatPercent(shadowShare)}%</b></span></div></header>
-        <p class="workflow-agent-note"><strong>交由「${task.cloneTag}」協助</strong>${getAgentSupportScope(task)}；每月預估可釋放 <b>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</b>。</p>
+        <header><div><span>TASK ${String(index + 1).padStart(2, '0')} · ${task.scaleLabel} · ${getFrequencyLabel(task)}</span><h4>${task.title}</h4></div><div class="load-chip" aria-label="人工與影分身處理比例"><span>人工處理 <b>${formatPercent(humanShare)}%</b></span><span>影分身協助 <b>${formatPercent(shadowShare)}%</b></span></div></header>
+        <div class="workflow-detail-columns"><div><span>AI 可協助</span><p>${task.assist}</p></div><div><span>仍需人工</span><p>${task.review}</p></div></div>
         <div class="workflow-impact-grid">
             <div><span>目前投入</span><strong>${formatHours(task.currentMonthlyMinutes / 60)} ${getTimeUnit()}／月</strong></div>
             <span class="workflow-arrow" aria-hidden="true">${iconSvg('arrow-right')}</span>
             <div><span>導入後</span><strong>${formatHours(task.targetMonthlyMinutes / 60)} ${getTimeUnit()}／月</strong></div>
-            <div class="saved-highlight"><span>每月可釋放</span><strong>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</strong><small>人力成本價值 ${formatCurrency(task.savedCostMonthlyTwd)}</small></div>
+            <div class="saved-highlight"><span>每月可釋放</span><strong>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</strong><small>${task.savedCostMonthlyTwd > 0 ? `工時價值 ${formatCurrency(task.savedCostMonthlyTwd)}` : '未填人力時間價值'}</small></div>
         </div>
     </article>`;
 }
 
 function renderWorkloadOverview(result) {
-    const aiShare = clamp(result.sci.target, 0, 100);
-    const humanShare = 100 - aiShare;
-    const beforeLabels = result.taskResults.map((task, index) => `
-        <span style="--segment:${task.loadShare}%" title="${task.title}"><b>${index + 1}</b></span>`).join('');
-    const beforeSegments = result.taskResults.map((task, index) => `
-        <i class="workload-task-segment workload-task-segment--before" style="--segment:${task.loadShare}%;--task-color:${getWorkloadColor(index)};--delay:${index * 70}ms" title="${task.title}：目前工作占比 ${formatPercent(task.loadShare)}%"></i>`).join('');
-    const afterSegments = result.taskResults.map((task, index) => {
-        const remaining = clamp(100 - task.targetReliefRate, 0, 100);
-        const assist = 100 - remaining;
-        const color = getWorkloadColor(index);
-        return `<button type="button" class="workload-task-segment workload-task-segment--after" style="--segment:${task.loadShare}%;--delay:${240 + index * 70}ms;--task-color:${color}" data-task-toggle="${index}" aria-label="查看 ${task.title} 的協作細項" aria-expanded="false" aria-controls="workload-task-detail" title="${task.title}：目前工作占比 ${formatPercent(task.loadShare)}%，可由影分身協作 ${formatPercent(assist)}%"><b class="workload-part workload-part--human" style="--portion:${remaining}%"></b><b class="workload-part workload-part--assist" style="--portion:${assist}%"></b><span class="workload-segment-index">${index + 1}</span></button>`;
+    const maxHours = Math.max(...result.taskResults.map(task => task.currentMonthlyMinutes / 60), 1);
+    const rows = result.taskResults.map((task, index) => {
+        const currentHours = task.currentMonthlyMinutes / 60;
+        const targetHours = task.targetMonthlyMinutes / 60;
+        const currentWidth = clamp(currentHours / maxHours * 100, 2, 100);
+        const targetWidth = clamp(targetHours / maxHours * 100, 1, 100);
+        return `<button type="button" class="time-comparison-row ${index === 0 ? 'is-selected' : ''}" data-task-toggle="${index}" aria-expanded="${index === 0}" aria-controls="workload-task-detail">
+            <span class="time-comparison-row__title"><b>${String(index + 1).padStart(2, '0')}</b><strong>${task.title}${index === 0 ? '<em class="priority-task-label">優先導入</em>' : ''}</strong><small>${getFrequencyLabel(task)}</small></span>
+            <span class="time-comparison-row__chart"><i class="time-bar time-bar--current" style="--bar:${currentWidth}%"><em>目前 ${formatHours(currentHours)} 小時</em></i><i class="time-bar time-bar--target" style="--bar:${targetWidth}%"><em>導入後 ${formatHours(targetHours)} 小時</em></i></span>
+            <span class="time-comparison-row__saved"><small>每月可釋放</small><strong>${formatHours(task.savedMonthlyMinutes / 60)} 小時</strong><em>查看前後流程</em></span>
+        </button>`;
     }).join('');
-    const legend = result.taskResults.map((task, index) => `<button type="button" data-task-toggle="${index}" aria-expanded="false" aria-controls="workload-task-detail"><i style="--task-color:${getWorkloadColor(index)}"></i><span>${String(index + 1).padStart(2, '0')} · ${task.title}</span><b>${formatPercent(task.loadShare)}%</b></button>`).join('');
     return `<section class="workload-overview" aria-labelledby="workload-overview-title">
-        <header><span>工作量視覺化</span><h4 id="workload-overview-title">影分身介入前後，工作如何重新分配</h4><p>以目前每月人工投入時間為基準，比較各任務占比與可交由影分身協助的部分。</p></header>
-        <div class="workload-overall"><div><strong>整體協作比例</strong><span>依本次任務組合估算</span></div><div><div class="workload-overall-track"><i class="workload-overall-human" style="--portion:${humanShare}%"></i><i class="workload-overall-agent" style="--portion:${aiShare}%"></i></div><p><span>人工處理 <b>${Math.round(humanShare)}%</b></span><span>影分身可協助 <b>${Math.round(aiShare)}%</b></span></p></div></div>
-        <div class="workload-task-legend" aria-label="選擇任務查看協作細項">${legend}</div>
-        <div class="workload-chart-row"><div><strong>影分身介入前</strong><small>目前人工投入占比</small></div><div class="workload-track-group"><div class="workload-track-labels" aria-hidden="true">${beforeLabels}</div><div class="workload-track" aria-label="影分身介入前各任務目前工作占比">${beforeSegments}</div></div></div>
-        <div class="workload-chart-row"><div><strong>影分身介入後</strong><small>各任務的重新分配</small></div><div><div class="workload-track" aria-label="影分身介入後人工與影分身協助分布，點擊長條可展開該任務詳情">${afterSegments}</div><span class="workload-track-hint"><svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 1 6 0v5a3 3 0 0 1-6 0Z"/><path d="M15 12V6a2 2 0 0 0-4 0M9 13V9a2 2 0 0 0-4 0v6a5 5 0 0 0 5 5h3a5 5 0 0 0 5-5v-1"/></svg>點擊長條，查看該任務的協作細項</span></div></div>
-        <div class="workload-state-legend"><span><i class="is-agent-hint"></i>影分身可協助工作區域</span></div>
-        <div class="workload-task-detail" id="workload-task-detail" hidden></div>
+        <header><h4 id="workload-overview-title">每月人工工時：導入前 → 導入後</h4></header>
+        <div class="time-comparison-legend"><span><i></i>目前人工工時</span><span><i></i>導入後人工工時</span></div>
+        <div class="time-comparison-list">${rows}</div>
+        <div class="workload-task-detail" id="workload-task-detail" data-open-index="0">${renderWorkflowImpactCard(result.taskResults[0], 0)}</div>
     </section>`;
 }
 
@@ -1117,22 +1272,16 @@ function toggleTaskDetail(index) {
     const panel = document.getElementById('workload-task-detail');
     if (!panel) return;
     const buttons = document.querySelectorAll('[data-task-toggle]');
-    const wasOpenSameTask = !panel.hidden && panel.dataset.openIndex === String(index);
-    const nextOpenIndex = wasOpenSameTask ? null : index;
+    const nextOpenIndex = index;
     buttons.forEach(button => {
         const isSelected = nextOpenIndex !== null && Number(button.dataset.taskToggle) === nextOpenIndex;
         button.classList.toggle('is-selected', isSelected);
         button.setAttribute('aria-expanded', String(isSelected));
     });
-    if (nextOpenIndex === null) {
-        panel.hidden = true;
-        panel.innerHTML = '';
-        delete panel.dataset.openIndex;
-        return;
-    }
     panel.innerHTML = renderWorkflowImpactCard(result.taskResults[nextOpenIndex], nextOpenIndex);
     panel.hidden = false;
     panel.dataset.openIndex = String(nextOpenIndex);
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function getWorkloadColor(index) {
@@ -1152,30 +1301,59 @@ function getAgentSupportScope(task) {
     return scopeByProfile[primaryProfile] || '資料整理、工作草稿與例行流程處理';
 }
 
+function getLoadingMeta(scale) {
+    return {
+        small: { label: '低', level: 1 },
+        standard: { label: '中', level: 2 },
+        large: { label: '高', level: 3 }
+    }[scale] || { label: '未設定', level: 0 };
+}
+
+function getModeDescription(mode) {
+    return {
+        manual: '自己蒐集、整理、撰寫與檢查',
+        assisted: 'AI 幫忙部分步驟，仍需複製資料及串接工具',
+        automated: '工具已串接多個步驟，主要負責檢查與例外處理'
+    }[mode] || '';
+}
+
+function getRecipeContext(recipe) {
+    const contextByProfile = {
+        document: '整理資料並產出可使用的內容草稿',
+        analytics: '彙整資料、找出差異並準備分析結果',
+        media: '處理影音素材與多版本內容準備',
+        knowledge: '查找、摘要並組織知識內容',
+        monitoring: '持續彙整狀態、變化與待辦事項',
+        coding: '協助撰寫、修改及檢查程式工作'
+    };
+    return contextByProfile[recipe.profiles[0]] || '整理資料並完成固定工作流程';
+}
+
 function renderCloneCard(clone, index) {
-    return `<article class="clone-card" title="${clone.capability}">
+    return `<article class="clone-card clone-card--compact" title="${clone.capability}">
         <div class="clone-avatar"><span>${iconSvg(getCloneIconType(clone.recipeId))}</span><i aria-hidden="true"></i></div>
-        <div class="clone-card__body"><span class="clone-card__index">SHADOW ${String(index + 1).padStart(2, '0')}</span><h4>${clone.name}</h4><p>${clone.taskTitle}</p></div>
+        <div class="clone-card__body"><span class="clone-card__index">SHADOW ${String(index + 1).padStart(2, '0')}</span><h4>${clone.name}</h4><p><b>專長</b>${clone.capability}</p><strong class="clone-card__saving">每月可釋放 ${formatHours(clone.savedMonthlyMinutes / 60)} 小時</strong></div>
     </article>`;
 }
 
 function renderHardware(recommendation, result) {
-    document.getElementById('hardware-reasons').textContent = recommendation.story;
     document.getElementById('shadow-strength').innerHTML = renderShadowStrength(recommendation.strength, result);
     const modelSpecLabels = {
         mb: ['主機板', 'MB', 'motherboard'], cpu: ['處理器', 'CPU', 'cpu'], gpu: ['顯示卡', 'VGA', 'gpu'],
         ram: ['記憶體', 'RAM', 'memory'], ssd: ['儲存裝置', 'SSD', 'database'], case: ['機殼', 'CASE', 'case'],
         cooling: ['散熱系統', 'COOLING', 'fan'], psu: ['電源供應器', 'PSU', 'zap']
     };
-    document.getElementById('platform-grid').innerHTML = recommendation.models.map(model => `<article class="hardware-model-card">
-        <header><div><span>推薦整機</span><h4>${model.name}</h4></div></header>
+    document.getElementById('platform-grid').innerHTML = recommendation.models.map((model, index) => `<article class="hardware-model-card">
+        <header><div><h4>${model.name}</h4><p>${getModelFit(model, index)}</p></div>${renderDeviceIllustration(model)}</header>
         <span class="hardware-grade-stamp" aria-label="影分身戰力 ${recommendation.grade} 級"><small>影分身戰力</small><strong>${recommendation.grade}</strong></span>
-        <div class="hardware-model-specs">${Object.entries(modelSpecLabels).filter(([key]) => !(key === 'case' && model.integratedChassis)).map(([key, [zh, en, icon]]) => `<div class="hardware-model-spec"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${model[key]}</p></div>`).join('')}</div>
+        <div class="hardware-quick-specs"><span><small>GPU／VRAM</small><strong>${model.gpu}</strong></span><span><small>記憶體</small><strong>${model.ram}</strong></span><span><small>儲存</small><strong>${model.ssd}</strong></span></div>
+        <details class="hardware-full-specs" open><summary>完整配置</summary><div class="hardware-model-specs">${Object.entries(modelSpecLabels).filter(([key]) => !['gpu', 'ram', 'ssd'].includes(key) && !(key === 'case' && model.integratedChassis)).map(([key, [zh, en, icon]]) => `<div class="hardware-model-spec"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${model[key]}</p></div>`).join('')}</div></details>
+        <div class="hardware-model-card__action">${renderPurchaseLink(`查看 ${model.name} 配置與選購`, campaignConfig.productLinks.systems[recommendation.tier], `system-${index}`)}</div>
     </article>`).join('');
     const sharedParts = document.getElementById('shared-parts');
     sharedParts.innerHTML = '';
     sharedParts.hidden = true;
-    document.getElementById('system-purchase-cta').innerHTML = renderPurchaseLink(`前往選購 ${recommendation.grade} 級推薦整機`, campaignConfig.productLinks.systems[recommendation.tier], 'system');
+    document.getElementById('system-purchase-cta').innerHTML = '';
     const componentLabels = {
         cpu: ['處理器系列', 'CPU', 'cpu', '選購處理器系列'],
         mb: ['主機板系列', 'MB', 'motherboard', '選購主機板系列'],
@@ -1187,16 +1365,37 @@ function renderHardware(recommendation, result) {
             ? `<p class="component-series-single">${series.all}</p>`
             : `<div class="dual-spec"><span><em>${series.leftLabel || 'AMD 平台'}</em>${series.amd}</span><span><em>${series.rightLabel || 'Intel 平台'}</em>${series.intel}</span></div>`;
         const link = campaignConfig.productLinks.components[recommendation.tier][key];
-        return `<article class="component-series-card"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div class="component-series-card__heading"><small>${en}</small><strong>${zh}</strong></div><div class="component-series-card__spec">${specs}</div>${renderPurchaseLink(cta, link, key)}</article>`;
+        return `<article class="component-series-card"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div class="component-series-card__heading"><small>${en}</small><strong>${zh}</strong><p>${getComponentReason(key)}</p></div><div class="component-series-card__spec">${specs}</div>${renderPurchaseLink(cta, link, key)}</article>`;
     }).join('');
     selectHardwareTab('system');
+}
+
+function getModelFit(model, index) {
+    if (index === 0) return '符合本次任務的運算強度與並行需求';
+    if (model.integratedChassis) return '適合重視體積、整合部署或特定平台的使用情境';
+    if (/-I$/.test(model.name)) return 'Intel 平台配置，適合既有 Intel 工作環境';
+    return '可依軟體相容性與擴充需求選擇的平台配置';
+}
+
+function renderDeviceIllustration(model) {
+    const compact = model.integratedChassis;
+    return `<svg class="device-illustration ${compact ? 'is-compact' : ''}" viewBox="0 0 120 92" aria-hidden="true"><path d="M18 8h72a8 8 0 0 1 8 8v62a6 6 0 0 1-6 6H18a6 6 0 0 1-6-6V14a6 6 0 0 1 6-6Z"/><path d="M25 20h46M25 29h34M79 20h7M79 29h7"/><circle cx="76" cy="59" r="15"/><circle cx="76" cy="59" r="7"/><path d="M25 49h24v25H25zM106 25v42"/></svg>`;
+}
+
+function getComponentReason(key) {
+    return {
+        cpu: '影響資料整理、工具串接與多工作流程的反應速度。',
+        mb: '決定處理器平台、擴充空間與後續升級彈性。',
+        gpu: '影響地端模型可用容量、生成速度與影音運算能力。'
+    }[key] || '';
 }
 
 function renderShadowStrength(strength, result) {
     const comparisons = getLocalValueComparisons(result);
     return `<article class="shadow-strength-card">
         <div class="shadow-strength-card__score"><span>影分身戰力</span><strong>${strength.grade}</strong><b>級</b></div>
-        <div class="shadow-strength-card__body"><div><strong>${strength.label}</strong><span>${strength.capacity}</span></div><div class="shadow-strength-meter" aria-label="影分身戰力 ${strength.grade} 級"><i style="--strength:${strength.meter}%"></i></div><p>${strength.description} 戰力分為 A、A+、S、S+、SS；等級越高，代表設備能為地端模型、多工具與平行工作提供更多運算餘裕。此為依設備規格與本次工作負載提供的相對建議，不代表特定模型的固定速度倍數；完整配置仍可依常用軟體、資料容量與團隊規模調整。</p></div>
+        <div class="shadow-strength-card__body"><div><strong>${strength.label}</strong><span>${strength.capacity}</span></div><div class="shadow-strength-meter" aria-label="影分身戰力 ${strength.grade} 級"><i style="--strength:${strength.meter}%"></i></div><p>${strength.description} 這是依設備規格與本次工作負載提供的相對運算餘裕建議。</p><details class="strength-scale"><summary>查看 A 至 SS 分級</summary><p>A、A+、S、S+、SS 代表地端模型、多工具與平行流程可使用的運算餘裕；不代表固定速度倍數，也不等同 SCI。</p></details></div>
+        <header class="local-value-heading"><span>從目前限制到地端工作方式</span><strong>為什麼值得把影分身軍團建立在自己的設備上</strong></header>
         <div class="local-value-comparisons">${comparisons.map(item => `<article><div><span>目前痛點</span><p>${item.before}</p></div><i aria-hidden="true">→</i><div><span>地端影分身</span><p>${item.after}</p></div></article>`).join('')}</div>
     </article>`;
 }
@@ -1205,16 +1404,22 @@ function getLocalValueComparisons(result) {
     const lowSciPain = result.sci.current < 35
         ? '目前 SCI 偏低，重複工作仍大量占用人工時間。'
         : '既有工具各自運作，工作仍需要人工來回串接。';
+    const cloudPain = result.cloud.usage === 'paid'
+        ? `目前雲端 AI 仍受訂閱與用量方案影響${Number.isFinite(result.cloud.currentMonthlyTwd) ? `，已填費用為 ${formatCurrency(result.cloud.currentMonthlyTwd)}／月` : ''}。`
+        : result.cloud.usage === 'free'
+            ? '免費雲端方案常受模型、額度與使用時段限制。'
+            : '尚未建立 AI 工作流程，重複任務仍需從零開始處理。';
     return [
         { before: lowSciPain, after: '讓固定流程交由地端影分身持續協作，逐步釋放人工工作量。' },
-        { before: '雲端服務按月訂閱或按量計價，工作增加時支出也可能持續增加。', after: '把主要運算轉成自己的設備算力，降低長期訂閱與用量費依賴。' },
+        { before: cloudPain, after: '把適合的流程移到自己的設備執行，減少可替代的訂閱與用量依賴。' },
         { before: '工作檔案需要上傳，流程也容易受到連線、額度與服務方案調整影響。', after: '資料與模型流程留在地端，建立可持續使用及擴充的工作環境。' }
     ];
 }
 
 function renderPurchaseLink(label, href, kind) {
     const available = Boolean(href);
-    return `<a class="button button--accent hardware-buy-link ${available ? '' : 'is-placeholder'}" href="${available ? href : '#'}" data-buy-link="${kind}" ${available ? 'target="_blank" rel="noopener noreferrer"' : 'aria-disabled="true" title="導購連結準備中"'}>${label}${available ? '' : '<small>連結準備中</small>'}</a>`;
+    if (!available) return `<button class="button button--accent hardware-buy-link is-placeholder" type="button" data-buy-link="${kind}" disabled>${label}<small>連結準備中</small></button>`;
+    return `<a class="button button--accent hardware-buy-link" href="${href}" data-buy-link="${kind}" target="_blank" rel="noopener noreferrer">${label}</a>`;
 }
 
 function handleHardwareInteraction(event) {
@@ -1258,8 +1463,14 @@ async function previewReport(trigger) {
         clearReportPreview();
         reportPreviewUrl = URL.createObjectURL(blob);
         const filename = `ASUS-SCI-完整報告-${taipeiDateStamp()}.png`;
-        elements.modalContent.innerHTML = `<div class="report-preview"><header><span class="step-kicker">分享圖預覽</span><h2 id="modal-title">SCI 影分身完整報告</h2><p>請先檢查內容，確認後再下載 PNG 圖片。</p></header><div class="report-preview__image"><img src="${reportPreviewUrl}" alt="SCI 影分身工作效益完整報告預覽"></div><div class="report-preview__actions"><button class="button button--quiet" type="button" data-close-modal>返回報告</button><a class="button button--accent" href="${reportPreviewUrl}" download="${filename}" id="report-download-link">下載 PNG 圖片</a></div></div>`;
+        elements.modalContent.innerHTML = `<div class="report-preview"><header><span class="step-kicker">完整報告預覽</span><h2 id="modal-title">SCI 影分身完整報告</h2><p>請先檢查內容，確認後再下載 PNG 圖片。</p></header><div class="report-preview__toolbar"><button class="text-button" type="button" id="preview-size-toggle" aria-pressed="false">查看原始尺寸</button></div><div class="report-preview__image"><img src="${reportPreviewUrl}" alt="SCI 影分身工作效益完整報告預覽"></div><div class="report-preview__actions"><button class="button button--quiet" type="button" data-close-modal>返回報告</button><a class="button button--accent" href="${reportPreviewUrl}" download="${filename}" id="report-download-link">下載 PNG 圖片</a></div></div>`;
         elements.modalContent.querySelector('[data-close-modal]').addEventListener('click', closeModal);
+        document.getElementById('preview-size-toggle').addEventListener('click', event => {
+            const preview = elements.modalContent.querySelector('.report-preview__image');
+            const original = preview.classList.toggle('is-original');
+            event.currentTarget.setAttribute('aria-pressed', String(original));
+            event.currentTarget.textContent = original ? '適應視窗寬度' : '查看原始尺寸';
+        });
         document.getElementById('report-download-link').addEventListener('click', () => trackEvent('report_downloaded', { tier: result.recommendation.tier }));
         openModal(trigger);
     } catch (error) {
@@ -1276,7 +1487,8 @@ async function createReportBlob(result) {
     const hardwareCardHeight = 326;
     const hardwareCardGap = 18;
     const additionalHardwareHeight = Math.max(0, result.recommendation.models.length - 1) * (hardwareCardHeight + hardwareCardGap);
-    const height = 1566 + result.taskResults.length * taskRowHeight + additionalHardwareHeight;
+    const cloneRows = Math.ceil(result.clones.length / 3);
+    const height = 1566 + result.taskResults.length * taskRowHeight + additionalHardwareHeight + cloneRows * 38;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -1319,9 +1531,9 @@ async function createReportBlob(result) {
     canvasText(ctx, `提升 ${Math.round(result.sci.gap)} 點`, left + 244, y + 154, `700 14px ${font}`, '#55D6A6');
     const metricX = left + 448;
     const reportMetrics = [
-        ['每月釋放工時', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
-        ['每月節省 Token', formatTokens(result.tokens.savedMonthly)],
-        ['每月省下費用', formatCurrency(result.cost.savedMonthlyTwd)]
+        ['釋放工時', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
+        ['工時價值', formatCurrency(result.cost.laborSavedMonthlyTwd)],
+        ['約節省', `${formatTokens(result.tokens.savedMonthly)} 雲端 Token`]
     ];
     reportMetrics.forEach((metric, index) => {
         const x = metricX + index * 168;
@@ -1352,7 +1564,7 @@ async function createReportBlob(result) {
     result.taskResults.forEach((task, index) => {
         roundedRect(ctx, left, y, contentWidth, 128, 12, index % 2 ? '#121D2B' : '#101826');
         canvasText(ctx, `TASK ${String(index + 1).padStart(2, '0')} · ${task.title}`, left + 20, y + 29, `700 15px ${font}`, '#F5F7FB');
-        canvasText(ctx, `${task.scaleLabel} · ${task.frequency} 次／週 · 目前工作占比 ${formatPercent(task.loadShare)}%`, left + 20, y + 55, `500 11px ${font}`, '#8391A7');
+        canvasText(ctx, `${task.scaleLabel} · ${getFrequencyLabel(task)} · 目前 ${formatHours(task.currentMonthlyMinutes / 60)} 小時／月`, left + 20, y + 55, `500 11px ${font}`, '#8391A7');
         wrapCanvasText(ctx, `由「${task.cloneTag}」協助${getAgentSupportScope(task)}；每月預估可釋放 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}。`, left + 20, y + 80, 420, 16, 2, `600 11px ${font}`, '#20C9EB');
         canvasText(ctx, `目前 ${formatHours(task.currentMonthlyMinutes / 60)} ${getTimeUnit()}`, left + 465, y + 32, `600 12px ${font}`, '#AAB5C8');
         canvasText(ctx, `導入後 ${formatHours(task.targetMonthlyMinutes / 60)} ${getTimeUnit()}`, left + 465, y + 60, `600 12px ${font}`, '#AAB5C8');
@@ -1367,10 +1579,13 @@ async function createReportBlob(result) {
         const column = index % 3;
         const row = Math.floor(index / 3);
         const x = left + column * 312;
-        roundedRect(ctx, x, y + row * 44, 294, 34, 8, 'rgba(32,201,235,.10)', 'rgba(32,201,235,.28)');
-        canvasText(ctx, clone.name, x + 14, y + 23 + row * 44, `700 11px ${font}`, '#BFF4FF');
+        const cardY = y + row * 78;
+        roundedRect(ctx, x, cardY, 294, 68, 8, 'rgba(32,201,235,.10)', 'rgba(32,201,235,.28)');
+        canvasText(ctx, clone.name, x + 14, cardY + 20, `700 11px ${font}`, '#BFF4FF');
+        wrapCanvasText(ctx, `專長：${clone.capability}`, x + 14, cardY + 38, 266, 13, 1, `500 9px ${font}`, '#9AA8BC');
+        canvasText(ctx, `每月可釋放 ${formatHours(clone.savedMonthlyMinutes / 60)} 小時`, x + 14, cardY + 56, `700 9px ${font}`, '#55D6A6');
     });
-    y += Math.ceil(result.clones.length / 3) * 44 + 34;
+    y += cloneRows * 78 + 34;
 
     const hardwareLabels = { mb: '主機板 MB', cpu: '處理器 CPU', gpu: '顯示卡 VGA', ram: '記憶體 RAM', ssd: '儲存裝置 SSD', case: '機殼 CASE', cooling: '散熱系統', psu: '電源供應器 PSU' };
     result.recommendation.models.forEach((hardware, hardwareIndex) => {
@@ -1389,7 +1604,7 @@ async function createReportBlob(result) {
         y += hardwareCardHeight + hardwareCardGap;
     });
 
-    wrapCanvasText(ctx, `SCI（Shadow-Clone Index）採 100 分制，代表相對於全人工基準，可由影分身協助承接的人工工作比例。影分身戰力採 A、A+、S、S+、SS 五級，代表推薦設備的相對地端運算餘裕，不是固定速度倍數。費用依使用者填寫的時／週／月成本統一換算；Token 為費用等值估算。`, left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
+    wrapCanvasText(ctx, `SCI（Shadow-Clone Index）採 100 分制，代表相對於全人工基準，可由影分身協助承接的人工工作比例。影分身戰力採 A、A+、S、S+、SS 五級，代表推薦設備的相對地端運算餘裕，不等同 SCI。Token 依 ${TOKEN_CONFIG.label} 換算。`, left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
     canvasText(ctx, `${result.scoringVersion} · ${result.workflowCatalogVersion} · ${result.recipeCatalogVersion} · ${result.hardwareCatalogVersion}`, left, height - 38, `500 9px ${font}`, '#4F5C70');
     canvasText(ctx, 'ASUS AGENTIC AI', width - left, height - 38, `700 11px ${font}`, '#20C9EB', 'right');
 
@@ -1404,6 +1619,7 @@ function openSciInfoModal(trigger) {
                 <h2 id="modal-title">SCI（影分身指數）怎麼算？</h2>
                 <p>SCI 用來衡量相對於全人工完成同一批工作的基準，有多少人工工作可由既有工具、流程或影分身協助承接。</p>
             </header>
+            <div class="sci-info-formula"><strong>先看例子：</strong>同一批工作若全人工需要 10 小時，導入後只需 4 小時人工處理，SCI 就是 60 分；其餘 40% 仍由人工完成。</div>
             <div class="sci-info-formula">SCI = (1 − <span>人工投入時間</span> ／ <span>同一批工作全人工完成所需時間</span>) × 100</div>
             <div class="sci-info-examples">
                 <article>
@@ -1417,8 +1633,12 @@ function openSciInfoModal(trigger) {
                     <p>例如導入後 SCI 為 67，代表約 67% 的全人工工作量可由影分身協助，仍有約 33% 需要人工處理。</p>
                 </article>
             </div>
-            <p class="sci-info-note">導入後人工時間會納入各任務流程中的必要操作、審核與例外處理，再換算成每月分鐘數加總；頻率只負責加權工作量，不會另外替 SCI 加分。報告中的整體協作比例與導入後 SCI 使用同一數值。</p>
         </div>`;
+    openModal(trigger);
+}
+
+function openMissingWorkModal(trigger) {
+    elements.modalContent.innerHTML = `<div class="sci-info-modal"><header><span class="step-kicker">任務清單</span><h2 id="modal-title">目前先評估固定任務</h2></header><div class="sci-info-formula">請選擇最接近的工作，再以頻率與實際人工時間校正結果。</div></div>`;
     openModal(trigger);
 }
 
@@ -1463,6 +1683,21 @@ function clearReportPreview() {
     reportPreviewUrl = null;
 }
 
+function requestResetAssessment(event) {
+    const hasProgress = Boolean(assessmentState.persona || assessmentState.selectedRecipeIds.length || assessmentState.result);
+    if (!hasProgress) {
+        resetAssessment();
+        return;
+    }
+    elements.modalContent.innerHTML = `<div class="confirm-reset"><span class="step-kicker">重新評估</span><h2 id="modal-title">要重新開始嗎？</h2><p>目前填寫的工作身分、任務與時間設定將會清除。</p><div><button class="button button--quiet" type="button" data-close-modal>保留目前評估</button><button class="button button--accent" type="button" id="confirm-reset-button">重新開始</button></div></div>`;
+    elements.modalContent.querySelector('[data-close-modal]').addEventListener('click', closeModal);
+    document.getElementById('confirm-reset-button').addEventListener('click', () => {
+        closeModal();
+        resetAssessment();
+    });
+    openModal(event?.currentTarget || document.getElementById('reset-button'));
+}
+
 function resetAssessment() {
     clearReportPreview();
     Object.assign(assessmentState, {
@@ -1475,7 +1710,11 @@ function resetAssessment() {
         executionNeeds: { parallelBand: '', usersBand: '' },
         costAmountTwd: '',
         costPeriod: 'hour',
+        periodHours: 160,
         hourlyCostTwd: '',
+        cloudUsage: '',
+        cloudPlans: [],
+        cloudOtherCostTwd: '',
         result: null
     });
     renderPersonaSelection();
@@ -1526,16 +1765,29 @@ function isAnswerComplete(answer) {
     if (!answer) return false;
     const frequency = Number(answer.frequency);
     const minutes = Number(answer.currentHumanMinutes);
-    return Boolean(answer.scale && answer.currentMode) && Number.isInteger(frequency) && frequency >= 1 && frequency <= 100 && Number.isFinite(minutes) && minutes >= 0.1 && minutes <= 10080;
+    return Boolean(answer.scale && answer.currentMode && answer.period && answer.timeSource && answer.timeConfirmed) && Number.isInteger(frequency) && frequency > 0 && frequency <= 1000 && Number.isFinite(minutes) && minutes >= 0.1 && minutes <= 10080;
 }
 
 function summarizeAnswer(recipe, answer) {
     if (!answer || !answer.frequency) return '尚未設定頻率';
-    const parts = [`${answer.frequency} 次／週`];
-    if (answer.scale && recipe.scales[answer.scale]) parts.push(recipe.scales[answer.scale].label);
+    const parts = [`${getFrequencyLabel(answer)}`];
+    if (answer.scale && recipe.scales[answer.scale]) parts.push(getLoadingMeta(answer.scale).label);
     if (answer.currentMode && modeCatalog[answer.currentMode]) parts.push(modeCatalog[answer.currentMode].label);
-    if (Number(answer.currentHumanMinutes) > 0) parts.push(`${formatInputNumber(answer.currentHumanMinutes)} 分鐘／次`);
+    if (answer.timeConfirmed && Number(answer.currentHumanMinutes) > 0) parts.push(`${formatInputNumber(answer.currentHumanMinutes)} 分鐘／次`);
     return parts.join(' · ');
+}
+
+function frequencyToMonthly(frequency, period) {
+    const value = Number(frequency);
+    if (!Number.isFinite(value) || value <= 0) return 0;
+    if (period === 'day') return value * 365 / 12;
+    if (period === 'month') return value;
+    return value * 52 / 12;
+}
+
+function getFrequencyLabel(answer) {
+    const labels = { day: '天', week: '週', month: '月' };
+    return `${formatInputNumber(answer.frequency)} 次／${labels[answer.period] || '週'}`;
 }
 
 function animateSciJourney() {
@@ -1631,10 +1883,11 @@ function calculateSciScore(rawReliefPercent) {
 }
 
 function getSciLevel(score) {
-    if (score < 18) return 'L1 工作待分擔';
-    if (score < 36) return 'L2 分身初步協助';
-    if (score < 54) return 'L3 部分流程串接';
-    if (score < 72) return 'L4 分身協作';
+    const roundedScore = Math.round(score);
+    if (roundedScore < 20) return 'L1 工作待分擔';
+    if (roundedScore < 40) return 'L2 分身初步協助';
+    if (roundedScore < 60) return 'L3 部分流程串接';
+    if (roundedScore < 80) return 'L4 分身協作';
     return 'L5 高度流程化';
 }
 
@@ -1687,9 +1940,10 @@ function formatCurrencyRate(value) {
 }
 
 function formatTokens(value) {
-    if (value >= 1000000) return `${new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 1 }).format(value / 1000000)}M`;
-    if (value >= 1000) return `${new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 0 }).format(value / 1000)}K`;
-    return new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 0 }).format(value);
+    const numericValue = Number(value) || 0;
+    if (numericValue >= 100000000) return `${new Intl.NumberFormat('zh-TW', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(numericValue / 100000000)} 億`;
+    if (numericValue >= 10000) return `${new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 1 }).format(numericValue / 10000)} 萬`;
+    return new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 0 }).format(numericValue);
 }
 
 function formatTaipeiDate(iso) {
