@@ -14,6 +14,13 @@ const SCI_CONFIG = Object.freeze({
 const COST_PERIOD_HOURS = Object.freeze({ hour: 1, week: 40, month: 160 });
 const TOKEN_CONFIG = Object.freeze({ costPerTokenTwd: 0.00016, tokensPerTwd: 6250, label: '1 Token = NT$0.00016' });
 const USD_TWD_RATE = 31.92;
+const DATA_COLLECTION_CONFIG = Object.freeze({
+    endpoint: 'https://script.google.com/macros/s/AKfycbz1FH2xnWpIOnC2vqWhYEDDT-CIIIV0EwygB1X6ZES3BJazoTiZ0uijJvoIRnFN0Eib/exec',
+    schemaVersion: 'sci-assessment-v1',
+    anonymousIdStorageKey: 'asus-sci-anonymous-id-v1',
+    timeoutMs: 45000
+});
+const anonymousVisitorId = getOrCreateAnonymousId();
 function createCloudPlan(id, brandId, brand, plan, monthlyUsd) {
     return Object.freeze({
         id,
@@ -256,6 +263,11 @@ const assessmentState = {
     cloudUsage: '',
     cloudPlans: [],
     cloudOtherCostTwd: '',
+    collectionStatus: 'idle',
+    collectionSubmittedAssessmentId: null,
+    collectionSubmittedFingerprint: null,
+    collectionFailureReason: '',
+    resultFingerprint: null,
     result: null
 };
 
@@ -287,6 +299,8 @@ function initialize() {
         loadWarning: document.getElementById('load-warning'),
         backButton: document.getElementById('back-button'),
         nextButton: document.getElementById('next-button'),
+        consentNote: document.getElementById('consent-note'),
+        consentDetailButton: document.getElementById('consent-detail-button'),
         formError: document.getElementById('form-error'),
         navigation: document.getElementById('form-navigation'),
         modal: document.getElementById('modal'),
@@ -297,6 +311,7 @@ function initialize() {
     document.getElementById('reset-button').addEventListener('click', requestResetAssessment);
     elements.backButton.addEventListener('click', previousStep);
     elements.nextButton.addEventListener('click', nextStep);
+    elements.consentDetailButton.addEventListener('click', event => showDataCollectionDetails(event.currentTarget));
     elements.hourlyCost.addEventListener('input', syncCostSettings);
     elements.costPeriod.addEventListener('change', syncCostSettings);
     elements.periodHours.addEventListener('input', syncCostSettings);
@@ -800,8 +815,7 @@ function nextStep() {
     }
     if (assessmentState.currentStep === 3) {
         if (!validateStep3()) return;
-        assessmentState.result = calculateAssessment(createAssessmentSnapshot());
-        renderResult();
+        refreshAssessmentResult();
         goToStep(4);
     }
 }
@@ -834,7 +848,11 @@ function goToStep(step) {
         renderTaskSettings();
         restoreSharedOptions();
     }
-    if (step === 4 && assessmentState.result) renderResult();
+    if (step === 4 && assessmentState.result) {
+        refreshAssessmentResult();
+        renderResult();
+        startAnonymousSubmission();
+    }
     assessmentState.currentStep = step;
     updateStepUI(true);
 }
@@ -872,6 +890,7 @@ function updateNavigation() {
         : assessmentState.currentStep === 2
             ? '填寫時間與頻率'
             : '查看我的影分身效益';
+    elements.consentNote.hidden = assessmentState.currentStep !== 3;
 }
 
 function validateStep3() {
@@ -1010,7 +1029,7 @@ function calculateAssessment(snapshot) {
         }
     });
     return Object.freeze({
-        assessmentId: `SCI-${Date.now().toString(36).toUpperCase()}`,
+        assessmentId: `SCI-${Date.now().toString(36).toUpperCase()}-${randomToken(6)}`,
         scoringVersion: VERSIONS.scoring,
         recipeCatalogVersion: VERSIONS.recipes,
         hardwareCatalogVersion: VERSIONS.hardware,
@@ -1438,6 +1457,140 @@ function selectHardwareTab(tabName) {
     document.getElementById('hardware-panel-components').hidden = tabName !== 'components';
 }
 
+function refreshAssessmentResult() {
+    const snapshot = createAssessmentSnapshot();
+    const fingerprint = JSON.stringify(snapshot);
+    if (assessmentState.result && assessmentState.resultFingerprint === fingerprint) return false;
+    if (assessmentState.result && !answersReadyForCalculation()) return false;
+    assessmentState.result = calculateAssessment(snapshot);
+    assessmentState.resultFingerprint = fingerprint;
+    return true;
+}
+
+function answersReadyForCalculation() {
+    if (!assessmentState.persona || !assessmentState.selectedRecipeIds.length) return false;
+    if (!assessmentState.selectedRecipeIds.every(id => isAnswerComplete(assessmentState.taskAnswers[id]))) return false;
+    if (!assessmentState.executionNeeds.parallelBand) return false;
+    const cost = Number(assessmentState.costAmountTwd);
+    if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return false;
+    return Boolean(assessmentState.cloudUsage);
+}
+
+function startAnonymousSubmission() {
+    const result = assessmentState.result;
+    if (!result || result.unavailable) return;
+    const fingerprint = assessmentState.resultFingerprint;
+    if (assessmentState.collectionStatus === 'submitting') return;
+    if (assessmentState.collectionSubmittedFingerprint === fingerprint) return;
+    assessmentState.collectionStatus = 'submitting';
+    submitAnonymousAssessment()
+        .then(response => {
+            if (response.ok) {
+                assessmentState.collectionStatus = 'submitted';
+                assessmentState.collectionSubmittedFingerprint = fingerprint;
+                assessmentState.collectionSubmittedAssessmentId = result.assessmentId;
+                trackEvent('anonymous_data_submitted', { tier: result.recommendation.tier });
+            } else {
+                assessmentState.collectionStatus = 'failed';
+                assessmentState.collectionFailureReason = response.reason || '';
+                trackEvent('anonymous_data_failed', { reason: response.reason || 'unknown' });
+            }
+        })
+        .catch(error => {
+            assessmentState.collectionStatus = 'failed';
+            assessmentState.collectionFailureReason = error?.message || '';
+            trackEvent('anonymous_data_failed', { reason: error?.message || 'unknown' });
+        });
+}
+
+function showDataCollectionDetails(trigger) {
+    elements.modalContent.innerHTML = `
+        <div class="data-consent-modal">
+            <header>
+                <span class="step-kicker">匿名資料蒐集說明</span>
+                <h2 id="modal-title">我們會蒐集什麼？</h2>
+                <p>當你按下「查看我的影分身效益」時，系統會把這次評估的內容匿名傳回，用於分析常見工作型態並改善這項工具。</p>
+            </header>
+            <ul class="data-consent-list">
+                <li>Step 1–3 的填寫內容：工作身分、選擇的任務、時間與頻率、成本與雲端 AI 使用狀況。</li>
+                <li>計算結果：SCI 分數、每月釋放工時、節省費用、影分身與設備推薦。</li>
+                <li>與「下載 PNG」相同的那張完整報表圖片。</li>
+            </ul>
+            <div class="data-consent-privacy">
+                <strong>不蒐集姓名、Email、電話</strong>
+                <p>資料僅以這組瀏覽器隨機識別碼區分。你可以清除瀏覽器資料來重設它。</p>
+                <code>${escapeHtml(anonymousVisitorId)}</code>
+            </div>
+            <p class="data-consent-hint">若不希望提供資料，請不要按下「查看我的影分身效益」。</p>
+            <div class="data-consent-actions">
+                <button class="button button--accent" type="button" data-close-modal>我了解了</button>
+            </div>
+        </div>`;
+    elements.modalContent.querySelector('[data-close-modal]').addEventListener('click', closeModal);
+    openModal(trigger);
+}
+
+async function submitAnonymousAssessment() {
+    if (!DATA_COLLECTION_CONFIG.endpoint) {
+        return { ok: false, reason: '資料收集端點尚未設定，本次資料尚未送出。' };
+    }
+    const result = assessmentState.result;
+    if (!result) return { ok: false, reason: '找不到本次評估結果。' };
+    await document.fonts.ready;
+    const reportBlob = await createReportBlob(result);
+    const reportBase64 = await blobToBase64(reportBlob);
+    const payload = {
+        schemaVersion: DATA_COLLECTION_CONFIG.schemaVersion,
+        anonymousId: anonymousVisitorId,
+        assessmentId: result.assessmentId,
+        consent: true,
+        consentedAt: new Date().toISOString(),
+        sourcePage: `${location.origin}${location.pathname}`,
+        assessment: createAssessmentSnapshot(),
+        result,
+        reportImage: {
+            filename: `ASUS-SCI-${result.assessmentId}.png`,
+            mimeType: 'image/png',
+            dataBase64: reportBase64
+        }
+    };
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), DATA_COLLECTION_CONFIG.timeoutMs);
+    try {
+        const response = await fetch(DATA_COLLECTION_CONFIG.endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload),
+            redirect: 'follow',
+            signal: controller.signal
+        });
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (error) {
+            void error;
+        }
+        return {
+            ok: Boolean(response.ok && (!data || data.ok !== false)),
+            reason: data?.reason || (!response.ok ? `HTTP ${response.status}` : '')
+        };
+    } catch (error) {
+        if (error.name === 'AbortError') return { ok: false, reason: '資料送出逾時，您可以重試或直接查看報告。' };
+        return { ok: false, reason: '目前無法連線至資料收集服務，您可以重試或直接查看報告。' };
+    } finally {
+        window.clearTimeout(timer);
+    }
+}
+
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+        reader.onerror = () => reject(new Error('報表圖片轉換失敗。'));
+        reader.readAsDataURL(blob);
+    });
+}
+
 async function previewReport(trigger) {
     const result = assessmentState.result;
     if (!result || result.unavailable) return;
@@ -1636,16 +1789,21 @@ function openSciInfoModal(trigger) {
     openModal(trigger);
 }
 
-function openModal(trigger) {
+function openModal(trigger, options = {}) {
     lastModalTrigger = trigger;
+    elements.modal.dataset.locked = options.locked ? 'true' : 'false';
+    elements.modal.querySelector('.modal__close').hidden = Boolean(options.locked);
     elements.modal.hidden = false;
     document.body.style.overflow = 'hidden';
     elements.modalPanel.focus();
 }
 
-function closeModal() {
+function closeModal(options = {}) {
     if (elements.modal.hidden) return;
+    if (elements.modal.dataset.locked === 'true' && !options.force) return;
     elements.modal.hidden = true;
+    elements.modal.dataset.locked = 'false';
+    elements.modal.querySelector('.modal__close').hidden = false;
     document.body.style.overflow = '';
     clearReportPreview();
     lastModalTrigger?.focus();
@@ -1655,7 +1813,7 @@ function handleModalKeys(event) {
     if (elements.modal.hidden) return;
     if (event.key === 'Escape') {
         event.preventDefault();
-        closeModal();
+        if (elements.modal.dataset.locked !== 'true') closeModal();
         return;
     }
     if (event.key !== 'Tab') return;
@@ -1709,6 +1867,11 @@ function resetAssessment() {
         cloudUsage: '',
         cloudPlans: [],
         cloudOtherCostTwd: '',
+        collectionStatus: 'idle',
+        collectionSubmittedAssessmentId: null,
+        collectionSubmittedFingerprint: null,
+        collectionFailureReason: '',
+        resultFingerprint: null,
         result: null
     });
     renderPersonaSelection();
@@ -1717,6 +1880,11 @@ function resetAssessment() {
 
 function invalidateResult() {
     assessmentState.result = null;
+    assessmentState.collectionStatus = 'idle';
+    assessmentState.collectionSubmittedAssessmentId = null;
+    assessmentState.collectionSubmittedFingerprint = null;
+    assessmentState.collectionFailureReason = '';
+    assessmentState.resultFingerprint = null;
     clearReportPreview();
 }
 
@@ -2084,6 +2252,48 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines, font, c
         }
         ctx.fillText(output, x, y + index * lineHeight);
     });
+}
+
+function getOrCreateAnonymousId() {
+    try {
+        const stored = localStorage.getItem(DATA_COLLECTION_CONFIG.anonymousIdStorageKey);
+        if (stored && /^SCI-U-[A-Z0-9-]{20,}$/i.test(stored)) return stored;
+        const created = createAnonymousId();
+        localStorage.setItem(DATA_COLLECTION_CONFIG.anonymousIdStorageKey, created);
+        return created;
+    } catch (error) {
+        void error;
+        return createAnonymousId();
+    }
+}
+
+function createAnonymousId() {
+    const hex = randomHex(16);
+    return `SCI-U-${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function randomHex(byteLength) {
+    const bytes = new Uint8Array(byteLength);
+    const source = window.crypto || window.msCrypto;
+    if (source && typeof source.getRandomValues === 'function') {
+        source.getRandomValues(bytes);
+    } else {
+        for (let index = 0; index < bytes.length; index += 1) bytes[index] = Math.floor(Math.random() * 256);
+    }
+    return [...bytes].map(value => value.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+function randomToken(length) {
+    return randomHex(Math.ceil(length / 2)).slice(0, length);
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function trackEvent(name, detail) {
