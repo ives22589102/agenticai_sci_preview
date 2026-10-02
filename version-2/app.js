@@ -308,7 +308,6 @@ function initialize() {
         button.addEventListener('click', () => handleProgressStepClick(Number(button.dataset.progressTrigger)));
     });
     document.getElementById('result-reset-button').addEventListener('click', requestResetAssessment);
-    document.getElementById('missing-work-button').addEventListener('click', event => openMissingWorkModal(event.currentTarget));
     document.getElementById('report-preview-button').addEventListener('click', event => previewReport(event.currentTarget));
     document.querySelector('.sci-overview').addEventListener('click', event => {
         const trigger = event.target.closest('#sci-info-trigger');
@@ -1636,11 +1635,6 @@ function openSciInfoModal(trigger) {
                 </article>
             </div>
         </div>`;
-    openModal(trigger);
-}
-
-function openMissingWorkModal(trigger) {
-    elements.modalContent.innerHTML = `<div class="sci-info-modal"><header><span class="step-kicker">任務清單</span><h2 id="modal-title">目前先評估固定任務</h2></header><div class="sci-info-formula">請選擇最接近的工作，再以頻率與實際人工時間校正結果。</div></div>`;
     openModal(trigger);
 }
 

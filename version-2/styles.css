@@ -651,9 +651,6 @@ body:not([data-step="1"]) .progress { margin-top: 0; }
 .recipe-card.is-limit-reached .recipe-select { cursor: default; opacity: .66; }
 .recipe-card.is-limit-reached .recipe-detail { opacity: 1; }
 .recipe-detail summary { min-height: 44px; display: flex; align-items: center; }
-.missing-work-button { display: block; margin: 18px auto 0; color: var(--muted); }
-.missing-work-button:hover { color: var(--cyan); }
-
 .task-progress-summary { position: sticky; top: 138px; z-index: 18; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 14px; margin: -8px 0 16px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(14, 22, 34, .94); backdrop-filter: blur(12px); }
 .task-progress-summary span { color: var(--muted); font-size: 12px; }
 .task-progress-summary b { color: var(--cyan); font-size: 15px; }
