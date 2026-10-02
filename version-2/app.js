@@ -1337,16 +1337,16 @@ function renderHardware(recommendation, result) {
         <span class="hardware-grade-stamp" aria-label="影分身戰力 ${recommendation.grade} 級"><small>影分身戰力</small><strong>${recommendation.grade}</strong></span>
         <div class="hardware-quick-specs"><span><small>GPU／VRAM</small><strong>${model.gpu}</strong></span><span><small>記憶體</small><strong>${model.ram}</strong></span><span><small>儲存</small><strong>${model.ssd}</strong></span></div>
         <details class="hardware-full-specs" open><summary>完整配置</summary><div class="hardware-model-specs">${Object.entries(modelSpecLabels).filter(([key]) => !['gpu', 'ram', 'ssd'].includes(key) && !(key === 'case' && model.integratedChassis)).map(([key, [zh, en, icon]]) => `<div class="hardware-model-spec"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${model[key]}</p></div>`).join('')}</div></details>
-        <div class="hardware-model-card__action">${renderPurchaseLink(`查看 ${model.name} 配置與選購`, campaignConfig.productLinks.systems[recommendation.tier], `system-${index}`)}</div>
+        <div class="hardware-model-card__action">${renderPurchaseLink('了解更多', campaignConfig.productLinks.systems[recommendation.tier], `system-${index}`)}</div>
     </article>`).join('');
     const sharedParts = document.getElementById('shared-parts');
     sharedParts.innerHTML = '';
     sharedParts.hidden = true;
     document.getElementById('system-purchase-cta').innerHTML = '';
     const componentLabels = {
-        cpu: ['處理器系列', 'CPU', 'cpu', '選購處理器系列'],
-        mb: ['主機板系列', 'MB', 'motherboard', '選購主機板系列'],
-        gpu: ['顯示卡系列', 'VGA', 'gpu', '選購顯示卡系列']
+        cpu: ['處理器系列', 'CPU', 'cpu', '了解更多'],
+        mb: ['主機板系列', 'MB', 'motherboard', '了解更多'],
+        gpu: ['顯示卡系列', 'VGA', 'gpu', '了解更多']
     };
     document.getElementById('component-series-grid').innerHTML = Object.entries(recommendation.componentSeries).map(([key, series]) => {
         const [zh, en, icon, cta] = componentLabels[key];
@@ -1406,9 +1406,7 @@ function getLocalValueComparisons(result) {
 }
 
 function renderPurchaseLink(label, href, kind) {
-    const available = Boolean(href);
-    if (!available) return `<button class="button button--accent hardware-buy-link is-placeholder" type="button" data-buy-link="${kind}" disabled>${label}<small>連結準備中</small></button>`;
-    return `<a class="button button--accent hardware-buy-link" href="${href}" data-buy-link="${kind}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    return `<button class="button button--accent hardware-buy-link" type="button" data-buy-link="${kind}" aria-label="${label}">${label}</button>`;
 }
 
 function handleHardwareInteraction(event) {
