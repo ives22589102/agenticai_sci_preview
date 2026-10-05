@@ -2,9 +2,10 @@
 
 const VERSIONS = Object.freeze({
     scoring: 'sci-index-v5',
-    workflows: 'workflow-model-v2',
-    recipes: 'recipes-v2',
-    hardware: 'hardware-v4'
+    workflows: 'workflow-model-v3',
+    recipes: 'recipes-v3',
+    hardware: 'hardware-v4',
+    taxonomy: 'sci-taxonomy-v2'
 });
 
 const SCI_CONFIG = Object.freeze({
@@ -55,7 +56,7 @@ const personaCatalog = Object.freeze({
         name: 'SOHO 自由工作者',
         short: 'SOHO',
         icon: 'S',
-        description: '接案、內容、設計與個人事業工作者',
+        description: '自由工作者、一人工作室與小型創作團隊',
         note: '以個人工作流程與專案交付為主',
         roleTags: [
             ['creative', '影音與設計'],
@@ -64,11 +65,11 @@ const personaCatalog = Object.freeze({
         ]
     },
     edu: {
-        name: 'Education 教育與學習',
-        short: 'Education',
+        name: '教育',
+        short: '教育',
         icon: 'E',
-        description: '教師、學生與研究工作者',
-        note: '以教學、學習與研究流程為主',
+        description: '學生、教師、研究與校園支援工作者',
+        note: '以教學、學習、研究與校園流程為主',
         roleTags: [
             ['teacher', '教師'],
             ['student', '學生'],
@@ -76,10 +77,10 @@ const personaCatalog = Object.freeze({
         ]
     },
     smb: {
-        name: 'SMB 中小企業與團隊',
-        short: 'SMB',
+        name: '中小企業',
+        short: '中小企業',
         icon: 'B',
-        description: '電商、行銷、客服與營運團隊',
+        description: '依部門與業務職能協作的團隊',
         note: '以團隊協作與營運資料為主',
         roleTags: [
             ['commerce', '電商與業務'],
@@ -116,10 +117,15 @@ const scaleDescriptions = Object.freeze({
     B08: ['15 分鐘錄音', '30 分鐘錄音', '90 分鐘錄音']
 });
 
-function makeRecipe(id, persona, title, workUnit, assist, review, manual, _legacyAgentMinutes, profiles, cloneTag, roleTags, featured = false, tiers = [1, 1, 2]) {
-    const descriptions = scaleDescriptions[id];
+function makeRecipe(id, persona, title, workUnit, assist, review, manual, _legacyAgentMinutes, profiles, cloneTag, roleTags, featured = false, tiers = [1, 1, 2], metadata = {}) {
+    const descriptions = scaleDescriptions[id] || ['較低工作量', '一般工作量', '較高工作量'];
     return Object.freeze({
-        id, persona, title, workUnit, assist, review, profiles, cloneTag, roleTags, featured,
+        id, persona, personas: metadata.personas || [persona], title, workUnit, assist, review, profiles, cloneTag, roleTags, featured,
+        functionNames: metadata.functionNames || [],
+        roleTitles: metadata.roleTitles || [],
+        taskCluster: metadata.taskCluster || '',
+        workflowId: metadata.workflowId || id,
+        isOriginal: metadata.isOriginal !== false,
         evidenceStatus: 'heuristic',
         integrationStatus: 'export-only',
         softwareValidationStatus: 'pending',
@@ -132,34 +138,28 @@ function makeRecipe(id, persona, title, workUnit, assist, review, manual, _legac
     });
 }
 
-const recipeCatalog = Object.freeze([
-    makeRecipe('S01', 'soho', '票據整理與記帳', '10 張票據', '欄位辨識、分類、重複提示與表格草稿', '金額、稅別、分類與異常', 25, 8, ['document', 'analytics'], '票據整理分身', ['admin'], true),
-    makeRecipe('S02', 'soho', '短影音多平台內容準備', '10 分鐘素材，產出 1 支短片', '候選剪輯、字幕、尺寸版本、文案與排程草稿', '剪輯品質、字幕、版權與發布', 90, 25, ['media', 'document'], '影音內容分身', ['creative', 'content'], true, [1, 2, 3]),
-    makeRecipe('S03', 'soho', '客製化報價與時程', '1 個專案', '需求整理、規則計價、排程與報價草稿', '價格、範圍、可行性與寄送', 30, 10, ['document', 'analytics'], '報價企劃分身', ['admin'], true),
-    makeRecipe('S04', 'soho', '社群內容企劃與版本改寫', '1 個主題、3 個版本', '彙整需求、初稿、平台版本與檢核表', '溝通策略與品牌審稿', 45, 18, ['document'], '內容企劃分身', ['content']),
-    makeRecipe('S05', 'soho', '設計素材版本與輸出', '1 個主視覺、3 個尺寸', '素材整理、尺寸版型、候選修圖與輸出清單', '產品細節與視覺品質', 60, 25, ['media'], '視覺版本分身', ['creative'], false, [1, 2, 3]),
-    makeRecipe('S06', 'soho', '訪談逐字稿與內容整理', '30 分鐘錄音', '轉錄、段落、重點、待辦與引用候選', '人名、數字與原意核對', 60, 15, ['media', 'knowledge'], '訪談整理分身', ['content']),
-    makeRecipe('S07', 'soho', '客戶需求與專案追蹤', '1 專案、10 則訊息', '整理需求、缺漏、待辦與進度草稿', '客戶承諾與優先順序', 30, 10, ['document', 'monitoring'], '專案追蹤分身', ['admin']),
-    makeRecipe('S08', 'soho', '網頁／程式維護協助', '1 個小功能', '需求整理、修改草稿、檢查與測試建議', '驗證、合併與發布', 60, 30, ['coding'], '程式維護分身', ['creative']),
+// 僅保留原 24 個任務的資產識別；內容、單位及參考工時均讀 canonical catalog。
+const baseRecipeCatalog = Object.freeze(globalThis.SCIWorkflowV2.workflowIds.filter(id=>globalThis.SCIWorkflowV2.getWorkflow(id).hasExistingAvatar).map(id=>({id})));
+function normalizeSciPersona(persona) { return persona === 'education' ? 'edu' : persona; }
 
-    makeRecipe('E01', 'edu', '文獻摘要與測驗草稿', '3 篇 PDF、10 題', '來源定位、摘要、概念分類、題目與答案草稿', '引用、答案與學術判斷', 60, 25, ['knowledge', 'document'], '文獻研究分身', ['student', 'research'], true),
-    makeRecipe('E02', 'edu', '備課簡報與 LMS 內容', '1 課、15 頁投影片', '教案、投影片、講義與 LMS 待上傳內容', '教材適切性、內容正確性與發布', 120, 40, ['document', 'knowledge'], '備課教材分身', ['teacher'], true),
-    makeRecipe('E03', 'edu', '作業格式與異常提示', '10 份作業', '規則比對、缺漏、相似內容提示與異常清單', '逐案查證、原創性判斷與正式評分', 45, 20, ['document', 'knowledge'], '作業檢核分身', ['teacher'], true),
-    makeRecipe('E04', 'edu', '研究資料清理與圖表', '1 個 CSV、1 萬列', '缺值、格式、描述統計與圖表草稿', '分析方法與結論', 90, 35, ['analytics', 'coding'], '研究資料分身', ['research']),
-    makeRecipe('E05', 'edu', '課堂／研究會議整理', '30 分鐘錄音', '轉錄、章節、待辦與複習摘要', '重點與內容核對', 60, 15, ['media', 'knowledge'], '會議整理分身', ['teacher', 'research']),
-    makeRecipe('E06', 'edu', '學習計畫與錯題整理', '20 題', '錯題分類、解題草稿與複習安排', '解法驗證與真正理解', 45, 20, ['document', 'knowledge'], '學習規劃分身', ['student']),
-    makeRecipe('E07', 'edu', '程式作業與研究程式協助', '1 個小模組', '程式草稿、Debug 提示、測試與註解', '正確性、可重現性與作業規則', 90, 40, ['coding'], '程式研究分身', ['student', 'research']),
-    makeRecipe('E08', 'edu', '教學／研究行政資料整理', '20 筆資料', '欄位整理、名單、通知草稿與缺漏提示', '個資、名單與寄送', 40, 12, ['document', 'analytics'], '教研行政分身', ['teacher', 'research']),
+const recipeCatalog = Object.freeze(globalThis.SCIWorkflowV2.workflowIds.map(id => {
+    const task = globalThis.SCIWorkflowV2.getWorkflow(id);
+    const legacy = baseRecipeCatalog.find(recipe => recipe.id === id);
+    const referencing = Object.values(globalThis.SCIWorkflowV2.roles).filter(role => [...role.workflowIds, ...role.extensionWorkflowIds].includes(id));
+    const recipe = makeRecipe(id, normalizeSciPersona(referencing[0]?.persona || 'soho'), task.title, task.workUnit,
+        task.stages.map(stage => stage.ai).join('；'), task.stages.map(stage => stage.human).join('；'),
+        task.manualMinutes, 0, task.profiles,
+        task.cloneTag, [], false, [1,1,2], {personas:[...new Set(referencing.map(role=>normalizeSciPersona(role.persona)))],functionNames:[...new Set(referencing.map(role=>role.functionName))],workflowId:id,isOriginal:Boolean(legacy)});
+    return Object.freeze({...recipe, scales:task.referenceScales, description:task.description, boundary:task.boundary, evidenceStatus:'expert-model-estimate', recipeVersion:'3.0'});
+}));
 
-    makeRecipe('B01', 'smb', '訂單整理與對帳', '100 筆訂單', '欄位映射、去重、對帳與匯入草稿', '差異訂單與正式寫入／開票', 60, 20, ['analytics', 'monitoring'], '訂單對帳分身', ['commerce'], true),
-    makeRecipe('B02', 'smb', '競品與市場週報', '10 商品、50 則評論', '價格快照、評論分類、來源與報告草稿', '商品對應、來源偏誤與市場解讀', 180, 45, ['monitoring', 'knowledge', 'analytics'], '市場情報分身', ['marketing'], true),
-    makeRecipe('B03', 'smb', '跨部門報表', '3 部門、1 份報告', '匯總、口徑統一、缺漏、圖表與摘要草稿', '數字、指標口徑與決策內容', 90, 30, ['analytics', 'document'], '營運報表分身', ['operations'], true),
-    makeRecipe('B04', 'smb', '客服工單分類與回覆草稿', '20 件工單', '分類、知識查找、回覆草稿與升級事件', '非標準問題、退款與承諾', 60, 25, ['knowledge', 'monitoring'], '客服協作分身', ['marketing']),
-    makeRecipe('B05', 'smb', '商品上架內容與圖片版本', '10 項商品', '規格整理、文案、圖檔與上架草稿', '規格、價格與發布', 90, 30, ['document', 'media'], '商品內容分身', ['commerce'], false, [1, 2, 3]),
-    makeRecipe('B06', 'smb', '合約條款差異整理', '2 個版本、10 頁', '差異、缺漏、條款索引與待確認項', '專業審閱與法律判斷', 60, 30, ['knowledge', 'document'], '合約整理分身', ['operations']),
-    makeRecipe('B07', 'smb', '費用分攤與請款資料', '1 筆、8 類', '規則分配、整數調整與表單草稿', '預算歸屬與請款核准', 30, 10, ['analytics', 'document'], '費用整理分身', ['operations']),
-    makeRecipe('B08', 'smb', '會議與跨部門待辦追蹤', '30 分鐘錄音', '轉錄、決議、負責人與待辦更新草稿', '決議、權責與通知', 60, 18, ['media', 'monitoring', 'document'], '會議追蹤分身', ['operations'])
-]);
+// 分類只負責導覽與題目排序；計分仍以使用者填寫的任務工作流為準。
+const functionCatalog = Object.freeze(Object.fromEntries(['soho','edu','smb'].map(persona => {
+ const roles=globalThis.SCIWorkflowV2.getRolesForPersona(persona==='edu'?'education':persona);
+ const names=[...new Set(roles.map(role=>role.functionName))];
+ return [persona,Object.freeze(names.map(label=>({id:persona+'.'+label,label,roles:roles.filter(role=>role.functionName===label).map(role=>role.title),recipeIds:[...new Set(roles.filter(role=>role.functionName===label).flatMap(role=>[...role.workflowIds,...role.extensionWorkflowIds]))]})))];
+})));
+const taskTaxonomyCatalog = Object.freeze(Object.fromEntries(recipeCatalog.map(recipe=>[recipe.id,{canonical:recipe.title,cluster:'具體日常任務',functions:Object.values(functionCatalog).flat().filter(domain=>domain.recipeIds.includes(recipe.id)).map(domain=>domain.id)}])));
 
 const hardwareCatalog = Object.freeze({
     a: Object.freeze({
@@ -251,7 +251,9 @@ const modeCatalog = Object.freeze({
 const assessmentState = {
     currentStep: 1,
     persona: null,
+    functionId: null,
     roleTag: null,
+    taskSearch: '',
     selectedRecipeIds: [],
     taskAnswers: {},
     archivedAnswers: {},
@@ -276,11 +278,18 @@ let lastModalTrigger = null;
 
 const elements = {};
 
+let step3PanelIndex = 0;
+
 document.addEventListener('DOMContentLoaded', initialize);
 
 function initialize() {
     Object.assign(elements, {
+        landingHero: document.getElementById('landing-hero'),
+        startAssessment: document.getElementById('start-assessment'),
         personaGrid: document.getElementById('persona-grid'),
+        functionOptions: document.getElementById('function-options'),
+        recipeSearch: document.getElementById('recipe-search'),
+        recipeControls: document.getElementById('recipe-controls'),
         recipeGrid: document.getElementById('recipe-grid'),
         selectedCount: document.getElementById('selected-count'),
         taskSettings: document.getElementById('task-settings'),
@@ -295,7 +304,6 @@ function initialize() {
         cloudPlanOptions: document.getElementById('cloud-plan-options'),
         cloudOtherCost: document.getElementById('cloud-other-cost'),
         cloudCostTotal: document.getElementById('cloud-cost-total'),
-        taskProgressSummary: document.getElementById('task-progress-summary'),
         loadWarning: document.getElementById('load-warning'),
         backButton: document.getElementById('back-button'),
         nextButton: document.getElementById('next-button'),
@@ -305,10 +313,45 @@ function initialize() {
         navigation: document.getElementById('form-navigation'),
         modal: document.getElementById('modal'),
         modalPanel: document.querySelector('.modal__panel'),
-        modalContent: document.getElementById('modal-content')
+        modalContent: document.getElementById('modal-content'),
+        taskProgress: document.getElementById('task-progress'),
+        taskNextButton: document.getElementById('task-next-button'),
+        taskPrevButton: document.getElementById('task-prev-button'),
+        sharedSettings: document.querySelector('.shared-settings')
     });
 
-    document.getElementById('reset-button').addEventListener('click', requestResetAssessment);
+    elements.taskNextButton?.addEventListener('click', nextStep3Panel);
+    elements.taskPrevButton?.addEventListener('click', previousStep3Panel);
+    document.getElementById('hardware-section').addEventListener('click', event => {
+        const trigger = event.target.closest('[data-strength-scale]');
+        if (trigger) openStrengthScaleModal(trigger);
+        setTimeout(checkReveals, 80);
+    });
+    document.getElementById('clone-list').addEventListener('click', event => {
+        const trigger = event.target.closest('[data-clone-toggle]');
+        if (trigger) toggleClonePlanDetail(trigger);
+    });
+    // Any edit in Step 3 can change completion, so refresh the progress strip and the report button together.
+    ['input', 'change'].forEach(type => document.getElementById('step-3').addEventListener(type, () => {
+        if (assessmentState.currentStep !== 3) return;
+        renderTaskProgress();
+        updateNavigation();
+    }));
+
+    elements.startAssessment?.addEventListener('click', enterAssessment);
+    // Banner layers drift slightly with the pointer; each layer's --depth sets how far.
+    const landingStage = document.getElementById('landing-stage');
+    if (landingStage && matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
+        elements.landingHero.addEventListener('pointermove', event => {
+            landingStage.style.setProperty('--px', ((event.clientX / window.innerWidth) - 0.5).toFixed(3));
+            landingStage.style.setProperty('--py', ((event.clientY / window.innerHeight) - 0.5).toFixed(3));
+        });
+        elements.landingHero.addEventListener('pointerleave', () => {
+            landingStage.style.setProperty('--px', '0');
+            landingStage.style.setProperty('--py', '0');
+        });
+    }
+    document.getElementById('reset-button')?.addEventListener('click', requestResetAssessment);
     elements.backButton.addEventListener('click', previousStep);
     elements.nextButton.addEventListener('click', nextStep);
     elements.consentDetailButton.addEventListener('click', event => showDataCollectionDetails(event.currentTarget));
@@ -316,6 +359,10 @@ function initialize() {
     elements.costPeriod.addEventListener('change', syncCostSettings);
     elements.periodHours.addEventListener('input', syncCostSettings);
     elements.cloudOtherCost.addEventListener('input', syncCloudSettings);
+    elements.recipeSearch?.addEventListener('input', event => {
+        assessmentState.taskSearch = event.target.value;
+        renderRecipeSelection();
+    });
     document.querySelectorAll('[data-go-step]').forEach(button => {
         button.addEventListener('click', () => goToStep(Number(button.dataset.goStep)));
     });
@@ -342,9 +389,17 @@ function initialize() {
     updateStepUI(false);
 }
 
+function enterAssessment() {
+    trackEvent('assessment_started', { entry: 'landing_banner' });
+    document.body.classList.remove('landing-active');
+    if (elements.landingHero) elements.landingHero.hidden = true;
+    window.scrollTo(0, 0);
+    requestAnimationFrame(() => document.getElementById('step-1-title')?.focus({ preventScroll: true }));
+}
+
 function renderPersonaSelection() {
     elements.personaGrid.setAttribute('role', 'radiogroup');
-    elements.personaGrid.setAttribute('aria-label', '主要工作身分');
+    elements.personaGrid.setAttribute('aria-label', '目前工作情境');
     elements.personaGrid.innerHTML = Object.entries(personaCatalog).map(([key, persona]) => `
         <label class="persona-card ${assessmentState.persona === key ? 'is-selected' : ''}" data-persona="${key}">
             <input type="radio" name="persona" value="${key}" ${assessmentState.persona === key ? 'checked' : ''}>
@@ -376,7 +431,9 @@ function selectPersona(personaKey) {
 function applyPersonaSelection(personaKey) {
     if (assessmentState.persona !== personaKey) {
         assessmentState.persona = personaKey;
+        assessmentState.functionId = null;
         assessmentState.roleTag = null;
+        assessmentState.taskSearch = '';
         assessmentState.selectedRecipeIds = [];
         assessmentState.taskAnswers = {};
         assessmentState.archivedAnswers = {};
@@ -388,15 +445,131 @@ function applyPersonaSelection(personaKey) {
     updateNavigation();
 }
 
+function getSelectedRoleProfile() {
+    if (!assessmentState.persona || !assessmentState.functionId || !assessmentState.roleTag) return null;
+    const catalogPersona = assessmentState.persona === 'edu' ? 'education' : assessmentState.persona;
+    const selectedFunction = getFunction(assessmentState.functionId);
+    if (!selectedFunction || assessmentState.functionId === 'cross_domain') return null;
+    return (globalThis.SCIWorkflowV2?.getRolesForPersona(catalogPersona) || [])
+        .find(role => role.functionName === selectedFunction.label && role.title === assessmentState.roleTag) || null;
+}
+
+function getCurrentRoleCatalog() {
+    const catalogPersona = assessmentState.persona === 'edu' ? 'education' : assessmentState.persona;
+    return globalThis.SCIWorkflowV2?.getRolesForPersona(catalogPersona) || [];
+}
+
 function getPersonaRecipes() {
-    const recipes = recipeCatalog.filter(recipe => recipe.persona === assessmentState.persona);
-    return recipes.slice().sort((a, b) => a.id.localeCompare(b.id));
+    const selectedFunction = getFunction(assessmentState.functionId);
+    const roleCatalog = getCurrentRoleCatalog();
+    const matchingRoles = selectedFunction && selectedFunction.id !== 'cross_domain'
+        ? roleCatalog.filter(role => role.functionName === selectedFunction.label)
+        : [];
+    const selectedRole = assessmentState.roleTag
+        ? matchingRoles.find(role => role.title === assessmentState.roleTag)
+        : null;
+    const query = String(assessmentState.taskSearch || '').trim().toLocaleLowerCase();
+    if (!selectedFunction && !query) return [];
+    const workflowIds = selectedFunction
+        ? selectedRole
+            ? [...selectedRole.workflowIds, ...(selectedRole.extensionWorkflowIds || [])]
+            : [...new Set(matchingRoles.flatMap(role => [...role.workflowIds, ...(role.extensionWorkflowIds || [])]))]
+        : recipeCatalog.map(recipe => recipe.id);
+    const recipesById = new Map(recipeCatalog.map(recipe => [recipe.id, recipe]));
+    return [...new Set(workflowIds)].map(workflowId => recipesById.get(workflowId)).filter(recipe => {
+        if (!recipe || !query) return Boolean(recipe);
+        const taxonomy = getRecipeTaxonomy(recipe.id);
+        return [recipe.title, taxonomy.canonical, taxonomy.cluster, recipe.workUnit, recipe.assist, recipe.review]
+            .join(' ').toLocaleLowerCase().includes(query);
+    });
+}
+
+function getPersonaFunctions() {
+    const base = [...(functionCatalog[assessmentState.persona] || [])];
+    const catalogPersona = assessmentState.persona === 'edu' ? 'education' : assessmentState.persona;
+    const roleCatalog = globalThis.SCIWorkflowV2?.getRolesForPersona(catalogPersona) || [];
+    const enriched = base.map(item => {
+        const roles = [...new Set(roleCatalog.filter(role => role.functionName === item.label).map(role => role.title))];
+        return roles.length ? { ...item, roles } : item;
+    });
+    return enriched;
+}
+
+function getFunction(functionId) {
+    return Object.values(functionCatalog).flat().find(item => item.id === functionId);
+}
+
+function getRecipeTaxonomy(recipeId) {
+    if (taskTaxonomyCatalog[recipeId]) return taskTaxonomyCatalog[recipeId];
+    const recipe = getRecipe(recipeId);
+    const functionIds = (recipe?.functionNames || []).map(name => Object.values(functionCatalog).flat().find(item => item.label === name)?.id).filter(Boolean);
+    return { canonical: recipe?.title || '', cluster: recipe?.taskCluster || '一般工作流程', functions: functionIds };
+}
+
+function getRecipeDisplayTitle(recipe) {
+    return getRecipeTaxonomy(recipe.id).canonical || recipe.title;
+}
+
+function renderFunctionSelection() {
+    if (!elements.functionOptions) return;
+    const functions = getPersonaFunctions();
+    const selected = functions.find(item => item.id === assessmentState.functionId);
+    // Domains sit in one horizontal row; the optional role filter for the chosen domain follows on its own row.
+    elements.functionOptions.innerHTML = functions.map(item => `
+        <div class="function-option-shell ${assessmentState.functionId === item.id ? 'is-selected' : ''}">
+            <label class="function-option ${assessmentState.functionId === item.id ? 'is-selected' : ''}">
+                <input type="radio" name="function-id" value="${item.id}" ${assessmentState.functionId === item.id ? 'checked' : ''}>
+                <span><strong>${item.label}</strong></span>
+            </label>
+        </div>
+    `).join('') + (selected?.roles?.length ? `
+        <div class="function-role-list" role="group" aria-label="依${selected.label}職務篩選">
+            <span class="function-role-list__label">依職務篩選</span>
+            <button class="role-option ${!assessmentState.roleTag ? 'is-selected' : ''}" type="button" aria-pressed="${!assessmentState.roleTag}" data-role-filter="">全部</button>
+            ${selected.roles.map(role => `<button class="role-option ${assessmentState.roleTag === role ? 'is-selected' : ''}" type="button" aria-pressed="${assessmentState.roleTag === role}" data-role-filter="${role}">${role}</button>`).join('')}
+        </div>
+    ` : '');
+    elements.functionOptions.querySelectorAll('input[name="function-id"]').forEach(input => input.addEventListener('change', () => selectFunction(input.value)));
+    elements.functionOptions.querySelectorAll('[data-role-filter]').forEach(button => button.addEventListener('click', () => {
+        assessmentState.roleTag = button.dataset.roleFilter || null;
+        renderRecipeSelection();
+        invalidateResult();
+    }));
+}
+
+function selectFunction(functionId) {
+    assessmentState.functionId = functionId;
+    assessmentState.roleTag = null;
+    invalidateResult();
+    renderRecipeSelection();
 }
 
 function renderRecipeSelection() {
+    renderFunctionSelection();
     const recipes = getPersonaRecipes();
+    const hasFunction = Boolean(assessmentState.functionId && getFunction(assessmentState.functionId));
+    if (elements.recipeSearch && elements.recipeSearch.value !== assessmentState.taskSearch) elements.recipeSearch.value = assessmentState.taskSearch;
+    if (elements.recipeSearch) {
+        elements.recipeSearch.placeholder = assessmentState.roleTag
+            ? `搜尋「${assessmentState.roleTag}」工作內容`
+            : hasFunction
+                ? '搜尋此工作領域'
+                : '搜尋全部工作內容';
+    }
+    elements.recipeGrid.dataset.hint = '先選擇上方的工作領域，這裡會列出該領域的工作內容';
+    if (!hasFunction && !assessmentState.taskSearch.trim()) {
+        elements.recipeGrid.innerHTML = '';
+        elements.selectedCount.textContent = String(assessmentState.selectedRecipeIds.length);
+        clearError();
+        return;
+    }
+    if (!recipes.length) {
+        elements.recipeGrid.innerHTML = '<div class="recipe-empty" role="status">找不到符合的工作內容，請換個關鍵字或篩選條件。</div>';
+        elements.selectedCount.textContent = String(assessmentState.selectedRecipeIds.length);
+        clearError();
+        return;
+    }
     const limitReached = assessmentState.selectedRecipeIds.length >= 6;
-    const openDetailIds = new Set([...elements.recipeGrid.querySelectorAll('.recipe-detail[open]')].map(detail => detail.closest('[data-recipe-card]')?.dataset.recipeCard).filter(Boolean));
     elements.recipeGrid.innerHTML = recipes.map(recipe => {
         const selected = assessmentState.selectedRecipeIds.includes(recipe.id);
         return `
@@ -404,15 +577,15 @@ function renderRecipeSelection() {
                 <label class="recipe-select">
                     <input type="checkbox" value="${recipe.id}" ${selected ? 'checked' : ''} ${limitReached && !selected ? 'disabled' : ''} aria-describedby="recipe-summary-${recipe.id}">
                     <span>
-                        <strong>${recipe.title}</strong>
-                        <p id="recipe-summary-${recipe.id}">${getRecipeContext(recipe)}</p>
+                        <strong>${getRecipeDisplayTitle(recipe)}</strong>
+                        <p id="recipe-summary-${recipe.id}">${getRecipeContext(recipe).replace(/^本次工作[：:]\s*/u, '')}</p>
                     </span>
                     ${limitReached && !selected ? '<em>已達上限</em>' : ''}
                 </label>
-                <details class="recipe-detail" ${openDetailIds.has(recipe.id) ? 'open' : ''}>
-                    <summary>查看 AI 可協助的流程</summary>
+                <details class="recipe-detail">
+                    <summary>查看影分身可協助的流程</summary>
                     <div class="recipe-detail__body">
-                        <div><h4>AI 可協助</h4><p>${recipe.assist}</p></div>
+                        <div><h4>影分身可協助</h4><p>${recipe.assist}</p></div>
                         <div><h4>你仍需確認</h4><p>${recipe.review}</p></div>
                     </div>
                 </details>
@@ -433,6 +606,11 @@ function toggleRecipe(recipeId, checked, inputElement = null) {
             if (inputElement) inputElement.checked = false;
             showError('最多選擇 6 項完整工作流程。請先取消一項再加入。', inputElement);
             return;
+        }
+        const task = globalThis.SCIWorkflowV2.getWorkflow(recipeId);
+        if (task?.conflictsWith?.some(id => selected.includes(id))) {
+            if(inputElement)inputElement.checked=false;
+            showError('這項工作與已選任務涵蓋相同工時，請擇一填寫。', inputElement); return;
         }
         if (!selected.includes(recipeId)) selected.push(recipeId);
         if (assessmentState.archivedAnswers[recipeId]) {
@@ -460,6 +638,8 @@ function createDefaultAnswer(recipeId) {
         period: 'week',
         currentMode: '',
         currentHumanMinutes: '',
+        baselineHumanMinutes: '',
+        targetHumanMinutes: '',
         timeSource: '',
         timeConfirmed: false
     };
@@ -481,7 +661,7 @@ function renderTaskSettings() {
         return `
             <details class="task-setting ${complete ? 'is-complete' : ''}" data-task-id="${recipe.id}" open>
                 <summary>
-                    <span class="task-summary-title"><span class="task-index">${index + 1}</span><span><strong>${recipe.title}</strong><small>${summarizeAnswer(recipe, answer)}</small></span></span>
+                    <span class="task-summary-title"><span class="task-index">${index + 1}</span><span><strong>${getRecipeDisplayTitle(recipe)}</strong><small>${summarizeAnswer(recipe, answer)}</small></span></span>
                 </summary>
                 <div class="task-setting__body">
                     <div class="task-field-sequence">
@@ -489,13 +669,13 @@ function renderTaskSettings() {
                             <span class="field-number">1</span><div class="field-block"><label for="frequency-${recipe.id}">多常做一次？</label><div class="frequency-sentence"><select data-field="period" aria-label="選擇執行週期">${renderPeriodOptions(answer.period)}</select><input id="frequency-${recipe.id}" data-field="frequency" type="number" min="1" max="1000" step="1" inputmode="numeric" value="${answer.frequency}" placeholder="次數"><span>次</span></div><p class="field-help" data-monthly-frequency>${monthlyFrequency > 0 ? `約每月 ${formatInputNumber(monthlyFrequency)} 次` : '例如每週 2 次或每月 1 次'}</p></div>
                         </div>
                         <div class="task-field-step">
-                            <span class="field-number">2</span><fieldset><legend>這項工作約占你整體工時多少？</legend><div class="scale-options loading-options">${Object.keys(recipe.scales).map(key => { const loading = getLoadingMeta(key); return `<label class="scale-option loading-option"><input type="radio" name="scale-${recipe.id}" value="${key}" ${answer.scale === key ? 'checked' : ''}><span><i class="loading-meter" aria-hidden="true">${[1, 2, 3].map(level => `<em class="${level <= loading.level ? 'is-active' : ''}"></em>`).join('')}</i><b>${loading.label}</b></span></label>`; }).join('')}</div></fieldset>
+                            <span class="field-number">2</span><fieldset><legend>每次工作量或複雜度？</legend><div class="scale-options loading-options">${Object.keys(recipe.scales).map(key => { const loading = getLoadingMeta(key); return `<label class="scale-option loading-option"><input type="radio" name="scale-${recipe.id}" value="${key}" ${answer.scale === key ? 'checked' : ''}><span><i class="loading-meter" aria-hidden="true">${[1, 2, 3].map(level => `<em class="${level <= loading.level ? 'is-active' : ''}"></em>`).join('')}</i><b>${loading.label}</b></span></label>`; }).join('')}</div></fieldset>
                         </div>
                         <div class="task-field-step">
                             <span class="field-number">3</span><fieldset><legend>現在怎麼完成？</legend><div class="mode-options">${Object.entries(modeCatalog).map(([key, mode]) => `<label><input type="radio" name="mode-${recipe.id}" value="${key}" ${answer.currentMode === key ? 'checked' : ''}><span><b>${mode.label}</b><small>${getModeDescription(key)}</small></span></label>`).join('')}</div></fieldset>
                         </div>
                         <div class="task-field-step">
-                            <span class="field-number">4</span><div class="field-block"><label for="minutes-${recipe.id}">每次人工投入時間</label><div class="input-prefix time-input"><input id="minutes-${recipe.id}" data-field="currentHumanMinutes" type="number" min="0.1" max="10080" step="0.1" inputmode="decimal" value="${answer.currentHumanMinutes === '' ? '' : formatInputNumber(answer.currentHumanMinutes)}" placeholder="完成前面設定後自動帶入"><span>分鐘</span></div><span class="reference-value" data-reference-value>${hasReference ? `已先套用參考估算：${formatMinutes(reference)} 分鐘／次，可直接修改` : '完成工時占比與目前做法後，系統會先帶入參考估算'}</span><p class="field-help">包含資料準備、操作、整理、檢查與修改。</p></div>
+                            <span class="field-number">4</span><div class="field-block"><label for="minutes-${recipe.id}">每次人工投入時間</label><div class="input-prefix time-input"><input id="minutes-${recipe.id}" data-field="currentHumanMinutes" type="number" min="0.1" max="10080" step="0.1" inputmode="decimal" value="${answer.currentHumanMinutes === '' ? '' : formatInputNumber(answer.currentHumanMinutes)}" placeholder="完成前面設定後自動帶入"><span>分鐘</span></div><span class="reference-value" data-reference-value>${hasReference ? `已先套用參考估算：${formatMinutes(reference)} 分鐘／次，可直接修改` : '完成工時占比與目前做法後，系統會先帶入參考估算'}</span><p class="field-help">包含資料準備、操作、整理、檢查與修改；同一份工時只填一次。</p></div>
                         </div>
                     </div>
                 </div>
@@ -504,13 +684,122 @@ function renderTaskSettings() {
     }).join('');
 
     elements.taskSettings.querySelectorAll('[data-task-id]').forEach(card => bindTaskCard(card));
-    updateTaskProgressSummary();
     renderLoadWarning();
+    applyStep3Panel();
+}
+
+// Step 3 shows one panel at a time: each selected task, then the shared usage settings.
+function getStep3PanelCount() {
+    return assessmentState.selectedRecipeIds.length + 1;
+}
+
+function isSharedSettingsComplete() {
+    if (!assessmentState.executionNeeds.parallelBand) return false;
+    const cost = Number(assessmentState.costAmountTwd);
+    if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return false;
+    if (!assessmentState.cloudUsage) return false;
+    if (assessmentState.cloudUsage === 'paid') {
+        const otherCost = Number(assessmentState.cloudOtherCostTwd);
+        if (!assessmentState.cloudPlans.length && !(otherCost > 0)) return false;
+        if (assessmentState.cloudOtherCostTwd !== '' && (!Number.isFinite(otherCost) || otherCost < 0 || otherCost > 10000000)) return false;
+    }
+    return true;
+}
+
+function isStep3Complete() {
+    return assessmentState.selectedRecipeIds.every(id => isAnswerComplete(assessmentState.taskAnswers[id])) && isSharedSettingsComplete();
+}
+
+function applyStep3Panel() {
+    const taskIds = assessmentState.selectedRecipeIds;
+    step3PanelIndex = clamp(step3PanelIndex, 0, taskIds.length);
+    elements.taskSettings.querySelectorAll('[data-task-id]').forEach(card => {
+        card.hidden = card.dataset.taskId !== taskIds[step3PanelIndex];
+        card.open = true;
+    });
+    elements.taskSettings.hidden = step3PanelIndex >= taskIds.length;
+    if (elements.sharedSettings) elements.sharedSettings.hidden = step3PanelIndex < taskIds.length;
+    renderTaskProgress();
+    updateNavigation();
+}
+
+function renderTaskProgress() {
+    if (!elements.taskProgress) return;
+    const taskIds = assessmentState.selectedRecipeIds;
+    const items = taskIds.map((id, index) => ({
+        label: getRecipeDisplayTitle(getRecipe(id)),
+        complete: isAnswerComplete(assessmentState.taskAnswers[id]),
+        error: Boolean(elements.taskSettings.querySelector(`[data-task-id="${id}"].has-error`)),
+        index
+    }));
+    items.push({ label: '使用情境', complete: isSharedSettingsComplete(), error: false, index: taskIds.length });
+    const doneCount = items.filter(item => item.complete).length;
+    elements.taskProgress.innerHTML = `
+        <p class="task-progress__count">已完成 <strong>${doneCount}</strong>／${items.length}</p>
+        <ol>${items.map(item => `<li><button type="button" class="task-progress__item ${item.index === step3PanelIndex ? 'is-active' : ''} ${item.complete ? 'is-complete' : ''} ${item.error ? 'has-error' : ''}" data-step3-panel="${item.index}" ${item.index === step3PanelIndex ? 'aria-current="step"' : ''}><i aria-hidden="true">${item.complete ? '✓' : item.index + 1}</i><span>${item.label}</span></button></li>`).join('')}</ol>`;
+    elements.taskProgress.querySelectorAll('[data-step3-panel]').forEach(button => button.addEventListener('click', () => goToStep3Panel(Number(button.dataset.step3Panel))));
+}
+
+// Moving forward (arrow or progress tab) requires the current task to be complete; moving back never does.
+function goToStep3Panel(targetIndex) {
+    clearError();
+    if (targetIndex === step3PanelIndex) return;
+    const recipeId = assessmentState.selectedRecipeIds[step3PanelIndex];
+    if (targetIndex > step3PanelIndex && recipeId && !isAnswerComplete(assessmentState.taskAnswers[recipeId])) {
+        const firstMissing = markTaskErrors(recipeId, false);
+        renderTaskProgress();
+        return showError('請先補完紅框標示的必填欄位。', firstMissing);
+    }
+    const direction = targetIndex > step3PanelIndex ? 'next' : 'prev';
+    step3PanelIndex = targetIndex;
+    applyStep3Panel();
+    const step = document.getElementById('step-3');
+    step.scrollTop = 0;
+    const panel = step.querySelector('.task-setting:not([hidden])') || (elements.sharedSettings.hidden ? null : elements.sharedSettings);
+    if (panel) {
+        panel.classList.remove('is-entering-next', 'is-entering-prev');
+        void panel.offsetWidth;
+        panel.classList.add(`is-entering-${direction}`);
+        panel.addEventListener('animationend', () => panel.classList.remove('is-entering-next', 'is-entering-prev'), { once: true });
+    }
+}
+
+function nextStep3Panel() {
+    goToStep3Panel(step3PanelIndex + 1);
+}
+
+function renderDonut(percent) {
+    const circumference = 2 * Math.PI * 42;
+    const offset = circumference * (1 - clamp(percent, 0, 100) / 100);
+    return `<svg class="donut" viewBox="0 0 100 100" aria-hidden="true" style="--circ:${circumference.toFixed(2)};--offset:${offset.toFixed(2)}"><defs><linearGradient id="donut-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5c3bff"/><stop offset="1" stop-color="#133ed4"/></linearGradient></defs><circle class="donut__track" cx="50" cy="50" r="42"/><circle class="donut__value" cx="50" cy="50" r="42" transform="rotate(-90 50 50)"/></svg>`;
+}
+
+let revealObserver = null;
+// Report blocks fade up and their charts draw in the first time they scroll into view.
+function observeReveals(root = document.getElementById('step-4')) {
+    const targets = root.querySelectorAll('.impact-hero, .saving-summary, .time-comparison-row, .workflow-impact-card, .hardware-model-card, .component-series-card, .shadow-strength-card, .local-value-comparisons article');
+    targets.forEach(target => target.classList.add('reveal'));
+    if (!revealObserver) {
+        // Position checks on scroll rather than IntersectionObserver, so blocks can never stay hidden if no callback fires.
+        revealObserver = true;
+        document.getElementById('step-4').addEventListener('scroll', checkReveals, { passive: true });
+        window.addEventListener('scroll', checkReveals, { passive: true });
+        window.addEventListener('resize', checkReveals);
+    }
+    setTimeout(checkReveals, 80);
+}
+
+function checkReveals() {
+    const limit = window.innerHeight * 0.94;
+    document.querySelectorAll('#step-4 .reveal:not(.is-inview)').forEach(target => {
+        const rect = target.getBoundingClientRect();
+        if (rect.width && rect.top < limit && rect.bottom > 0) target.classList.add('is-inview');
+    });
 }
 
 function bindTaskCard(card) {
     const recipeId = card.dataset.taskId;
-    card.querySelector('summary').addEventListener('click', () => handleTaskSummaryClick(card));
+    card.querySelector('summary').addEventListener('click', event => { event.preventDefault(); handleTaskSummaryClick(card); });
     card.querySelectorAll(`input[name="scale-${recipeId}"]`).forEach(input => input.addEventListener('change', () => updateAnswerScale(recipeId, input.value)));
     card.querySelectorAll(`input[name="mode-${recipeId}"]`).forEach(input => input.addEventListener('change', () => updateAnswerMode(recipeId, input.value)));
     card.querySelector('[data-field="frequency"]').addEventListener('input', event => updateSimpleAnswer(recipeId, 'frequency', event.target.value));
@@ -587,7 +876,8 @@ function updateTaskCardStatus(recipeId) {
     if (summary) summary.textContent = summarizeAnswer(recipe, answer);
     if (complete) clearTaskErrors(recipeId);
     else if (card.classList.contains('has-error')) markTaskErrors(recipeId, false);
-    updateTaskProgressSummary();
+    renderTaskProgress();
+    updateNavigation();
 }
 
 function handleTaskSummaryClick(targetCard) {
@@ -636,13 +926,6 @@ function clearTaskErrors(recipeId) {
     card.querySelectorAll('.field-error').forEach(element => element.classList.remove('field-error'));
 }
 
-function updateTaskProgressSummary() {
-    if (!elements.taskProgressSummary) return;
-    const total = assessmentState.selectedRecipeIds.length;
-    const complete = assessmentState.selectedRecipeIds.filter(id => isAnswerComplete(assessmentState.taskAnswers[id])).length;
-    elements.taskProgressSummary.innerHTML = `<span><b>${complete}</b>／${total} 項已完成</span><i style="--progress:${total ? complete / total * 100 : 0}%" aria-hidden="true"></i>`;
-}
-
 function renderSharedOptions() {
     const parallelOptions = [
         ['1', '多半依序'], ['2', '約 2 項同時'], ['3-4', '3 至 4 項同時'], ['5+', '5 項以上'], ['unknown', '不確定']
@@ -661,10 +944,7 @@ function renderSharedOptions() {
     elements.cloudUsageOptions.innerHTML = cloudUsageOptions.map(([value, label]) => `<label><input type="radio" name="cloud-usage" value="${value}"><span>${label}</span></label>`).join('');
     elements.cloudPlanOptions.innerHTML = cloudBrands.map(([brandId, brand]) => {
         const plans = CLOUD_PLAN_CATALOG.filter(plan => plan.brandId === brandId && plan.monthlyTwd > 0);
-        return `<details class="cloud-service-group" data-cloud-provider="${brandId}">
-            <summary><strong>${brand}</strong><span data-cloud-brand-summary="${brandId}">選擇方案</span></summary>
-            <div class="cloud-service-plans">${plans.map(plan => `<label class="cloud-plan-option"><input type="checkbox" name="cloud-plan-${brandId}" value="${plan.id}" data-cloud-plan><span><strong>${plan.plan}</strong><small>${formatCurrency(plan.monthlyTwd)}／月</small></span><b aria-hidden="true">✓</b></label>`).join('')}</div>
-        </details>`;
+        return `<label class="cloud-plan-select"><span>${brand}</span><select data-cloud-brand="${brandId}" aria-label="${brand} 訂閱方案"><option value="">未訂閱</option>${plans.map(plan => `<option value="${plan.id}">${plan.plan}｜${formatCurrency(plan.monthlyTwd)}／月</option>`).join('')}</select></label>`;
     }).join('');
     elements.parallelOptions.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
         assessmentState.executionNeeds.parallelBand = input.value;
@@ -676,45 +956,31 @@ function renderSharedOptions() {
         syncCloudSettings();
         invalidateResult();
     }));
-    elements.cloudPlanOptions.querySelectorAll('[data-cloud-plan]').forEach(input => input.addEventListener('change', () => {
-        if (input.checked) {
-            elements.cloudPlanOptions.querySelectorAll(`input[name="${input.name}"]`).forEach(sibling => {
-                if (sibling !== input) sibling.checked = false;
-            });
-        }
-        assessmentState.cloudPlans = [...elements.cloudPlanOptions.querySelectorAll('[data-cloud-plan]:checked')].map(item => item.value);
-        input.closest('details')?.removeAttribute('open');
-        updateCloudProviderSummaries();
+    elements.cloudPlanOptions.querySelectorAll('[data-cloud-brand]').forEach(select => select.addEventListener('change', () => {
+        assessmentState.cloudPlans = [...elements.cloudPlanOptions.querySelectorAll('[data-cloud-brand]')].map(item => item.value).filter(Boolean);
         syncCloudSettings();
         invalidateResult();
-    }));
-    elements.cloudPlanOptions.querySelectorAll('.cloud-service-group').forEach(group => group.addEventListener('toggle', () => {
-        if (!group.open) return;
-        elements.cloudPlanOptions.querySelectorAll('.cloud-service-group[open]').forEach(other => {
-            if (other !== group) other.removeAttribute('open');
-        });
     }));
 }
 
 function clearCloudPaidSelection() {
     assessmentState.cloudPlans = [];
     assessmentState.cloudOtherCostTwd = '';
-    elements.cloudPlanOptions.querySelectorAll('[data-cloud-plan]').forEach(input => { input.checked = false; });
     elements.cloudOtherCost.value = '';
     updateCloudProviderSummaries();
 }
 
+// One plan per brand: each select shows the plan in cloudPlans that belongs to it.
 function updateCloudProviderSummaries() {
-    elements.cloudPlanOptions.querySelectorAll('[data-cloud-brand-summary]').forEach(summary => {
-        const selected = assessmentState.cloudPlans.map(id => CLOUD_PLAN_CATALOG.find(plan => plan.id === id)).find(plan => plan?.brandId === summary.dataset.cloudBrandSummary);
-        summary.textContent = selected ? `${selected.plan} · ${formatCurrency(selected.monthlyTwd)}` : '選擇方案';
+    elements.cloudPlanOptions.querySelectorAll('[data-cloud-brand]').forEach(select => {
+        const selected = assessmentState.cloudPlans.map(id => CLOUD_PLAN_CATALOG.find(plan => plan.id === id)).find(plan => plan?.brandId === select.dataset.cloudBrand);
+        select.value = selected?.id || '';
     });
 }
 
 function restoreSharedOptions() {
     document.querySelectorAll('input[name="parallel-band"]').forEach(input => { input.checked = input.value === assessmentState.executionNeeds.parallelBand; });
     document.querySelectorAll('input[name="cloud-usage"]').forEach(input => { input.checked = input.value === assessmentState.cloudUsage; });
-    document.querySelectorAll('[data-cloud-plan]').forEach(input => { input.checked = assessmentState.cloudPlans.includes(input.value); });
     elements.hourlyCost.value = assessmentState.costAmountTwd;
     elements.costPeriod.value = assessmentState.costPeriod;
     elements.periodHours.value = assessmentState.periodHours;
@@ -776,17 +1042,9 @@ function updateCostConversion() {
 }
 
 function renderLoadWarning() {
-    if (assessmentState.currentStep !== 3) return;
-    const monthlyHours = estimateCurrentMonthlyHours();
-    const nearLimit = Object.values(assessmentState.taskAnswers).some(answer => Number(answer.frequency) >= 9000 || Number(answer.currentHumanMinutes) >= 9000);
-    const singleUserExcess = assessmentState.persona !== 'smb' && monthlyHours > 240;
-    if (!nearLimit && !singleUserExcess) {
-        elements.loadWarning.hidden = true;
-        elements.loadWarning.innerHTML = '';
-        return;
-    }
-    elements.loadWarning.hidden = false;
-    elements.loadWarning.innerHTML = `<strong>高工作負載已納入分析</strong><p>${singleUserExcess ? `目前工作量約為 ${formatHours(monthlyHours)} 小時／月。` : '目前包含高頻率或長時間任務。'} 報告會同步強化多工效能與設備配置建議。</p>`;
+    if (!elements.loadWarning) return;
+    elements.loadWarning.hidden = true;
+    elements.loadWarning.innerHTML = '';
 }
 
 function estimateCurrentMonthlyHours() {
@@ -800,13 +1058,13 @@ function estimateCurrentMonthlyHours() {
 function nextStep() {
     clearError();
     if (assessmentState.currentStep === 1) {
-        if (!assessmentState.persona) return showError('請先選擇主要工作身分。', elements.personaGrid.querySelector('input'));
+        if (!assessmentState.persona) return showError('請先選擇工作情境。', elements.personaGrid.querySelector('input'));
         goToStep(2);
         return;
     }
     if (assessmentState.currentStep === 2) {
         if (!assessmentState.selectedRecipeIds.length) {
-            return showError('請至少選擇 1 項平常會處理的工作。', elements.recipeGrid.querySelector('input'));
+            return showError('請至少選擇 1 項平常會處理的工作。', elements.recipeGrid.querySelector('input') || elements.recipeSearch);
         }
         renderTaskSettings();
         restoreSharedOptions();
@@ -827,7 +1085,7 @@ function previousStep() {
 function canReachStep(step) {
     if (step <= 1) return true;
     if (step === 2) return Boolean(assessmentState.persona);
-    if (step === 3) return assessmentState.selectedRecipeIds.length > 0;
+    if (step === 3) return Boolean(assessmentState.functionId) && assessmentState.selectedRecipeIds.length > 0;
     if (step === 4) return Boolean(assessmentState.result);
     return false;
 }
@@ -845,6 +1103,8 @@ function handleProgressStepClick(step) {
 function goToStep(step) {
     if (step === 2) renderRecipeSelection();
     if (step === 3) {
+        const firstIncomplete = assessmentState.selectedRecipeIds.findIndex(id => !isAnswerComplete(assessmentState.taskAnswers[id]));
+        step3PanelIndex = firstIncomplete >= 0 ? firstIncomplete : 0;
         renderTaskSettings();
         restoreSharedOptions();
     }
@@ -869,7 +1129,8 @@ function updateStepUI(moveFocus) {
         const trigger = item.querySelector('[data-progress-trigger]');
         if (trigger) trigger.disabled = !reachable;
     });
-    document.getElementById('progress-fill').style.width = `${((assessmentState.currentStep - 1) / 3) * 100}%`;
+    const progressFill = document.getElementById('progress-fill');
+    if (progressFill) progressFill.style.width = `${((assessmentState.currentStep - 1) / 3) * 100}%`;
     elements.navigation.hidden = assessmentState.currentStep === 4;
     elements.backButton.hidden = assessmentState.currentStep === 1;
     const draftStatus = document.getElementById('draft-status');
@@ -879,18 +1140,28 @@ function updateStepUI(moveFocus) {
     if (moveFocus) {
         const title = document.getElementById(`step-${assessmentState.currentStep}-title`);
         title?.focus({ preventScroll: true });
-        document.querySelector('.assessment-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelectorAll('.step, .function-picker, .recipe-grid').forEach(panel => { panel.scrollTop = 0; });
+        window.scrollTo(0, 0);
+        requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' }));
     }
 }
 
 function updateNavigation() {
-    elements.nextButton.disabled = assessmentState.currentStep === 1 && !assessmentState.persona;
+    const onStep3 = assessmentState.currentStep === 3;
+    elements.nextButton.disabled = (assessmentState.currentStep === 1 && !assessmentState.persona) || (onStep3 && !isStep3Complete());
     elements.nextButton.textContent = assessmentState.currentStep === 1
         ? '選擇日常任務'
         : assessmentState.currentStep === 2
             ? '填寫時間與頻率'
             : '查看我的影分身效益';
-    elements.consentNote.hidden = assessmentState.currentStep !== 3;
+    elements.backButton.textContent = onStep3 ? '重新選擇工作領域' : '上一步';
+    if (elements.taskNextButton) {
+        const isLastPanel = step3PanelIndex >= getStep3PanelCount() - 1;
+        elements.taskNextButton.disabled = isLastPanel;
+        elements.taskNextButton.setAttribute('aria-label', step3PanelIndex === getStep3PanelCount() - 2 ? '下一個：使用情境' : '下一個任務');
+        if (elements.taskPrevButton) elements.taskPrevButton.disabled = step3PanelIndex <= 0;
+    }
+    elements.consentNote.hidden = !onStep3;
 }
 
 function validateStep3() {
@@ -904,22 +1175,24 @@ function validateStep3() {
             if (!firstIncomplete) {
                 firstIncomplete = firstMissing || card.querySelector('summary');
                 firstIncompleteRecipe = getRecipe(recipeId);
+                step3PanelIndex = assessmentState.selectedRecipeIds.indexOf(recipeId);
+                applyStep3Panel();
             }
         }
     }
-    if (firstIncomplete) return showError(`請補完「${firstIncompleteRecipe.title}」的紅框欄位。`, firstIncomplete);
+    if (firstIncomplete) return showError(`請補完「${getRecipeDisplayTitle(firstIncompleteRecipe)}」的紅框欄位。`, firstIncomplete);
     if (!assessmentState.executionNeeds.parallelBand) return showError('請選擇平常會同時執行幾個任務。', elements.parallelOptions.querySelector('input'));
     syncCostSettings();
     const cost = Number(assessmentState.costAmountTwd);
-    if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return showError('請填入大於 0 的工作流程成本，且不可超過 NT$10,000,000。', elements.hourlyCost);
+    if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return showError('請填寫工作流程成本。', elements.hourlyCost);
     syncCloudSettings();
     if (!assessmentState.cloudUsage) return showError('請選擇目前是否使用雲端 AI。', elements.cloudUsageOptions.querySelector('input'));
     if (assessmentState.cloudUsage === 'paid' && !assessmentState.cloudPlans.length && !(Number(assessmentState.cloudOtherCostTwd) > 0)) {
-        return showError('請選擇至少一個訂閱方案，或填入其他 AI 支出。', elements.cloudPlanOptions.querySelector('summary'));
+        return showError('請選擇至少一個訂閱方案，或填入其他 AI 支出。', elements.cloudPlanOptions.querySelector('select'));
     }
     if (assessmentState.cloudUsage === 'paid' && assessmentState.cloudOtherCostTwd !== '') {
         const cloudCost = Number(assessmentState.cloudOtherCostTwd);
-        if (!Number.isFinite(cloudCost) || cloudCost < 0 || cloudCost > 10000000) return showError('其他雲端支出不可小於 0，且不可超過 NT$10,000,000。', elements.cloudOtherCost);
+        if (!Number.isFinite(cloudCost) || cloudCost < 0 || cloudCost > 10000000) return showError('請確認其他 AI 支出金額。', elements.cloudOtherCost);
     }
     return true;
 }
@@ -927,6 +1200,7 @@ function validateStep3() {
 function createAssessmentSnapshot() {
     return JSON.parse(JSON.stringify({
         persona: assessmentState.persona,
+        functionId: assessmentState.functionId,
         roleTag: assessmentState.roleTag,
         selectedRecipeIds: assessmentState.selectedRecipeIds,
         taskAnswers: assessmentState.taskAnswers,
@@ -938,11 +1212,18 @@ function createAssessmentSnapshot() {
         cloudUsage: assessmentState.cloudUsage,
         cloudPlans: assessmentState.cloudPlans,
         cloudOtherCostTwd: assessmentState.cloudOtherCostTwd,
+        schemaVersion: '3.0',
+        roleId: getSelectedRoleProfile()?.id || null,
         scope: 'selected-workflows'
     }));
 }
 
 function calculateAssessment(snapshot) {
+    if(snapshot.schemaVersion !== '3.0') throw Error('舊資料請重新選擇職業及確認工時');
+    const allowed=new Set(globalThis.SCIWorkflowV2.workflowIds);
+    if(new Set(snapshot.selectedRecipeIds).size!==snapshot.selectedRecipeIds.length || snapshot.selectedRecipeIds.some(id=>!allowed.has(id)))throw Error('任務資料不一致，請重新選擇');
+    globalThis.SCIWorkflowV2.calculateTime(snapshot.selectedRecipeIds.map(id=>({id,baselineMinutes:1,humanMinutes:1})));
+
     const taskResults = snapshot.selectedRecipeIds.map((recipeId, selectionIndex) => {
         const recipe = getRecipe(recipeId);
         const answer = snapshot.taskAnswers[recipeId];
@@ -950,16 +1231,20 @@ function calculateAssessment(snapshot) {
         const monthlyFrequency = frequencyToMonthly(answer.frequency, answer.period);
         const baseline = scale.manualMinutes;
         const current = Number(answer.currentHumanMinutes);
-        const effectiveBaseline = Math.max(baseline, current);
+        const effectiveBaseline = answer.baselineHumanMinutes !== '' && answer.baselineHumanMinutes != null ? Number(answer.baselineHumanMinutes) : answer.currentMode === 'manual' ? current : baseline;
         const workflowMetrics = calculateWorkflowMetrics(recipeId);
+        const taxonomy = getRecipeTaxonomy(recipeId);
         const workflowTargetMinutes = effectiveBaseline * workflowMetrics.retainedHumanRatio;
-        const target = Math.min(current, workflowTargetMinutes);
+        const target = answer.targetHumanMinutes !== '' && answer.targetHumanMinutes != null ? Number(answer.targetHumanMinutes) : workflowTargetMinutes;
         const currentMonthlyMinutes = monthlyFrequency * current;
         const targetMonthlyMinutes = monthlyFrequency * target;
         return {
             recipeId,
             selectionIndex,
-            title: recipe.title,
+            title: getRecipeDisplayTitle(recipe),
+            canonicalTask: taxonomy.canonical,
+            taskCluster: taxonomy.cluster,
+            functionIds: taxonomy.functions,
             workUnit: recipe.workUnit,
             scale: answer.scale,
             scaleLabel: getLoadingMeta(answer.scale).label,
@@ -981,7 +1266,9 @@ function calculateAssessment(snapshot) {
             review: recipe.review,
             cloneTag: recipe.cloneTag,
             profiles: recipe.profiles,
-            evidenceStatus: recipe.evidenceStatus,
+            evidenceStatus: answer.targetHumanMinutes !== '' && answer.targetHumanMinutes != null ? 'user-observed-retained-time' : recipe.evidenceStatus,
+            baselineTimeSource: answer.baselineHumanMinutes !== '' && answer.baselineHumanMinutes != null ? 'user-input' : answer.currentMode === 'manual' ? answer.timeSource : 'model-estimate',
+            targetTimeSource: answer.targetHumanMinutes !== '' && answer.targetHumanMinutes != null ? 'user-input' : 'model-estimate',
             workflowMetrics
         };
     });
@@ -1032,13 +1319,18 @@ function calculateAssessment(snapshot) {
         assessmentId: `SCI-${Date.now().toString(36).toUpperCase()}-${randomToken(6)}`,
         scoringVersion: VERSIONS.scoring,
         recipeCatalogVersion: VERSIONS.recipes,
+        taxonomyVersion: VERSIONS.taxonomy,
         hardwareCatalogVersion: VERSIONS.hardware,
         workflowCatalogVersion: VERSIONS.workflows,
         generatedAt: new Date().toISOString(),
         timezone: 'Asia/Taipei',
         persona: snapshot.persona,
+        functionId: snapshot.functionId,
         roleTag: snapshot.roleTag,
         scope: snapshot.scope,
+        schemaVersion: '3.0',
+        roleId: snapshot.roleId,
+        evidence: 'expert-model-estimate',
         sci: {
             current: currentSci,
             target: targetSci,
@@ -1157,6 +1449,7 @@ function renderResult() {
     document.getElementById('clone-list').innerHTML = renderReportClonePlan(result.clones);
     renderHardware(result.recommendation, result);
     setResultSectionsHidden(false);
+    observeReveals();
     requestAnimationFrame(animateSciJourney);
 }
 
@@ -1229,8 +1522,13 @@ function renderWorkflowImpactCard(task, index) {
     const shadowShare = clamp(task.targetReliefRate, 0, 100);
     const humanShare = 100 - shadowShare;
     return `<article class="workflow-impact-card">
-        <header><div class="workflow-impact-card__identity"><img class="workflow-clone-avatar" src="${getCloneAvatarPath(task.recipeId)}" alt="${task.cloneTag}"><div><span>TASK ${String(index + 1).padStart(2, '0')} · ${task.scaleLabel} · ${getFrequencyLabel(task)}</span><h4>${task.title}</h4></div></div><div class="load-chip" aria-label="人工與影分身處理比例"><span>人工處理 <b>${formatPercent(humanShare)}%</b></span><span>影分身協助 <b>${formatPercent(shadowShare)}%</b></span></div></header>
-        <div class="workflow-detail-columns"><div><span>影分身可協助</span><p>${task.assist}</p></div><div><span>仍需人工</span><p>${task.review}</p></div></div>
+        <header><div class="workflow-impact-card__identity"><img class="workflow-clone-avatar" src="${getCloneAvatarPath(task.recipeId)}" alt="${task.cloneTag}"><div><span>TASK ${String(index + 1).padStart(2, '0')} · ${task.scaleLabel} · ${getFrequencyLabel(task)}</span><h4>${task.title}</h4></div></div></header>
+        <div class="workflow-detail-columns"><div><span>影分身可協助</span><p>${task.assist}</p></div><div><span>仍需人工</span><p>${task.review}</p></div>
+            <div class="share-chart" role="img" aria-label="影分身協助 ${formatPercent(shadowShare)}%，人工處理 ${formatPercent(humanShare)}%">
+                <div class="share-donut">${renderDonut(shadowShare)}<strong>${formatPercent(shadowShare)}<small>%</small></strong></div>
+                <ul><li class="is-shadow"><i></i>影分身協助 <b>${formatPercent(shadowShare)}%</b></li><li><i></i>人工處理 <b>${formatPercent(humanShare)}%</b></li></ul>
+            </div>
+        </div>
         <div class="workflow-impact-grid">
             <div><span>目前投入</span><strong>${formatHours(task.currentMonthlyMinutes / 60)} ${getTimeUnit()}／月</strong></div>
             <span class="workflow-arrow" aria-hidden="true">${iconSvg('arrow-right')}</span>
@@ -1241,21 +1539,36 @@ function renderWorkflowImpactCard(task, index) {
 }
 
 function renderWorkloadOverview(result) {
-    const maxHours = Math.max(...result.taskResults.map(task => task.currentMonthlyMinutes / 60), 1);
+    const totalCurrentHours = result.taskResults.reduce((sum, task) => sum + task.currentMonthlyMinutes, 0) / 60;
+    const totalTargetHours = result.taskResults.reduce((sum, task) => sum + task.targetMonthlyMinutes, 0) / 60;
+    const totalSavedHours = Math.max(totalCurrentHours - totalTargetHours, 0);
+    const totalSavedShare = totalCurrentHours > 0 ? clamp(totalSavedHours / totalCurrentHours * 100, 0, 100) : 0;
     const rows = result.taskResults.map((task, index) => {
         const currentHours = task.currentMonthlyMinutes / 60;
         const targetHours = task.targetMonthlyMinutes / 60;
-        const currentWidth = clamp(currentHours / maxHours * 100, 2, 100);
-        const targetWidth = clamp(targetHours / maxHours * 100, 1, 100);
+        const keptShare = currentHours > 0 ? clamp(targetHours / currentHours * 100, 0, 100) : 100;
         return `<button type="button" class="time-comparison-row ${index === 0 ? 'is-selected' : ''}" data-task-toggle="${index}" aria-expanded="${index === 0}" aria-controls="workload-task-detail">
-            <span class="time-comparison-row__title"><b>${String(index + 1).padStart(2, '0')}</b><strong>${task.title}${index === 0 ? '<em class="priority-task-label">優先導入</em>' : ''}</strong><small>${getFrequencyLabel(task)}</small></span>
-            <span class="time-comparison-row__chart"><i class="time-bar time-bar--current" style="--bar:${currentWidth}%"><em>目前 ${formatHours(currentHours)} 小時</em></i><i class="time-bar time-bar--target" style="--bar:${targetWidth}%"><em>導入後 ${formatHours(targetHours)} 小時</em></i></span>
-            <span class="time-comparison-row__saved"><small>每月減少</small><span class="time-reduction-value"><strong>${formatHours(task.savedMonthlyMinutes / 60)} 小時</strong><em aria-label="下降 ${formatPercent(task.reliefRate)}%">↓ ${formatPercent(task.reliefRate)}%</em></span></span>
+            <span class="time-comparison-row__title"><b>${String(index + 1).padStart(2, '0')}</b><strong>${task.title}${index === 0 ? '<em class="priority-task-label">優先導入</em>' : ''}</strong><small>${getFrequencyLabel(task)}・目前 ${formatHours(currentHours)} 小時／月</small></span>
+            <span class="time-comparison-row__chart">
+                <span class="saving-bar" style="--kept:${keptShare}%" aria-hidden="true"><i class="saving-bar__kept"></i><i class="saving-bar__saved"></i><em>${formatPercent(task.reliefRate)}%</em></span>
+                <span class="saving-bar__labels"><span>仍需人工 <b>${formatHours(targetHours)} 小時</b></span><span>影分身可協助 <b>${formatHours(task.savedMonthlyMinutes / 60)} 小時</b></span></span>
+            </span>
+            <span class="time-comparison-row__saved"><small>每月省下</small><span class="time-reduction-value"><strong aria-label="每月省下 ${formatHours(task.savedMonthlyMinutes / 60)} 小時，下降 ${formatPercent(task.reliefRate)}%">${formatHours(task.savedMonthlyMinutes / 60)} 小時</strong></span></span>
         </button>`;
     }).join('');
     return `<section class="workload-overview" aria-labelledby="workload-overview-title">
-        <header><h4 id="workload-overview-title">每月人工工時：導入前 → 導入後</h4></header>
-        <div class="time-comparison-legend"><span><i></i>目前人工工時</span><span><i></i>導入後人工工時</span></div>
+        <div class="saving-summary">
+            <div class="saving-donut" role="img" aria-label="整體人工工時減少 ${Math.round(totalSavedShare)}%">${renderDonut(totalSavedShare)}<strong>${Math.round(totalSavedShare)}<small>%</small></strong><span>工時減少</span></div>
+            <div class="saving-summary__copy">
+                <h4 id="workload-overview-title">導入影分身後，每月合計省下</h4>
+                <strong>${formatHours(totalSavedHours)}<small> 小時</small></strong>
+            </div>
+            <div class="saving-summary__compare">
+                <div><span>導入前工時</span><i style="--bar:100%"></i><b>${formatHours(totalCurrentHours)} 小時</b></div>
+                <div class="is-after"><span>導入後工時</span><i style="--bar:${100 - totalSavedShare}%"></i><b>${formatHours(totalTargetHours)} 小時</b></div>
+            </div>
+        </div>
+        <div class="time-comparison-legend"><span><i></i>導入後仍需人工</span><span><i></i>影分身可協助的工時</span></div>
         <div class="time-comparison-list">${rows}</div>
         <div class="workload-task-detail" id="workload-task-detail" data-open-index="0">${renderWorkflowImpactCard(result.taskResults[0], 0)}</div>
     </section>`;
@@ -1275,6 +1588,7 @@ function toggleTaskDetail(index) {
     });
     panel.innerHTML = renderWorkflowImpactCard(result.taskResults[nextOpenIndex], nextOpenIndex);
     panel.hidden = false;
+    observeReveals(panel);
     panel.dataset.openIndex = String(nextOpenIndex);
     panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -1312,18 +1626,7 @@ function getModeDescription(mode) {
     }[mode] || '';
 }
 
-function getRecipeContext(recipe) {
-    const contextByProfile = {
-        document: '整理資料並產出可使用的內容草稿',
-        analytics: '彙整資料、找出差異並準備分析結果',
-        media: '處理影音素材與多版本內容準備',
-        knowledge: '查找、摘要並組織知識內容',
-        monitoring: '持續彙整狀態、變化與待辦事項',
-        coding: '協助撰寫、修改及檢查程式工作'
-    };
-    return contextByProfile[recipe.profiles[0]] || '整理資料並完成固定工作流程';
-}
-
+function getRecipeContext(recipe) { return recipe.description; }
 function renderCloneCard(clone, index) {
     return `<article class="clone-card clone-card--compact" title="${clone.capability}">
         <div class="clone-avatar"><img src="${getCloneAvatarPath(clone.recipeId)}" alt=""><i aria-hidden="true"></i></div>
@@ -1333,15 +1636,34 @@ function renderCloneCard(clone, index) {
 
 function renderReportClonePlan(clones) {
     const names = clones.map(clone => clone.name.replace(/分身$/u, ''));
-    return `<p class="clone-plan-line">本次規劃：${names.join('、')}，共 ${clones.length} 個影分身</p>
-        <div class="clone-plan-list">${clones.map(clone => `<article class="clone-plan-item">
-            <span class="clone-plan-avatar"><img src="${getCloneAvatarPath(clone.recipeId)}" alt="${clone.name}"></span>
-            <span class="clone-plan-copy"><strong>${clone.name}</strong><small>${clone.capability}</small></span>
-        </article>`).join('')}</div>`;
+    // Names only, side by side; a clone's capability opens below when its chip is pressed.
+    return `<p class="clone-plan-line">本次規劃 ${clones.length} 個影分身，點選名稱查看可協助的內容</p>
+        <div class="clone-plan-list">${clones.map((clone, index) => `<button type="button" class="clone-plan-item" data-clone-toggle="${index}" aria-expanded="false" aria-controls="clone-plan-detail">
+            <span class="clone-plan-avatar"><img src="${getCloneAvatarPath(clone.recipeId)}" alt=""></span>
+            <strong>${names[index]}</strong>
+        </button>`).join('')}</div>
+        <div class="clone-plan-detail" id="clone-plan-detail" hidden>${clones.map((clone, index) => `<p data-clone-detail="${index}" hidden><strong>${clone.name}</strong>${clone.capability}</p>`).join('')}</div>`;
+}
+
+function toggleClonePlanDetail(button) {
+    const list = button.closest('#clone-list');
+    const detail = list.querySelector('.clone-plan-detail');
+    const willOpen = button.getAttribute('aria-expanded') !== 'true';
+    list.querySelectorAll('[data-clone-toggle]').forEach(item => item.setAttribute('aria-expanded', String(willOpen && item === button)));
+    list.querySelectorAll('[data-clone-detail]').forEach(item => { item.hidden = !(willOpen && item.dataset.cloneDetail === button.dataset.cloneToggle); });
+    detail.hidden = !willOpen;
+}
+
+function previousStep3Panel() {
+    goToStep3Panel(step3PanelIndex - 1);
 }
 
 function getCloneAvatarPath(recipeId) {
-    return `avatars/${recipeId}.webp`;
+    const family = String(recipeId || '').charAt(0);
+    const number = Number.parseInt(String(recipeId || '').slice(1), 10);
+    const fallbackNumber = Number.isFinite(number) ? ((number - 1) % 8) + 1 : 1;
+    const avatarId = ['S', 'E', 'B'].includes(family) ? `${family}${String(fallbackNumber).padStart(2, '0')}` : 'S08';
+    return `avatars/${avatarId}.webp`;
 }
 
 function renderHardware(recommendation, result) {
@@ -1402,9 +1724,9 @@ function renderShadowStrength(strength, result) {
     const comparisons = getLocalValueComparisons(result);
     return `<article class="shadow-strength-card">
         <div class="shadow-strength-card__score"><span>影分身戰力</span><strong>${strength.grade}</strong><b>級</b></div>
-        <div class="shadow-strength-card__body"><div><strong>${strength.label}</strong><span>${strength.capacity}</span></div><div class="shadow-strength-meter" aria-label="影分身戰力 ${strength.grade} 級"><i style="--strength:${strength.meter}%"></i></div><p>${strength.description} 這是依設備規格與本次工作負載提供的相對運算餘裕建議。</p><details class="strength-scale"><summary>查看 A 至 SS 分級</summary><p>A、A+、S、S+、SS 代表地端模型、多工具與平行流程可使用的運算餘裕；不代表固定速度倍數，也不等同 SCI。</p></details></div>
+        <div class="shadow-strength-card__body"><div><strong>${strength.label}</strong><span>${strength.capacity}</span></div><div class="shadow-strength-meter" aria-label="影分身戰力 ${strength.grade} 級"><i style="--strength:${strength.meter}%"></i></div><p>${strength.description} 這是依設備規格與本次工作負載提供的相對運算餘裕建議。</p><button class="strength-scale-button" type="button" data-strength-scale="${strength.grade}">查看 A 至 SS 各級配置<span aria-hidden="true">→</span></button></div>
         <header class="local-value-heading"><span>從目前限制到地端工作方式</span><strong>為什麼值得把影分身軍團建立在自己的設備上</strong></header>
-        <div class="local-value-comparisons">${comparisons.map(item => `<article><div><span>目前痛點</span><p>${item.before}</p></div><i aria-hidden="true">→</i><div><span>地端影分身</span><p>${item.after}</p></div></article>`).join('')}</div>
+        <div class="local-value-comparisons">${comparisons.map(item => `<article><div><span>目前痛點</span><p>${item.before}</p></div><i aria-hidden="true"></i><div><span>地端影分身</span><p>${item.after}</p></div></article>`).join('')}</div>
     </article>`;
 }
 
@@ -1537,7 +1859,7 @@ async function submitAnonymousAssessment() {
     const result = assessmentState.result;
     if (!result) return { ok: false, reason: '找不到本次評估結果。' };
     await document.fonts.ready;
-    const reportBlob = await createReportBlob(result);
+    const reportBlob = await createReportBlobV2(result);
     const reportBase64 = await blobToBase64(reportBlob);
     const payload = {
         schemaVersion: DATA_COLLECTION_CONFIG.schemaVersion,
@@ -1599,11 +1921,17 @@ async function previewReport(trigger) {
     trigger.textContent = '正在產生報告…';
     try {
         await document.fonts.ready;
-        const blob = await createReportBlob(result);
+        // The download mirrors the on-screen report; the hand-drawn canvas version is only a fallback.
+        let blob;
+        try {
+            blob = await createReportSnapshotBlob();
+        } catch (snapshotError) {
+            blob = await createReportBlobV2(result);
+        }
         clearReportPreview();
         reportPreviewUrl = URL.createObjectURL(blob);
-        const filename = `ASUS-SCI-完整報告-${taipeiDateStamp()}.png`;
-        elements.modalContent.innerHTML = `<div class="report-preview"><header><span class="step-kicker">完整報告預覽</span><h2 id="modal-title">SCI 影分身完整報告</h2><p>請先檢查內容，確認後再下載 PNG 圖片。</p></header><div class="report-preview__toolbar"><button class="text-button" type="button" id="preview-size-toggle" aria-pressed="false">查看原始尺寸</button></div><div class="report-preview__image"><img src="${reportPreviewUrl}" alt="SCI 影分身工作效益完整報告預覽"></div><div class="report-preview__actions"><button class="button button--quiet" type="button" data-close-modal>返回報告</button><a class="button button--accent" href="${reportPreviewUrl}" download="${filename}" id="report-download-link">下載 PNG 圖片</a></div></div>`;
+        const filename = `ASUS-影分身導入報告-${taipeiDateStamp()}.png`;
+        elements.modalContent.innerHTML = `<div class="report-preview"><header><span class="step-kicker">完整報告預覽</span><h2 id="modal-title">你的影分身導入報告</h2><p>請先檢查內容，確認後再下載 PNG 圖片。</p></header><div class="report-preview__toolbar"><button class="text-button" type="button" id="preview-size-toggle" aria-pressed="false">查看原始尺寸</button></div><div class="report-preview__image"><img src="${reportPreviewUrl}" alt="影分身導入報告預覽"></div><div class="report-preview__actions"><button class="button button--quiet" type="button" data-close-modal>返回報告</button><a class="button button--accent" href="${reportPreviewUrl}" download="${filename}" id="report-download-link">下載 PNG 圖片</a></div></div>`;
         elements.modalContent.querySelector('[data-close-modal]').addEventListener('click', closeModal);
         document.getElementById('preview-size-toggle').addEventListener('click', event => {
             const preview = elements.modalContent.querySelector('.report-preview__image');
@@ -1619,6 +1947,281 @@ async function previewReport(trigger) {
         trigger.disabled = false;
         trigger.textContent = originalText;
     }
+}
+
+const REPORT_SNAPSHOT_WIDTH = 1200;
+const REPORT_SNAPSHOT_CSS = `
+    html, body { height: auto !important; overflow: visible !important; }
+    body { margin: 0 !important; background: #eef3ff !important; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .report-snapshot { width: ${REPORT_SNAPSHOT_WIDTH}px; padding: 44px 48px 48px; box-sizing: border-box; background: radial-gradient(ellipse at center, #fff 50%, #e3ecff 100%); }
+    .report-snapshot__brand { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; padding-bottom: 18px; border-bottom: 1.5px solid #e2e8f0; color: #4f5f75; font-size: 15px; }
+    .report-snapshot__brand img { width: 150px; height: 58px; object-fit: contain; }
+    .report-snapshot .step { display: grid !important; height: auto !important; min-height: 0 !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
+    .report-snapshot .reveal { opacity: 1 !important; transform: none !important; }
+    .report-snapshot .result-actions, .report-snapshot .sci-info-trigger, .report-snapshot .strength-scale-button, .report-snapshot .clone-plan-line, .report-snapshot .hardware-tabs, .report-snapshot .hardware-buy-link, .report-snapshot .result-header .step-kicker { display: none !important; }
+`;
+
+function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+    });
+}
+
+async function fetchAsDataUrl(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return blobToDataUrl(await response.blob());
+}
+
+// Manrope carries the report's numerals; embed its Latin subset so the image matches the screen.
+// CJK text falls back to the system font inside the image, because embedding Noto Sans TC would be far too large.
+async function getReportFontCss() {
+    try {
+        const link = document.querySelector('link[href*="fonts.googleapis.com/css2"]');
+        if (!link) return '';
+        const css = await (await fetch(link.href)).text();
+        const blocks = css.split('}').map(block => `${block}}`).filter(block => block.includes('Manrope') && /U\+0000-00FF/i.test(block));
+        const embedded = await Promise.all(blocks.map(async block => {
+            const url = block.match(/url\((https:[^)]+)\)/)?.[1];
+            return url ? block.replace(url, await fetchAsDataUrl(url)) : '';
+        }));
+        return embedded.join('\n');
+    } catch (error) {
+        return '';
+    }
+}
+
+async function createReportSnapshotBlob() {
+    const source = document.getElementById('step-4');
+    const clone = source.cloneNode(true);
+    clone.hidden = false;
+    clone.querySelectorAll('.reveal').forEach(node => node.classList.add('is-inview'));
+    clone.querySelectorAll('.sci-overview').forEach(node => node.classList.add('is-animated'));
+    clone.querySelectorAll('[id]').forEach(node => { if (node.id !== 'donut-grad') node.removeAttribute('id'); });
+    clone.id = 'step-4';
+
+    const stylesheetHref = document.querySelector('link[rel="stylesheet"][href*="styles.css"]').href;
+    const [pageCss, fontCss] = await Promise.all([fetch(stylesheetHref).then(response => response.text()), getReportFontCss()]);
+    const style = document.createElement('style');
+    // Relative url() references cannot load inside an image, and none of them are part of the report body.
+    style.textContent = `${fontCss}\n${pageCss.replace(/url\((?!["']?(?:data:|#))[^)]*\)/g, 'none')}\n${REPORT_SNAPSHOT_CSS}`;
+
+    const root = document.createElement('div');
+    root.className = 'report-snapshot';
+    const brand = document.createElement('div');
+    brand.className = 'report-snapshot__brand';
+    brand.innerHTML = `<img src="img/ASUS AI agent computer badge.png" alt="ASUS AI Agent Computer"><span>診斷日期 ${taipeiDateStamp().replace(/-/g, '/')}</span>`;
+    root.append(brand, clone);
+    await Promise.all([...root.querySelectorAll('img')].map(async image => {
+        try {
+            image.src = await fetchAsDataUrl(new URL(image.getAttribute('src'), document.baseURI).href);
+        } catch (error) {
+            image.remove();
+        }
+    }));
+
+    // Lay the report out in a hidden frame of the export width so its height matches what the image will render.
+    const frame = document.createElement('iframe');
+    frame.setAttribute('aria-hidden', 'true');
+    frame.tabIndex = -1;
+    frame.style.cssText = `position:fixed;left:-99999px;top:0;width:${REPORT_SNAPSHOT_WIDTH}px;height:900px;border:0;visibility:hidden;`;
+    document.body.appendChild(frame);
+    let height;
+    try {
+        const frameDocument = frame.contentDocument;
+        frameDocument.open();
+        frameDocument.write('<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"></head><body data-step="4"></body></html>');
+        frameDocument.close();
+        frameDocument.head.appendChild(frameDocument.importNode(style, true));
+        const framedRoot = frameDocument.importNode(root, true);
+        frameDocument.body.appendChild(framedRoot);
+        // A timer rather than requestAnimationFrame: frames do not fire while the tab is in the background.
+        await new Promise(resolve => setTimeout(resolve, 120));
+        height = Math.ceil(framedRoot.getBoundingClientRect().height);
+    } finally {
+        frame.remove();
+    }
+    if (!height) throw new Error('Report snapshot has no height.');
+
+    const wrapper = document.createElement('div');
+    wrapper.append(style, root);
+    const markup = new XMLSerializer().serializeToString(wrapper);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${REPORT_SNAPSHOT_WIDTH}" height="${height}" viewBox="0 0 ${REPORT_SNAPSHOT_WIDTH} ${height}"><foreignObject width="100%" height="100%">${markup}</foreignObject></svg>`;
+    const image = new Image();
+    image.decoding = 'sync';
+    await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error('Report snapshot could not be rendered.'));
+        image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    });
+    const scale = Math.min(2, Math.sqrt(16000000 / (REPORT_SNAPSHOT_WIDTH * height)));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(REPORT_SNAPSHOT_WIDTH * scale);
+    canvas.height = Math.round(height * scale);
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Report snapshot export failed.')), 'image/png'));
+}
+
+async function createReportBlobV2(result) {
+    const width = 1080;
+    const left = 64;
+    const contentWidth = width - left * 2;
+    const taskHeight = 116;
+    const hardwareHeight = 250;
+    const cloneRows = Math.max(1, Math.ceil(result.clones.length / 3));
+    const height = 780 + cloneRows * 92 + result.taskResults.length * taskHeight
+        + result.recommendation.models.length * (hardwareHeight + 18) + 120;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    const font = '"Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif';
+    const colors = {
+        page: '#F3F7FD', surface: '#FFFFFF', soft: '#EAF3FF', line: '#D7E3F2',
+        text: '#17243D', muted: '#64748B', subtle: '#8A9AB2',
+        blue: '#1769D8', cyan: '#1EAED1', green: '#37B987'
+    };
+    const avatars = new Map(await Promise.all(
+        result.clones.map(async clone => [clone.recipeId, await loadImageAsset(getCloneAvatarPath(clone.recipeId))])
+    ));
+    const card = (x, y, w, h, fill = colors.surface) => roundedRect(ctx, x, y, w, h, 18, fill, colors.line);
+    const label = (value, x, y, align = 'left') => canvasText(ctx, value, x, y, `700 12px ${font}`, colors.muted, align);
+    const value = (text, x, y, size = 28, color = colors.text, align = 'left') => canvasText(ctx, text, x, y, `800 ${size}px ${font}`, color, align);
+    const heading = (text, y) => {
+        canvasText(ctx, text, left, y, `800 25px ${font}`, colors.text);
+        ctx.fillStyle = colors.blue;
+        ctx.fillRect(left, y + 13, 36, 3);
+    };
+
+    ctx.fillStyle = colors.page;
+    ctx.fillRect(0, 0, width, height);
+    const wash = ctx.createLinearGradient(0, 0, width, 0);
+    wash.addColorStop(0, 'rgba(245,111,151,.10)');
+    wash.addColorStop(.52, 'rgba(255,255,255,0)');
+    wash.addColorStop(1, 'rgba(67,114,238,.14)');
+    ctx.fillStyle = wash;
+    ctx.fillRect(0, 0, width, 300);
+
+    let y = 54;
+    roundedRect(ctx, left, y, 52, 52, 15, colors.blue);
+    canvasText(ctx, 'AI', left + 26, y + 35, `900 22px ${font}`, '#FFFFFF', 'center');
+    canvasText(ctx, 'AGENT COMPUTER', left + 68, y + 23, `900 17px ${font}`, colors.text);
+    canvasText(ctx, '影分身戰力測驗', left + 68, y + 45, `700 12px ${font}`, colors.blue);
+    canvasText(ctx, `診斷日期 ${formatTaipeiDate(result.generatedAt)}`, width - left, y + 30, `600 12px ${font}`, colors.muted, 'right');
+
+    y += 92;
+    canvasText(ctx, '你的影分身導入報告', left, y, `900 40px ${font}`, colors.text);
+    canvasText(ctx, `${personaCatalog[result.persona].name} · ${result.taskResults.length} 項工作`, left, y + 31, `600 14px ${font}`, colors.muted);
+
+    y += 70;
+    card(left, y, contentWidth, 176);
+    label('目前 SCI', left + 28, y + 36);
+    value(String(Math.round(result.sci.current)), left + 28, y + 104, 58);
+    canvasText(ctx, '/100', left + 104, y + 104, `600 14px ${font}`, colors.subtle);
+    canvasText(ctx, '→', left + 218, y + 99, `700 34px ${font}`, colors.blue, 'center');
+    label('導入後 SCI', left + 270, y + 36);
+    value(String(Math.round(result.sci.target)), left + 270, y + 104, 66, colors.blue);
+    canvasText(ctx, '/100', left + 356, y + 104, `600 14px ${font}`, colors.subtle);
+    canvasText(ctx, `提升 ${Math.round(result.sci.gap)} 點`, left + 270, y + 140, `800 13px ${font}`, colors.green);
+
+    const metricStart = left + 450;
+    const metrics = [
+        ['釋放工時', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
+        ['工時價值', formatCurrency(result.cost.laborSavedMonthlyTwd)],
+        ['等值約節省', formatTokens(result.tokens.savedMonthly)]
+    ];
+    metrics.forEach((metric, index) => {
+        const x = metricStart + index * 164;
+        label(metric[0], x, y + 44);
+        wrapCanvasText(ctx, metric[1], x, y + 84, 146, 29, 2, `800 25px ${font}`, colors.text);
+        if (index === 2) canvasText(ctx, '雲端 Token 費用', x, y + 139, `600 10px ${font}`, colors.muted);
+    });
+
+    y += 220;
+    heading(`本次規劃：共 ${result.clones.length} 個影分身`, y);
+    y += 34;
+    result.clones.forEach((clone, index) => {
+        const column = index % 3;
+        const row = Math.floor(index / 3);
+        const x = left + column * 318;
+        const cardY = y + row * 92;
+        card(x, cardY, 302, 76);
+        const avatar = avatars.get(clone.recipeId);
+        roundedRect(ctx, x + 12, cardY + 12, 52, 52, 12, colors.soft);
+        if (avatar) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.roundRect(x + 12, cardY + 12, 52, 52, 12);
+            ctx.clip();
+            ctx.drawImage(avatar, x + 12, cardY + 12, 52, 52);
+            ctx.restore();
+        }
+        canvasText(ctx, clone.name, x + 76, cardY + 29, `800 12px ${font}`, colors.text);
+        wrapCanvasText(ctx, clone.capability, x + 76, cardY + 50, 210, 14, 2, `500 9px ${font}`, colors.muted);
+    });
+    y += cloneRows * 92 + 34;
+
+    heading('哪些工作交給影分身？', y);
+    y += 36;
+    result.taskResults.forEach((task, index) => {
+        card(left, y, contentWidth, 98, index === 0 ? '#F4FAFF' : '#FFFFFF');
+        roundedRect(ctx, left + 18, y + 18, 34, 34, 10, colors.soft);
+        canvasText(ctx, String(index + 1).padStart(2, '0'), left + 35, y + 41, `800 11px ${font}`, colors.blue, 'center');
+        wrapCanvasText(ctx, task.title, left + 66, y + 31, 310, 19, 2, `800 14px ${font}`, colors.text);
+        canvasText(ctx, getFrequencyLabel(task), left + 66, y + 75, `600 10px ${font}`, colors.muted);
+        label('每月人工工時', left + 420, y + 29);
+        canvasText(ctx, `${formatHours(task.currentMonthlyMinutes / 60)} → ${formatHours(task.targetMonthlyMinutes / 60)} 小時`, left + 420, y + 58, `800 16px ${font}`, colors.text);
+        label('每月減少', width - left - 20, y + 29, 'right');
+        canvasText(ctx, `${formatHours(task.savedMonthlyMinutes / 60)} 小時`, width - left - 20, y + 58, `900 18px ${font}`, colors.blue, 'right');
+        y += taskHeight;
+    });
+
+    y += 12;
+    heading('找尋最適合您影分身軍團的設備', y);
+    y += 38;
+    const hardwareLabels = {
+        mb: '主機板 MB', cpu: '處理器 CPU', gpu: '顯示卡 VGA', ram: '記憶體 RAM',
+        ssd: '儲存裝置 SSD', case: '機殼 CASE', cooling: '散熱系統', psu: '電源供應器 PSU'
+    };
+    result.recommendation.models.forEach(hardware => {
+        card(left, y, contentWidth, hardwareHeight);
+        canvasText(ctx, hardware.name, left + 24, y + 36, `900 19px ${font}`, colors.text);
+        canvasText(ctx, `${result.recommendation.strength.grade} 級影分身戰力`, width - left - 24, y + 36, `800 13px ${font}`, colors.blue, 'right');
+        ctx.strokeStyle = colors.line;
+        ctx.beginPath();
+        ctx.moveTo(left + 24, y + 58);
+        ctx.lineTo(width - left - 24, y + 58);
+        ctx.stroke();
+        Object.entries(hardwareLabels)
+            .filter(([key]) => !(key === 'case' && hardware.integratedChassis))
+            .forEach(([key, title], index) => {
+                const column = index % 4;
+                const row = Math.floor(index / 4);
+                const x = left + 24 + column * 230;
+                const itemY = y + 88 + row * 72;
+                canvasText(ctx, title, x, itemY, `700 10px ${font}`, colors.muted);
+                wrapCanvasText(ctx, hardware[key], x, itemY + 22, 205, 15, 3, `700 10px ${font}`, colors.text);
+            });
+        y += hardwareHeight + 18;
+    });
+
+    ctx.fillStyle = colors.line;
+    ctx.fillRect(left, height - 66, contentWidth, 1);
+    canvasText(ctx, 'SCI · Shadow-Clone Index', left, height - 36, `600 10px ${font}`, colors.muted);
+    canvasText(ctx, 'ASUS AGENT COMPUTER', width - left, height - 36, `800 10px ${font}`, colors.blue, 'right');
+
+    return new Promise((resolve, reject) => canvas.toBlob(
+        blob => blob ? resolve(blob) : reject(new Error('Canvas export failed')),
+        'image/png',
+        1
+    ));
 }
 
 async function createReportBlob(result) {
@@ -1763,6 +2366,31 @@ async function createReportBlob(result) {
     return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Canvas export failed')), 'image/png', 1));
 }
 
+function openStrengthScaleModal(trigger) {
+    const currentGrade = trigger.dataset.strengthScale;
+    elements.modalContent.innerHTML = `
+        <div class="strength-scale-modal">
+            <header>
+                <span class="step-kicker">影分身戰力分級</span>
+                <h2 id="modal-title">A 至 SS 各級配置</h2>
+                <p>分級代表地端模型、多工具與平行流程可使用的運算餘裕；不代表固定速度倍數，也不等同 SCI。</p>
+            </header>
+            <div class="strength-scale-list">${Object.values(hardwareCatalog).map(tier => {
+                const model = tier.models[0];
+                const isCurrent = tier.strength.grade === currentGrade;
+                return `<article class="${isCurrent ? 'is-current' : ''}">
+                    <div class="strength-scale-grade"><strong>${tier.strength.grade}</strong>${isCurrent ? '<em>本次建議</em>' : ''}</div>
+                    <div class="strength-scale-copy">
+                        <h3>${tier.strength.label}<small>${tier.strength.capacity}</small></h3>
+                        <dl><div><dt>GPU</dt><dd>${model.gpu}</dd></div><div><dt>CPU</dt><dd>${model.cpu}</dd></div><div><dt>記憶體</dt><dd>${model.ram}</dd></div><div><dt>儲存</dt><dd>${model.ssd}</dd></div></dl>
+                        <p>代表機型：${tier.models.map(item => item.name).join('、')}</p>
+                    </div>
+                </article>`;
+            }).join('')}</div>
+        </div>`;
+    openModal(trigger);
+}
+
 function openSciInfoModal(trigger) {
     elements.modalContent.innerHTML = `
         <div class="sci-info-modal">
@@ -1855,7 +2483,9 @@ function resetAssessment() {
     Object.assign(assessmentState, {
         currentStep: 1,
         persona: null,
+        functionId: null,
         roleTag: null,
+        taskSearch: '',
         selectedRecipeIds: [],
         taskAnswers: {},
         archivedAnswers: {},
@@ -1900,34 +2530,14 @@ function getReferenceMinutes(recipe, scale, mode) {
     return scaleData.manualMinutes * modeData.baselineWeight + workflowTarget * modeData.agentWeight;
 }
 
-function calculateWorkflowMetrics(recipeId) {
-    const model = workflowProcessCatalog[recipeId];
-    if (!model) throw new Error(`Missing workflow process model: ${recipeId}`);
-    const totals = model.steps.reduce((sum, step) => {
-        const retained = clamp((1 - step.delegation) + step.delegation * step.review + step.delegation * step.exceptionRate * step.exceptionEffort, 0, 1);
-        sum.share += step.share;
-        sum.retainedHumanRatio += step.share * retained;
-        sum.coverage += step.share * step.delegation;
-        sum.autonomousWork += step.share * step.delegation * (1 - step.review);
-        sum.computeIntensity += step.share * step.compute;
-        return sum;
-    }, { share: 0, retainedHumanRatio: 0, coverage: 0, autonomousWork: 0, computeIntensity: 0 });
-    if (Math.abs(totals.share - 1) > 0.0001) throw new Error(`Workflow shares must total 1: ${recipeId}`);
-    return Object.freeze({
-        retainedHumanRatio: clamp(totals.retainedHumanRatio, 0, 1),
-        coverageRate: clamp(totals.coverage * 100, 0, 100),
-        autonomyRate: totals.coverage > 0 ? clamp(totals.autonomousWork / totals.coverage * 100, 0, 100) : 0,
-        computeIntensity: clamp(totals.computeIntensity, 1, 5),
-        stepCount: model.steps.length,
-        modelVersion: model.version
-    });
-}
+function calculateWorkflowMetrics(recipeId) { return globalThis.SCIWorkflowV2.metrics(recipeId); }
 
 function isAnswerComplete(answer) {
     if (!answer) return false;
     const frequency = Number(answer.frequency);
     const minutes = Number(answer.currentHumanMinutes);
-    return Boolean(answer.scale && answer.currentMode && answer.period && answer.timeSource && answer.timeConfirmed) && Number.isInteger(frequency) && frequency > 0 && frequency <= 1000 && Number.isFinite(minutes) && minutes >= 0.1 && minutes <= 10080;
+    const optionalTimesValid = ['baselineHumanMinutes','targetHumanMinutes'].every(field => answer[field] === '' || answer[field] == null || (Number.isFinite(Number(answer[field])) && Number(answer[field]) >= (field==='baselineHumanMinutes' ? .1 : 0) && Number(answer[field]) <= 10080));
+    return optionalTimesValid && Boolean(answer.scale && answer.currentMode && answer.period && answer.timeSource && answer.timeConfirmed) && Number.isInteger(frequency) && frequency > 0 && frequency <= 1000 && Number.isFinite(minutes) && minutes >= 0.1 && minutes <= 10080;
 }
 
 function summarizeAnswer(recipe, answer) {
@@ -2299,3 +2909,27 @@ function escapeHtml(value) {
 function trackEvent(name, detail) {
     document.dispatchEvent(new CustomEvent('sci:analytics', { detail: { name, ...detail, versions: VERSIONS } }));
 }
+
+// Imported snapshots must pass migration; no guesses when old occupations split.
+function restoreSciAssessment(saved) {
+    const migration = globalThis.SCIWorkflowV2.migrate(saved);
+    if (migration.status !== 'valid') {
+        assessmentState.previousAssessment = migration.previous;
+        assessmentState.persona = saved?.persona === 'education' ? 'edu' : (saved?.persona || null);
+        assessmentState.functionId = null;
+        assessmentState.roleTag = null;
+        assessmentState.selectedRecipeIds = [];
+        assessmentState.taskAnswers = {};
+        assessmentState.archivedAnswers = {};
+        invalidateResult();
+        if (assessmentState.persona) { renderPersonaSelection(); goToStep(2); }
+        showError(migration.reason || '職業或任務已改版，請重新選擇職業並確認任務及工時。');
+        return migration;
+    }
+    const value = migration.value;
+    const role = globalThis.SCIWorkflowV2.getRole(value.roleId);
+    Object.assign(assessmentState, {persona:normalizeSciPersona(role.persona),functionId:normalizeSciPersona(role.persona)+'.'+role.functionName,roleTag:role.title,selectedRecipeIds:[...(value.selectedRecipeIds||[])],taskAnswers:JSON.parse(JSON.stringify(value.taskAnswers||{})),archivedAnswers:{},taskSearch:''});
+    invalidateResult(); renderPersonaSelection(); goToStep(2);
+    return migration;
+}
+if (typeof globalThis !== 'undefined') globalThis.restoreSciAssessment = restoreSciAssessment;
