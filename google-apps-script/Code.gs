@@ -7,6 +7,7 @@ var DRIVE_FOLDER_NAME = 'ASUS SCI 匿名評估附件';
 var EVENT_SHEET_NAME = 'SCI 互動紀錄';
 var MAX_EVENT_REQUESTS_PER_HOUR = 3000;
 var MAX_EVENTS_PER_REQUEST = 100;
+var LOOKUP_SHEET_NAME = '互動查詢';
 var EVENT_HEADERS = ['收到時間', '發生時間', '匿名 ID', '評估 ID', '事件', '對象', '補充', '步驟', '報告卡片', '來源頁面'];
 
 var MAX_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -23,8 +24,14 @@ var SHEET_HEADERS = [
   '影分身戰力', '設備級距', '推薦整機', '任務結果 JSON', '影分身 JSON', '設備推薦 JSON',
   '報表圖片', '完整資料 JSON', '來源頁面', '資料格式版本', '報告產生時間',
   // 2026-10 新增欄位：一律加在最後面，既有資料列的欄位位置才不會跑掉。
-  '工作領域', '成本或收入範圍', '共用人數', '建議情境', '運算需求等級', '負載等級'
+  '工作領域', '成本或收入範圍', '共用人數', '建議情境', '運算需求等級', '負載等級',
+  // 以下兩欄是公式，依「評估 ID」即時統計「SCI 互動紀錄」分頁的內容。
+  '互動次數', '點擊的外部連結'
 ];
+
+// Formulas for the two interaction columns. INDIRECT("C"&ROW()) reads this row's 評估 ID, so the same text works on every row.
+var INTERACTION_COUNT_FORMULA = '=COUNTIF(\'SCI 互動紀錄\'!D:D,INDIRECT("C"&ROW()))';
+var INTERACTION_LINKS_FORMULA = '=IFERROR(TEXTJOIN(CHAR(10),TRUE,UNIQUE(FILTER(\'SCI 互動紀錄\'!F:F,\'SCI 互動紀錄\'!D:D=INDIRECT("C"&ROW()),\'SCI 互動紀錄\'!E:E="外部連結"))),"")';
 
 var SCENARIO_NAMES = {
   personal: '個人 AI',
@@ -144,6 +151,7 @@ function handleEvents(data) {
   try {
     var sheet = getEventSheet();
     sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, EVENT_HEADERS.length).setValues(rows);
+    ensureLookupSheet(sheet.getParent(), cleanText(data.assessmentId));
     cache.put(hourKey, String(hourCount + 1), 3900);
   } finally {
     lock.releaseLock();
@@ -160,6 +168,76 @@ function getEventSheet() {
     sheet.setFrozenRows(1);
   }
   return sheet;
+}
+
+// 「互動查詢」分頁：在 B1 選一個評估 ID，下方就列出那一次測驗的基本資料與所有互動紀錄。
+// 分頁只建立一次；建立時也會替主分頁既有的資料列補上兩個互動欄位的公式。
+function ensureLookupSheet(spreadsheet, latestAssessmentId) {
+  if (spreadsheet.getSheetByName(LOOKUP_SHEET_NAME)) return;
+  var main = spreadsheet.getSheetByName(SHEET_NAME);
+  var lookup = spreadsheet.insertSheet(LOOKUP_SHEET_NAME, 0);
+  var M = "'" + SHEET_NAME + "'!";
+  var E = "'" + EVENT_SHEET_NAME + "'!";
+  var col = function (header) { return columnLetter(SHEET_HEADERS.indexOf(header) + 1); };
+  var pick = function (header) {
+    return '=IFERROR(INDEX(' + M + col(header) + ':' + col(header) + ',MATCH($B$1,' + M + 'C:C,0)),"")';
+  };
+
+  lookup.getRange('A1').setValue('評估 ID（點右邊儲存格選擇）');
+  lookup.getRange('B1').setValue(latestAssessmentId || '');
+  lookup.getRange('B1').setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInRange(main.getRange('C2:C'), true).setAllowInvalid(true).build()
+  );
+  var info = [
+    ['匿名 ID', pick('匿名 ID')], ['收到時間', pick('收到時間')], ['工作身分', pick('工作身分')], ['工作領域', pick('工作領域')],
+    ['任務', pick('任務名稱')], ['共用人數', pick('共用人數')], ['影分身戰力', pick('影分身戰力')], ['建議情境', pick('建議情境')],
+    ['推薦整機', pick('推薦整機')], ['目前 SCI', pick('目前 SCI')], ['導入後 SCI', pick('導入後 SCI')], ['每月釋放工時', pick('每月釋放工時')],
+    ['互動次數', '=COUNTIF(' + E + 'D:D,$B$1)']
+  ];
+  lookup.getRange(2, 1, info.length, 1).setValues(info.map(function (row) { return [row[0]]; }));
+  lookup.getRange(2, 2, info.length, 1).setFormulas(info.map(function (row) { return [row[1]]; }));
+
+  var headerRow = info.length + 3;
+  lookup.getRange(headerRow, 1, 1, 6).setValues([['發生時間', '事件', '對象', '補充', '步驟', '報告卡片']]);
+  lookup.getRange(headerRow + 1, 1).setFormula(
+    '=IFERROR(SORT(FILTER({' + E + 'B2:B,' + E + 'E2:I},' + E + 'D2:D=$B$1),1,TRUE),"這個評估 ID 沒有互動紀錄")'
+  );
+
+  lookup.getRange('A1:A' + (info.length + 1)).setFontWeight('bold');
+  lookup.getRange('B1').setBackground('#fff2cc').setFontWeight('bold');
+  lookup.getRange(headerRow, 1, 1, 6).setFontWeight('bold').setBackground('#253eec').setFontColor('#ffffff');
+  lookup.setFrozenRows(headerRow);
+  lookup.setColumnWidth(1, 230);
+  lookup.setColumnWidth(2, 260);
+  lookup.setColumnWidth(3, 320);
+  lookup.setColumnWidth(4, 320);
+
+  var lastRow = main.getLastRow();
+  if (lastRow >= 2) {
+    var countColumn = SHEET_HEADERS.indexOf('互動次數') + 1;
+    var formulas = [];
+    for (var i = 2; i <= lastRow; i++) formulas.push([INTERACTION_COUNT_FORMULA, INTERACTION_LINKS_FORMULA]);
+    main.getRange(2, countColumn, formulas.length, 2).setFormulas(formulas);
+  }
+}
+
+function columnLetter(index) {
+  var letters = '';
+  while (index > 0) {
+    var remainder = (index - 1) % 26;
+    letters = String.fromCharCode(65 + remainder) + letters;
+    index = Math.floor((index - 1) / 26);
+  }
+  return letters;
+}
+
+// 手動重建「互動查詢」分頁：在編輯器選這個函式按執行。會先刪掉舊的查詢分頁，不會動到資料。
+function rebuildLookupSheet() {
+  var spreadsheet = getSheet().getParent();
+  var old = spreadsheet.getSheetByName(LOOKUP_SHEET_NAME);
+  if (old) spreadsheet.deleteSheet(old);
+  getEventSheet();
+  ensureLookupSheet(spreadsheet, '');
 }
 
 function doGet() {
@@ -250,7 +328,9 @@ function buildSheetRow(data, imageUrl, archiveUrl) {
     safeCell(recommendation.sharedUsers || (assessment.executionNeeds && assessment.executionNeeds.sharedUsers)),
     safeCell(SCENARIO_NAMES[recommendation.scenarioId] || recommendation.scenarioId),
     safeCell(DEMAND_LEVEL_NAMES[recommendation.demandLevel] || recommendation.demandLevel),
-    safeCell(LOAD_LEVEL_NAMES[recommendation.loadLevel] || recommendation.loadLevel)
+    safeCell(LOAD_LEVEL_NAMES[recommendation.loadLevel] || recommendation.loadLevel),
+    INTERACTION_COUNT_FORMULA,
+    INTERACTION_LINKS_FORMULA
   ];
 }
 
