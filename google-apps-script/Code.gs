@@ -4,6 +4,11 @@ var SHEET_NAME = 'SCI 匿名評估資料';
 var SPREADSHEET_NAME = 'ASUS SCI 匿名評估資料庫';
 var DRIVE_FOLDER_NAME = 'ASUS SCI 匿名評估附件';
 
+var EVENT_SHEET_NAME = 'SCI 互動紀錄';
+var MAX_EVENT_REQUESTS_PER_HOUR = 3000;
+var MAX_EVENTS_PER_REQUEST = 100;
+var EVENT_HEADERS = ['收到時間', '發生時間', '匿名 ID', '評估 ID', '事件', '對象', '補充', '步驟', '報告卡片', '來源頁面'];
+
 var MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 var MAX_REQUESTS_PER_HOUR = 300;
 var CACHE_SECONDS = 21600;
@@ -52,6 +57,8 @@ function doPost(e) {
       return jsonResponse({ ok: false, reason: '資料格式不正確。' });
     }
 
+    if (data && data.type === 'events') return handleEvents(data);
+
     var validation = validatePayload(data);
     if (!validation.ok) return jsonResponse(validation);
 
@@ -98,6 +105,61 @@ function doPost(e) {
     console.error(error && error.stack ? error.stack : error);
     return jsonResponse({ ok: false, reason: '伺服器處理資料時發生錯誤。' });
   }
+}
+
+// Interaction events (clicks and views) arrive in small batches after the visitor has reached the report.
+// They are written to their own sheet; join them to the assessment rows by 評估 ID or 匿名 ID.
+function handleEvents(data) {
+  if (data.consent !== true) return jsonResponse({ ok: false, reason: '未取得匿名資料蒐集同意。' });
+  if (!/^SCI-U-[A-Z0-9-]{20,}$/i.test(cleanText(data.anonymousId))) {
+    return jsonResponse({ ok: false, reason: '匿名識別碼格式不正確。' });
+  }
+  var events = Array.isArray(data.events) ? data.events.slice(0, MAX_EVENTS_PER_REQUEST) : [];
+  if (!events.length) return jsonResponse({ ok: true, written: 0 });
+
+  var cache = CacheService.getScriptCache();
+  var hourKey = 'events_hour_' + Math.floor(Date.now() / 3600000);
+  var hourCount = Number(cache.get(hourKey) || 0);
+  if (hourCount >= MAX_EVENT_REQUESTS_PER_HOUR) return jsonResponse({ ok: false, reason: '目前資料量較大，請稍後再試。' });
+
+  var now = new Date();
+  var rows = events.map(function (event) {
+    event = event || {};
+    return [
+      now,
+      safeCell(event.at),
+      safeCell(data.anonymousId),
+      safeCell(data.assessmentId),
+      safeCell(event.name).slice(0, 80),
+      safeCell(event.target).slice(0, 200),
+      safeCell(event.detail).slice(0, 300),
+      numberOrBlank(event.step),
+      numberOrBlank(event.card),
+      safeCell(data.sourcePage)
+    ];
+  });
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var sheet = getEventSheet();
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, EVENT_HEADERS.length).setValues(rows);
+    cache.put(hourKey, String(hourCount + 1), 3900);
+  } finally {
+    lock.releaseLock();
+  }
+  return jsonResponse({ ok: true, written: rows.length });
+}
+
+function getEventSheet() {
+  var spreadsheet = getSheet().getParent();
+  var sheet = spreadsheet.getSheetByName(EVENT_SHEET_NAME);
+  if (!sheet) sheet = spreadsheet.insertSheet(EVENT_SHEET_NAME);
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, EVENT_HEADERS.length).setValues([EVENT_HEADERS]);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
 }
 
 function doGet() {

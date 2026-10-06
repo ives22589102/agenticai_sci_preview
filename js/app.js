@@ -380,6 +380,7 @@ function initialize() {
     document.getElementById('step3-reselect').addEventListener('click', previousStep);
     initReportDeck();
     initPointerEffects();
+    initInteractionLog();
     // Once the assessment has started, closing or reloading the page asks for confirmation so answers are not lost by accident.
     window.addEventListener('beforeunload', event => {
         if (!assessmentState.persona && assessmentState.currentStep <= 1) return;
@@ -1274,8 +1275,10 @@ function goToStep(step) {
         renderResult();
         startAnonymousSubmission();
     }
+    const previousStep = assessmentState.currentStep;
     assessmentState.currentStep = step;
     updateStepUI(true);
+    if (previousStep !== step) logInteraction('進入步驟', `步驟 ${step}`);
     // The report always opens at the top of every card. This runs after the step is shown: scroll positions cannot be set while it is hidden.
     if (step === 4) document.querySelectorAll('[data-report-card]').forEach(card => { card.scrollTop = 0; });
 }
@@ -1954,7 +1957,9 @@ function toggleClonePlanDetail(button) {
 // The report is a deck of three cards: arrows, dots, arrow keys or a horizontal drag move between them.
 function setReportCard(index) {
     const cards = [...document.querySelectorAll('[data-report-card]')];
+    const previousCard = reportCardIndex;
     reportCardIndex = clamp(index, 0, cards.length - 1);
+    if (previousCard !== reportCardIndex && assessmentState.currentStep === 4) logInteraction('查看報告卡片', `第 ${reportCardIndex + 1} 張`);
     cards.forEach((card, position) => {
         const offset = position - reportCardIndex;
         card.dataset.pos = offset < 0 ? 'past' : String(Math.min(offset, 2));
@@ -2529,6 +2534,9 @@ function startAnonymousSubmission() {
     if (assessmentState.collectionStatus === 'submitting') return;
     if (assessmentState.collectionSubmittedFingerprint === fingerprint) return;
     assessmentState.collectionStatus = 'submitting';
+    interactionLog.consented = true;
+    interactionLog.lastAssessmentId = result.assessmentId;
+    logInteraction('產生報告', result.recommendation.grade, result.recommendation.scenarioId);
     submitAnonymousAssessment()
         .then(response => {
             if (response.ok) {
@@ -2561,6 +2569,7 @@ function showDataCollectionDetails(trigger) {
                 <li>Step 1–3 的填寫內容：工作身分、選擇的任務、時間與頻率、成本與雲端 AI 使用狀況。</li>
                 <li>計算結果：SCI 分數、每月釋放工時、節省費用、影分身與設備推薦。</li>
                 <li>與「下載 PNG」相同的那張完整報表圖片。</li>
+                <li>操作紀錄：在這個網站上點了哪些按鈕、標籤與連結，以及看了報告的哪些部分。</li>
             </ul>
             <div class="data-consent-privacy">
                 <strong>不蒐集姓名、Email、電話</strong>
@@ -3671,6 +3680,87 @@ function escapeHtml(value) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+// ---- Interaction log ----
+// Clicks and views are kept in memory and only sent once the visitor has pressed 查看結果 (the point where anonymous collection is disclosed).
+// They go to the same Apps Script endpoint as a separate "events" payload and land in their own sheet, keyed by the anonymous and assessment ids.
+const interactionLog = { queue: [], consented: false, timer: 0, lastAssessmentId: '' };
+
+function logInteraction(name, target = '', detail = '') {
+    interactionLog.queue.push({
+        at: new Date().toISOString(),
+        name,
+        target: String(target).slice(0, 200),
+        detail: String(detail).slice(0, 300),
+        step: assessmentState.currentStep,
+        card: assessmentState.currentStep === 4 ? reportCardIndex + 1 : ''
+    });
+    if (interactionLog.queue.length > 200) interactionLog.queue.splice(0, interactionLog.queue.length - 200);
+    if (!interactionLog.consented) return;
+    clearTimeout(interactionLog.timer);
+    interactionLog.timer = setTimeout(() => flushInteractions(false), 8000);
+}
+
+function flushInteractions(leaving) {
+    if (!interactionLog.consented || !interactionLog.queue.length || !DATA_COLLECTION_CONFIG.endpoint) return;
+    clearTimeout(interactionLog.timer);
+    const events = interactionLog.queue.splice(0, 100);
+    const body = JSON.stringify({
+        type: 'events',
+        schemaVersion: DATA_COLLECTION_CONFIG.schemaVersion,
+        anonymousId: anonymousVisitorId,
+        assessmentId: assessmentState.result?.assessmentId || interactionLog.lastAssessmentId,
+        consent: true,
+        sourcePage: `${location.origin}${location.pathname}`,
+        events
+    });
+    // When the page is closing only sendBeacon is reliable; otherwise a normal request is used.
+    if (leaving && navigator.sendBeacon) {
+        navigator.sendBeacon(DATA_COLLECTION_CONFIG.endpoint, new Blob([body], { type: 'text/plain;charset=utf-8' }));
+        return;
+    }
+    fetch(DATA_COLLECTION_CONFIG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body, redirect: 'follow', keepalive: true })
+        .catch(() => { interactionLog.queue.unshift(...events); });
+}
+
+function describeClick(target) {
+    const pick = selector => target.closest(selector);
+    let el;
+    if ((el = pick('a[href^="http"]'))) {
+        const card = el.closest('.framework-card, .hardware-model-card, .component-series-card');
+        const group = el.closest('.framework-card') ? 'Agent 框架' : el.closest('.hardware-model-card') ? '整機' : el.closest('.component-series-card') ? '零組件' : '其他';
+        const label = card?.querySelector('h5, h4, .component-series-card__heading strong')?.textContent.trim() || '';
+        return ['外部連結', `${group}｜${label}｜${el.textContent.trim()}`, el.href];
+    }
+    if ((el = pick('[data-buy-link]'))) return ['了解更多（無連結）', el.closest('.hardware-model-card')?.querySelector('h4')?.textContent.trim() || ''];
+    if ((el = pick('[data-usecase]'))) return ['用途標籤', el.dataset.usecase, el.closest('.modal') ? '彈窗' : '情境卡'];
+    if ((el = pick('[data-term], #sci-info-trigger'))) return ['名詞解釋', el.id === 'sci-info-trigger' ? 'SCI' : el.dataset.term];
+    if ((el = pick('[data-strength-scale]'))) return ['開啟六大情境彈窗', el.dataset.scenario || ''];
+    if ((el = pick('[data-team-view]'))) return ['切換估算模式', el.dataset.teamView === 'team' ? '團隊估算' : '個人'];
+    if ((el = pick('[data-team-step]'))) return ['調整團隊人數', String(teamView.size)];
+    if ((el = pick('[data-hardware-tab]'))) return ['切換設備頁籤', el.textContent.trim()];
+    if ((el = pick('[data-task-toggle]'))) return ['查看任務明細', el.querySelector('strong')?.firstChild?.textContent.trim() || ''];
+    if ((el = pick('[data-clone-toggle]'))) return ['查看影分身內容', el.textContent.trim()];
+    if ((el = pick('#report-preview-button'))) return ['立即分享'];
+    if ((el = pick('#report-download-link'))) return ['下載報告圖片'];
+    if ((el = pick('#result-reset-button'))) return ['重新測驗'];
+    if ((el = pick('.estimate-actions [data-go-step]'))) return ['調整估算', el.textContent.trim()];
+    if ((el = pick('.scenario-hq > summary, .hardware-full-specs > summary'))) return ['展開區塊', el.textContent.trim()];
+    if ((el = pick('.recipe-detail > summary'))) return ['展開任務細項', el.closest('[data-recipe-card]')?.dataset.recipeCard || ''];
+    if ((el = pick('#consent-detail-button'))) return ['查看蒐集說明'];
+    if ((el = pick('#start-assessment'))) return ['開始測驗'];
+    return null;
+}
+
+function initInteractionLog() {
+    document.addEventListener('click', event => {
+        if (!(event.target instanceof Element)) return;
+        const described = describeClick(event.target);
+        if (described) logInteraction(...described);
+    }, true);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushInteractions(true); });
+    window.addEventListener('pagehide', () => flushInteractions(true));
 }
 
 function trackEvent(name, detail) {
