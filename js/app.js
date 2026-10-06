@@ -150,7 +150,7 @@ const recipeCatalog = Object.freeze(globalThis.SCIWorkflowV2.workflowIds.map(id 
         task.stages.map(stage => stage.ai).join('；'), task.stages.map(stage => stage.human).join('；'),
         task.manualMinutes, 0, task.profiles,
         task.cloneTag, [], false, [1,1,2], {personas:[...new Set(referencing.map(role=>normalizeSciPersona(role.persona)))],functionNames:[...new Set(referencing.map(role=>role.functionName))],workflowId:id,isOriginal:Boolean(legacy)});
-    return Object.freeze({...recipe, scales:task.referenceScales, description:task.description, boundary:task.boundary, evidenceStatus:'expert-model-estimate', recipeVersion:'3.0'});
+    return Object.freeze({...recipe, computeClass:task.computeClass, scales:task.referenceScales, description:task.description, boundary:task.boundary, evidenceStatus:'expert-model-estimate', recipeVersion:'3.0'});
 }));
 
 // 分類只負責導覽與題目排序；計分仍以使用者填寫的任務工作流為準。
@@ -181,7 +181,7 @@ const hardwareCatalog = Object.freeze({
         models: Object.freeze([
             Object.freeze({ name: 'Agent Professional-A', mb: 'AMD X870', cpu: 'AMD Ryzen 9 9900X', gpu: 'AMD Radeon AI PRO R9700 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
             Object.freeze({ name: 'Agent Professional-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
-            Object.freeze({ name: 'ASUS／ROG NUC', mb: '不適用（整合式系統）', cpu: 'Intel Core Ultra 9', gpu: 'NVIDIA GeForce RTX 5070 Laptop GPU 12GB GDDR7', ram: '16GB DDR5-6400 CSO-DIMM×2', ssd: '1TB M.2 2280 NVMe PCIe 4.0 SSD', case: 'NUC 整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '不適用（整合式系統）' })
+            Object.freeze({ name: 'ASUS／ROG NUC', mb: '整合式系統', cpu: 'Intel Core Ultra 9', gpu: 'NVIDIA GeForce RTX 5070 Laptop GPU 12GB GDDR7', ram: '16GB DDR5-6400 CSO-DIMM×2', ssd: '1TB M.2 2280 NVMe PCIe 4.0 SSD', case: '整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '整合式系統' })
         ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 9 9900X 系列', intel: 'Intel Core Ultra 7／Ultra 9 系列' },
@@ -193,8 +193,8 @@ const hardwareCatalog = Object.freeze({
         label: 'S 級影分身戰力',
         strength: Object.freeze({ grade: 'S', meter: 60, label: '高效協作', capacity: '適合高負載創作與多流程持續運行', description: '以 RTX 5090 級顯示卡與高階桌上型平台承接高負載地端模型及創作流程。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'Agent Master-A', mb: 'AMD X870E', cpu: 'AMD Ryzen 9 9950X', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Strix Helios', cooling: 'ProArt LC 420', psu: 'ROG THOR III 1200W' }),
-            Object.freeze({ name: 'Agent Master-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 9 285K', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB（32GB×4）DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Strix Helios', cooling: 'ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III 1200W' })
+            Object.freeze({ name: 'Agent Master-A', mb: 'AMD X870E', cpu: 'AMD Ryzen 9 9950X', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Cronox ARGB', cooling: 'ProArt LC 420', psu: 'ROG THOR III 1200W' }),
+            Object.freeze({ name: 'Agent Master-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 9 285K', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB（32GB×4）DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Cronox ARGB', cooling: 'ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III 1200W' })
         ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 9 9950X 系列', intel: 'Intel Core Ultra 9 285K 系列' },
@@ -206,8 +206,8 @@ const hardwareCatalog = Object.freeze({
         label: 'S+ 級影分身戰力',
         strength: Object.freeze({ grade: 'S+', meter: 80, label: '專業算力協作', capacity: '適合大型模型、專業資料與高併發工作', description: '面向工作站級顯示卡、大容量記憶體或整合式 Blackwell 平台。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'ET700I W7', mb: 'Intel W790', cpu: 'Intel Xeon W-3400', gpu: 'NVIDIA RTX 6000 Ada', ram: '512GB RDIMM DDR5 4800', ssd: '4TB PCIe 4.0', case: 'ROG Cronox ARGB', cooling: '依工作站配置', psu: '1300W' }),
-            Object.freeze({ name: 'RTX DGX／Spark', mb: '不適用（整合式系統）', cpu: 'NVIDIA DGX／Spark', gpu: 'NVIDIA Blackwell', ram: '128GB', ssd: '2TB', case: 'DGX Spark 整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '不適用（整合式系統）' })
+            Object.freeze({ name: 'ET700I W7', mb: 'Intel W790', cpu: 'Intel Xeon W-3400', gpu: 'NVIDIA RTX 6000 Ada', ram: '512GB RDIMM DDR5 4800', ssd: '4TB PCIe 4.0', case: '整合式機身', cooling: '依工作站配置', psu: '1300W' }),
+            Object.freeze({ name: 'RTX DGX／Spark', mb: '整合式系統', cpu: 'NVIDIA DGX／Spark', gpu: 'NVIDIA Blackwell', ram: '128GB', ssd: '2TB', case: '整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '整合式系統' })
         ]),
         components: Object.freeze({
             cpu: { amd: 'NVIDIA GB10 Grace Blackwell Superchip', intel: 'Intel Xeon W-3400 系列', leftLabel: 'NVIDIA 平台', rightLabel: 'Intel 工作站' },
@@ -219,7 +219,7 @@ const hardwareCatalog = Object.freeze({
         label: 'SS 級影分身戰力',
         strength: Object.freeze({ grade: 'SS', meter: 100, label: '極致算力協作', capacity: '適合超大型算力需求與極重工作負載', description: '為高 SCI 且需要大量影分身工作持續並行的極重度情境提供最高階地端算力。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'ET900N G3', mb: '整合式 NVIDIA GB300 平台', cpu: 'Grace 72-Core Neoverse V2', gpu: 'NVIDIA GB300 Grace Blackwell Ultra', ram: '748GB', ssd: '8TB', case: 'ET900N G3 整合式機箱', integratedChassis: true, cooling: '整合式散熱', psu: '1600W Titanium' })
+            Object.freeze({ name: 'ET900N G3', mb: '整合式 NVIDIA GB300 平台', cpu: 'Grace 72-Core Neoverse V2', gpu: 'NVIDIA GB300 Grace Blackwell Ultra', ram: '748GB', ssd: '8TB', case: '整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '1600W Titanium' })
         ]),
         components: Object.freeze({
             cpu: { all: 'NVIDIA Grace 72-Core Neoverse V2' },
@@ -233,11 +233,48 @@ const campaignConfig = Object.freeze({
     tutorials: [], promotions: [],
     productLinks: {
         systems: { a: '', aplus: '', s: '', splus: '', ss: '' },
+        // Product pages for individual builds; a build without an entry falls back to its tier link above.
+        systemModels: {
+            'ASUS／ROG NUC': 'https://rog.asus.com/tw/desktops/mini-pc/rog-nuc-16/',
+            'ET700I W7': 'https://www.asus.com/tw/displays-desktops/workstations/advanced/expertcenter-pro-et700i-w7/',
+            'RTX DGX／Spark': 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/',
+            'ET900N G3': 'https://www.asus.com/tw/displays-desktops/workstations/performance/expertcenter-pro-et900n-g3/'
+        },
+        scenarioComponents: {
+            homelab: {
+                cpu: 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/',
+                mb: 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/',
+                gpu: 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/'
+            },
+            workstation: {
+                cpu: 'https://www.intel.com.tw/content/www/tw/zh/ark/products/series/125035/intel-xeon-w-processor.html',
+                mb: 'https://www.asus.com/tw/motherboards-components/motherboards/workstation/',
+                gpu: ''
+            },
+            premium: { mb: 'https://www.asus.com/tw/motherboards-components/motherboards/workstation/', gpu: '' }
+        },
+        // Official product pages. A string is one link for the whole card; { amd, intel } gives one link per platform column.
         components: {
-            a: { cpu: '', mb: '', gpu: '' },
-            aplus: { cpu: '', mb: '', gpu: '' },
-            s: { cpu: '', mb: '', gpu: '' },
-            splus: { cpu: '', mb: '', gpu: '' },
+            a: {
+                cpu: { amd: 'https://www.amd.com/zh-tw/products/processors/desktops/ryzen/9000-series/amd-ryzen-7-9700x.html', intel: 'https://www.intel.com.tw/content/www/tw/zh/products/sku/241063/intel-core-ultra-7-processor-265k-30m-cache-up-to-5-50-ghz/specifications.html' },
+                mb: 'https://www.asus.com/tw/motherboards-components/motherboards/tuf-gaming/',
+                gpu: 'https://www.asus.com/tw/motherboards-components/graphics-cards/all-series/'
+            },
+            aplus: {
+                cpu: { amd: 'https://www.amd.com/zh-tw/products/processors/desktops/ryzen/9000-series/amd-ryzen-9-9900x.html', intel: 'https://www.intel.com.tw/content/www/tw/zh/products/sku/241063/intel-core-ultra-7-processor-265k-30m-cache-up-to-5-50-ghz/specifications.html' },
+                mb: 'https://rog.asus.com/tw/motherboards/rog-strix-series/',
+                gpu: 'https://www.asus.com/tw/motherboards-components/graphics-cards/all-series/'
+            },
+            s: {
+                cpu: { amd: 'https://www.amd.com/zh-tw/products/processors/desktops/ryzen/9000-series/amd-ryzen-9-9950x.html', intel: 'https://www.intel.com.tw/content/www/tw/zh/products/sku/241060/intel-core-ultra-9-processor-285k-36m-cache-up-to-5-70-ghz/specifications.html' },
+                mb: { amd: 'https://rog.asus.com/tw/motherboards/rog-crosshair-series/', intel: 'https://rog.asus.com/tw/motherboards/rog-maximus-series/' },
+                gpu: 'https://rog.asus.com/tw/graphics-cards/graphics-cards/rog-astral-series/'
+            },
+            splus: {
+                cpu: { amd: 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/', intel: 'https://www.intel.com.tw/content/www/tw/zh/ark/products/series/125035/intel-xeon-w-processor.html' },
+                mb: { amd: 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/', intel: 'https://www.asus.com/tw/motherboards-components/motherboards/workstation/' },
+                gpu: ''
+            },
             ss: { cpu: '', mb: '', gpu: '' }
         }
     }
@@ -257,9 +294,10 @@ const assessmentState = {
     selectedRecipeIds: [],
     taskAnswers: {},
     archivedAnswers: {},
-    executionNeeds: { parallelBand: '' },
+    executionNeeds: { parallelBand: '', sharedUsers: '' },
     costAmountTwd: '',
-    costPeriod: 'hour',
+    costBand: '',
+    costPeriod: 'month',
     periodHours: 160,
     hourlyCostTwd: '',
     cloudUsage: '',
@@ -279,6 +317,8 @@ let lastModalTrigger = null;
 const elements = {};
 
 let step3PanelIndex = 0;
+const openRecipeDetails = new Set();
+let reportCardIndex = 0;
 
 document.addEventListener('DOMContentLoaded', initialize);
 
@@ -294,8 +334,12 @@ function initialize() {
         selectedCount: document.getElementById('selected-count'),
         taskSettings: document.getElementById('task-settings'),
         parallelOptions: document.getElementById('parallel-options'),
+        sharedUsersOptions: document.getElementById('shared-users-options'),
+        sharedUsersFieldset: document.getElementById('shared-users-fieldset'),
         hourlyCost: document.getElementById('hourly-cost'),
         costPeriod: document.getElementById('cost-period'),
+        costBandOptions: document.getElementById('cost-band-options'),
+        costCustomRow: document.getElementById('cost-custom-row'),
         periodHours: document.getElementById('period-hours'),
         conversionHours: document.getElementById('conversion-hours'),
         costConversion: document.getElementById('cost-conversion'),
@@ -315,16 +359,37 @@ function initialize() {
         modalPanel: document.querySelector('.modal__panel'),
         modalContent: document.getElementById('modal-content'),
         taskProgress: document.getElementById('task-progress'),
-        taskNextButton: document.getElementById('task-next-button'),
-        taskPrevButton: document.getElementById('task-prev-button'),
+        step3Prev: document.getElementById('step3-prev'),
+        step3Next: document.getElementById('step3-next'),
+        step3Finish: document.getElementById('step3-finish'),
+        step3Error: document.getElementById('step3-error'),
         sharedSettings: document.querySelector('.shared-settings')
     });
 
-    elements.taskNextButton?.addEventListener('click', nextStep3Panel);
-    elements.taskPrevButton?.addEventListener('click', previousStep3Panel);
+    // A shared-settings field stops being flagged as soon as the user touches it.
+    elements.sharedSettings?.addEventListener('input', event => event.target.closest('.field-error')?.classList.remove('field-error'));
+    elements.sharedSettings?.addEventListener('change', event => event.target.closest('.field-error')?.classList.remove('field-error'));
+    ['input', 'change'].forEach(type => document.getElementById('step-3').addEventListener(type, clearError));
+    // Step 3 has its own buttons under the panel: back / next walk through the panels, 查看結果 appears once everything is filled in.
+    elements.step3Prev.addEventListener('click', previousStep3Panel);
+    elements.step3Next.addEventListener('click', () => {
+        if (step3PanelIndex < getStep3PanelCount() - 1) nextStep3Panel();
+        else validateStep3();
+    });
+    elements.step3Finish.addEventListener('click', nextStep);
+    document.getElementById('step3-reselect').addEventListener('click', previousStep);
+    initReportDeck();
+    initPointerEffects();
+    // Use tags appear both on the report card and inside the scenario modal.
+    document.addEventListener('click', event => {
+        const tag = event.target.closest('[data-usecase]');
+        if (tag) toggleUseCase(tag);
+    });
     document.getElementById('hardware-section').addEventListener('click', event => {
         const trigger = event.target.closest('[data-strength-scale]');
         if (trigger) openStrengthScaleModal(trigger);
+        const term = event.target.closest('[data-term]');
+        if (term) openGlossaryModal(term);
         setTimeout(checkReveals, 80);
     });
     document.getElementById('clone-list').addEventListener('click', event => {
@@ -375,6 +440,7 @@ function initialize() {
         const trigger = event.target.closest('#sci-info-trigger');
         if (trigger) openSciInfoModal(trigger);
     });
+    document.getElementById('team-toggle-slot').addEventListener('click', handleTeamControl);
     document.getElementById('workflow-result-table').addEventListener('click', event => {
         const trigger = event.target.closest('[data-task-toggle]');
         if (trigger) toggleTaskDetail(Number(trigger.dataset.taskToggle));
@@ -397,6 +463,27 @@ function enterAssessment() {
     requestAnimationFrame(() => document.getElementById('step-1-title')?.focus({ preventScroll: true }));
 }
 
+// Line drawings for the three work contexts (no people, so no one is pictured as "the" freelancer, teacher or office worker).
+// Each drawing has a gradient-filled copy of its closed shapes (.persona-art__fill) behind a mask made of two quarter-circles,
+// one in the top-right corner and one in the bottom-left. On hover both grow until they cover the drawing, so colour sweeps in from two opposite corners.
+const personaGradient = (id, from, to) => `<defs>
+        <linearGradient id="${id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient>
+        <mask id="${id}-mask" maskUnits="userSpaceOnUse" x="-40" y="-40" width="200" height="200"><circle class="persona-art__blob" cx="112" cy="14" r="26" fill="#fff"/><circle class="persona-art__blob" cx="8" cy="110" r="26" fill="#fff"/></mask>
+    </defs>`;
+const PERSONA_ART = Object.freeze({
+    soho: `${personaGradient('pa-soho', '#35d6ff', '#3f6bff')}
+        <g class="persona-art__fill" fill="url(#pa-soho)" mask="url(#pa-soho-mask)"><rect x="24" y="36" width="72" height="46" rx="6"/><path d="M14 90h92l-7 9H21z"/></g>
+        <rect x="24" y="36" width="72" height="46" rx="6"/><path d="M14 90h92l-7 9H21z"/><path d="M50 51l-8 8 8 8M70 51l8 8-8 8M64 48l-8 22"/>`,
+    edu: `${personaGradient('pa-edu', '#8b5cff', '#ff7ac8')}
+        <g class="persona-art__fill" fill="url(#pa-edu)" mask="url(#pa-edu-mask)"><path d="M34 48v16c0 9 52 9 52 0V48z"/><path d="M60 20l44 18-44 18-44-18z"/><path d="M26 90c11-6 23-6 34 0 11-6 23-6 34 0v12c-11-6-23-6-34 0-11-6-23-6-34 0z"/></g>
+        <path d="M34 48v16c0 9 52 9 52 0V48"/><path d="M60 20l44 18-44 18-44-18z"/><path d="M104 38v20"/><circle cx="104" cy="63" r="3.5"/>
+        <path d="M26 90c11-6 23-6 34 0 11-6 23-6 34 0v12c-11-6-23-6-34 0-11-6-23-6-34 0z"/><path d="M60 90v12"/>`,
+    smb: `${personaGradient('pa-smb', '#2fd6a8', '#2f8bff')}
+        <g class="persona-art__fill" fill="url(#pa-smb)" mask="url(#pa-smb-mask)"><rect x="28" y="22" width="46" height="78" rx="4"/><path d="M74 54h18a4 4 0 0 1 4 4v42H74z"/></g>
+        <rect x="28" y="22" width="46" height="78" rx="4"/><path d="M40 36h8M54 36h8M40 50h8M54 50h8M40 64h8M54 64h8"/><path d="M46 100V84h10v16"/>
+        <path d="M74 54h18a4 4 0 0 1 4 4v42H74"/><path d="M82 68h6M82 80h6"/><path d="M16 100h92"/>`
+});
+
 function renderPersonaSelection() {
     elements.personaGrid.setAttribute('role', 'radiogroup');
     elements.personaGrid.setAttribute('aria-label', '目前工作情境');
@@ -405,7 +492,7 @@ function renderPersonaSelection() {
             <input type="radio" name="persona" value="${key}" ${assessmentState.persona === key ? 'checked' : ''}>
             <span class="persona-icon" aria-hidden="true">${persona.icon}</span>
             <span class="persona-card__copy"><strong>${persona.name}</strong><span>${persona.description}</span></span>
-            <i aria-hidden="true">✓</i>
+            <svg class="persona-art" viewBox="8 14 104 96" aria-hidden="true">${PERSONA_ART[key] || ''}</svg>
         </label>
     `).join('');
     elements.personaGrid.querySelectorAll('input[name="persona"]').forEach(input => {
@@ -437,7 +524,7 @@ function applyPersonaSelection(personaKey) {
         assessmentState.selectedRecipeIds = [];
         assessmentState.taskAnswers = {};
         assessmentState.archivedAnswers = {};
-        assessmentState.executionNeeds = { parallelBand: '' };
+        assessmentState.executionNeeds = { parallelBand: '', sharedUsers: '' };
         invalidateResult();
     }
     clearError();
@@ -572,29 +659,43 @@ function renderRecipeSelection() {
     const limitReached = assessmentState.selectedRecipeIds.length >= 6;
     elements.recipeGrid.innerHTML = recipes.map(recipe => {
         const selected = assessmentState.selectedRecipeIds.includes(recipe.id);
+        const stages = globalThis.SCIWorkflowV2.getWorkflow(recipe.id)?.stages || [];
+        const list = field => stages.map(stage => `<li>${stage[field]}</li>`).join('');
         return `
-            <article class="recipe-card ${selected ? 'is-selected' : ''} ${limitReached && !selected ? 'is-limit-reached' : ''}" data-recipe-card="${recipe.id}">
-                <label class="recipe-select">
-                    <input type="checkbox" value="${recipe.id}" ${selected ? 'checked' : ''} ${limitReached && !selected ? 'disabled' : ''} aria-describedby="recipe-summary-${recipe.id}">
-                    <span>
-                        <strong>${getRecipeDisplayTitle(recipe)}</strong>
-                        <p id="recipe-summary-${recipe.id}">${getRecipeContext(recipe).replace(/^本次工作[：:]\s*/u, '')}</p>
-                    </span>
+            <article class='recipe-card ${selected ? 'is-selected' : ''} ${limitReached && !selected ? 'is-limit-reached' : ''}' data-recipe-card='${recipe.id}'>
+                <label class='recipe-select'>
+                    <input type='checkbox' value='${recipe.id}' ${selected ? 'checked' : ''} ${limitReached && !selected ? 'disabled' : ''}>
+                    <span><strong>${getRecipeDisplayTitle(recipe)}</strong></span>
                     ${limitReached && !selected ? '<em>已達上限</em>' : ''}
                 </label>
-                <details class="recipe-detail">
-                    <summary>查看影分身可協助的流程</summary>
-                    <div class="recipe-detail__body">
-                        <div><h4>影分身可協助</h4><p>${recipe.assist}</p></div>
-                        <div><h4>你仍需確認</h4><p>${recipe.review}</p></div>
+                <details class='recipe-detail' data-recipe-detail='${recipe.id}' ${openRecipeDetails.has(recipe.id) ? 'open' : ''}>
+                    <summary>看看分身怎麼幫你</summary>
+                    <div class='recipe-detail__body'>
+                        <div class='recipe-detail__human'><h4>人工處理</h4><ol>${list('human')}</ol></div>
+                        <div class='recipe-detail__shadow'><h4>影分身協助</h4><ol>${list('ai')}</ol></div>
                     </div>
                 </details>
             </article>
         `;
     }).join('');
-    elements.recipeGrid.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        input.addEventListener('change', () => toggleRecipe(input.value, input.checked, input));
+    // Only one task detail stays open: opening another one, or ticking another task, closes the rest.
+    const closeOtherDetails = keepId => {
+        [...openRecipeDetails].forEach(id => { if (id !== keepId) openRecipeDetails.delete(id); });
+        elements.recipeGrid.querySelectorAll('[data-recipe-detail][open]').forEach(detail => { if (detail.dataset.recipeDetail !== keepId) detail.open = false; });
+    };
+    elements.recipeGrid.querySelectorAll('input[type=\'checkbox\']').forEach(input => {
+        input.addEventListener('change', () => {
+            closeOtherDetails(input.value);
+            toggleRecipe(input.value, input.checked, input);
+        });
     });
+    // Remember which task detail is open so re-rendering after a selection does not collapse it.
+    elements.recipeGrid.querySelectorAll('[data-recipe-detail]').forEach(detail => detail.addEventListener('toggle', () => {
+        if (detail.open) {
+            openRecipeDetails.add(detail.dataset.recipeDetail);
+            closeOtherDetails(detail.dataset.recipeDetail);
+        } else openRecipeDetails.delete(detail.dataset.recipeDetail);
+    }));
     elements.selectedCount.textContent = String(assessmentState.selectedRecipeIds.length);
     clearError();
 }
@@ -693,8 +794,34 @@ function getStep3PanelCount() {
     return assessmentState.selectedRecipeIds.length + 1;
 }
 
+// Who shares the device decides between the personal and the shared / enterprise scenarios.
+// Students are always a single user, so the question is not shown to them.
+function isStudentFunction(functionId = assessmentState.functionId) {
+    return functionId === 'edu.學生';
+}
+
+function getSharedUserOptions() {
+    if (isStudentFunction()) return [];
+    if (assessmentState.persona === 'soho') return [['1', '只有我'], ['2-5', '2–5 人'], ['6+', '6 人以上']];
+    return [['1', '只有我'], ['2-5', '2–5 人'], ['6-25', '6–25 人'], ['26-50', '26–50 人'], ['50+', '50 人以上']];
+}
+
+function renderSharedUserOptions() {
+    const options = getSharedUserOptions();
+    const needs = assessmentState.executionNeeds;
+    if (!options.length) needs.sharedUsers = '1';
+    else if (!options.some(([value]) => value === needs.sharedUsers)) needs.sharedUsers = '';
+    elements.sharedUsersFieldset.hidden = !options.length;
+    elements.sharedUsersOptions.innerHTML = options.map(([value, label]) => `<label><input type="radio" name="shared-users" value="${value}" ${value === needs.sharedUsers ? 'checked' : ''}><span>${label}</span></label>`).join('');
+    elements.sharedUsersOptions.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
+        needs.sharedUsers = input.value;
+        invalidateResult();
+    }));
+}
+
 function isSharedSettingsComplete() {
     if (!assessmentState.executionNeeds.parallelBand) return false;
+    if (!assessmentState.executionNeeds.sharedUsers) return false;
     const cost = Number(assessmentState.costAmountTwd);
     if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return false;
     if (!assessmentState.cloudUsage) return false;
@@ -777,7 +904,7 @@ function renderDonut(percent) {
 let revealObserver = null;
 // Report blocks fade up and their charts draw in the first time they scroll into view.
 function observeReveals(root = document.getElementById('step-4')) {
-    const targets = root.querySelectorAll('.impact-hero, .saving-summary, .time-comparison-row, .workflow-impact-card, .hardware-model-card, .component-series-card, .shadow-strength-card, .local-value-comparisons article');
+    const targets = root.querySelectorAll('.scenario-card, .framework-card, .impact-hero, .saving-summary, .time-comparison-row, .workflow-impact-card, .hardware-model-card, .component-series-card, .shadow-strength-card, .local-value-comparisons article');
     targets.forEach(target => target.classList.add('reveal'));
     if (!revealObserver) {
         // Position checks on scroll rather than IntersectionObserver, so blocks can never stay hidden if no callback fires.
@@ -791,7 +918,7 @@ function observeReveals(root = document.getElementById('step-4')) {
 
 function checkReveals() {
     const limit = window.innerHeight * 0.94;
-    document.querySelectorAll('#step-4 .reveal:not(.is-inview)').forEach(target => {
+    document.querySelectorAll('#step-4 .report-card.is-active .reveal:not(.is-inview)').forEach(target => {
         const rect = target.getBoundingClientRect();
         if (rect.width && rect.top < limit && rect.bottom > 0) target.classList.add('is-inview');
     });
@@ -980,14 +1107,40 @@ function updateCloudProviderSummaries() {
 
 function restoreSharedOptions() {
     document.querySelectorAll('input[name="parallel-band"]').forEach(input => { input.checked = input.value === assessmentState.executionNeeds.parallelBand; });
+    renderSharedUserOptions();
     document.querySelectorAll('input[name="cloud-usage"]').forEach(input => { input.checked = input.value === assessmentState.cloudUsage; });
     elements.hourlyCost.value = assessmentState.costAmountTwd;
-    elements.costPeriod.value = assessmentState.costPeriod;
+    assessmentState.costPeriod = 'month';
+    elements.costPeriod.value = 'month';
+    renderCostBandOptions();
     elements.periodHours.value = assessmentState.periodHours;
     elements.cloudOtherCost.value = assessmentState.cloudOtherCostTwd;
     updateCloudProviderSummaries();
     syncCloudSettings();
     updateCostConversion();
+}
+
+// The cost question offers monthly ranges; a range is counted at its midpoint, and 其他 lets the user type a monthly amount.
+const COST_BANDS = Object.freeze([
+    ['10000-40000', '1–4 萬', 25000], ['50000-90000', '5–9 萬', 70000], ['100000-150000', '10–15 萬', 125000],
+    ['160000-190000', '16–19 萬', 175000], ['200000+', '20 萬以上', 200000], ['other', '其他', null]
+]);
+
+function renderCostBandOptions() {
+    if (!assessmentState.costBand && assessmentState.costAmountTwd !== '') assessmentState.costBand = 'other';
+    elements.costBandOptions.innerHTML = COST_BANDS.map(([value, label]) => `<label><input type="radio" name="cost-band" value="${value}" ${value === assessmentState.costBand ? 'checked' : ''}><span>${label}</span></label>`).join('');
+    elements.costCustomRow.hidden = assessmentState.costBand !== 'other';
+    elements.costBandOptions.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
+        const band = COST_BANDS.find(([value]) => value === input.value);
+        const wasOther = assessmentState.costBand === 'other';
+        assessmentState.costBand = input.value;
+        elements.costCustomRow.hidden = input.value !== 'other';
+        elements.costPeriod.value = 'month';
+        if (band[2]) elements.hourlyCost.value = String(band[2]);
+        else if (!wasOther) elements.hourlyCost.value = '';
+        syncCostSettings();
+        if (!band[2]) elements.hourlyCost.focus({ preventScroll: true });
+    }));
 }
 
 function syncCostSettings() {
@@ -1072,6 +1225,8 @@ function nextStep() {
         return;
     }
     if (assessmentState.currentStep === 3) {
+        // Until every panel is filled in, the button walks through the panels one at a time.
+        if (!isStep3Complete() && step3PanelIndex < getStep3PanelCount() - 1) return nextStep3Panel();
         if (!validateStep3()) return;
         refreshAssessmentResult();
         goToStep(4);
@@ -1131,7 +1286,7 @@ function updateStepUI(moveFocus) {
     });
     const progressFill = document.getElementById('progress-fill');
     if (progressFill) progressFill.style.width = `${((assessmentState.currentStep - 1) / 3) * 100}%`;
-    elements.navigation.hidden = assessmentState.currentStep === 4;
+    elements.navigation.hidden = assessmentState.currentStep >= 3;
     elements.backButton.hidden = assessmentState.currentStep === 1;
     const draftStatus = document.getElementById('draft-status');
     if (draftStatus) draftStatus.textContent = `步驟 ${assessmentState.currentStep}／4`;
@@ -1148,20 +1303,19 @@ function updateStepUI(moveFocus) {
 
 function updateNavigation() {
     const onStep3 = assessmentState.currentStep === 3;
-    elements.nextButton.disabled = (assessmentState.currentStep === 1 && !assessmentState.persona) || (onStep3 && !isStep3Complete());
+    elements.nextButton.disabled = assessmentState.currentStep === 1 && !assessmentState.persona;
     elements.nextButton.textContent = assessmentState.currentStep === 1
         ? '選擇日常任務'
         : assessmentState.currentStep === 2
             ? '填寫時間與頻率'
-            : '查看我的影分身效益';
+            : isStep3Complete() ? '查看結果' : '下一步';
     elements.backButton.textContent = onStep3 ? '重新選擇工作領域' : '上一步';
-    if (elements.taskNextButton) {
-        const isLastPanel = step3PanelIndex >= getStep3PanelCount() - 1;
-        elements.taskNextButton.disabled = isLastPanel;
-        elements.taskNextButton.setAttribute('aria-label', step3PanelIndex === getStep3PanelCount() - 2 ? '下一個：使用情境' : '下一個任務');
-        if (elements.taskPrevButton) elements.taskPrevButton.disabled = step3PanelIndex <= 0;
-    }
-    elements.consentNote.hidden = !onStep3;
+    elements.nextButton.classList.toggle('is-ready', onStep3 && isStep3Complete());
+    const step3Complete = onStep3 && isStep3Complete();
+    elements.step3Prev.disabled = step3PanelIndex <= 0;
+    elements.step3Next.hidden = step3Complete;
+    elements.step3Finish.hidden = !step3Complete;
+    elements.consentNote.hidden = !step3Complete;
 }
 
 function validateStep3() {
@@ -1180,19 +1334,23 @@ function validateStep3() {
             }
         }
     }
+    elements.sharedSettings.querySelectorAll('.field-error').forEach(element => element.classList.remove('field-error'));
     if (firstIncomplete) return showError(`請補完「${getRecipeDisplayTitle(firstIncompleteRecipe)}」的紅框欄位。`, firstIncomplete);
-    if (!assessmentState.executionNeeds.parallelBand) return showError('請選擇平常會同時執行幾個任務。', elements.parallelOptions.querySelector('input'));
+    if (!assessmentState.executionNeeds.parallelBand) return showSharedError('請選擇平常會同時執行幾個任務。', elements.parallelOptions, elements.parallelOptions.querySelector('input'));
+    if (!assessmentState.executionNeeds.sharedUsers) return showSharedError('請選擇這台設備會有幾個人一起使用。', elements.sharedUsersOptions, elements.sharedUsersOptions.querySelector('input'));
     syncCostSettings();
     const cost = Number(assessmentState.costAmountTwd);
-    if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return showError('請填寫工作流程成本。', elements.hourlyCost);
+    if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return assessmentState.costBand === 'other'
+        ? showSharedError('請填寫每月金額。', elements.hourlyCost)
+        : showSharedError('請選擇成本或收入的範圍。', elements.costBandOptions, elements.costBandOptions.querySelector('input'));
     syncCloudSettings();
-    if (!assessmentState.cloudUsage) return showError('請選擇目前是否使用雲端 AI。', elements.cloudUsageOptions.querySelector('input'));
+    if (!assessmentState.cloudUsage) return showSharedError('請選擇目前是否使用雲端 AI。', elements.cloudUsageOptions, elements.cloudUsageOptions.querySelector('input'));
     if (assessmentState.cloudUsage === 'paid' && !assessmentState.cloudPlans.length && !(Number(assessmentState.cloudOtherCostTwd) > 0)) {
-        return showError('請選擇至少一個訂閱方案，或填入其他 AI 支出。', elements.cloudPlanOptions.querySelector('select'));
+        return showSharedError('請選擇至少一個訂閱方案，或填入其他 AI 支出。', elements.cloudPlanOptions, elements.cloudPlanOptions.querySelector('select'));
     }
     if (assessmentState.cloudUsage === 'paid' && assessmentState.cloudOtherCostTwd !== '') {
         const cloudCost = Number(assessmentState.cloudOtherCostTwd);
-        if (!Number.isFinite(cloudCost) || cloudCost < 0 || cloudCost > 10000000) return showError('請確認其他 AI 支出金額。', elements.cloudOtherCost);
+        if (!Number.isFinite(cloudCost) || cloudCost < 0 || cloudCost > 10000000) return showSharedError('請確認其他 AI 支出金額。', elements.cloudOtherCost);
     }
     return true;
 }
@@ -1206,6 +1364,7 @@ function createAssessmentSnapshot() {
         taskAnswers: assessmentState.taskAnswers,
         executionNeeds: assessmentState.executionNeeds,
         costAmountTwd: assessmentState.costAmountTwd,
+        costBand: assessmentState.costBand,
         costPeriod: assessmentState.costPeriod,
         periodHours: assessmentState.periodHours,
         hourlyCostTwd: assessmentState.hourlyCostTwd,
@@ -1300,7 +1459,7 @@ function calculateAssessment(snapshot) {
         task.reliefShare = totals.current > 0 ? task.savedMonthlyMinutes / totals.current * 100 : 0;
         task.savedCostMonthlyTwd = roundHoursForDisplay(task.savedMonthlyMinutes / 60) * hourlyCost;
     });
-    const recommendation = routeHardware(snapshot, taskResults, { currentSci, targetSci });
+    const recommendation = routeHardware(snapshot, taskResults);
     const cloneMap = new Map();
     taskResults.forEach(task => {
         if (!cloneMap.has(task.cloneTag)) {
@@ -1370,66 +1529,105 @@ function calculateAssessment(snapshot) {
             currentMonthlyTwd: cloudMonthlyTwd,
             reducibleMonthlyTwd: cloudMonthlyTwd
         },
-        taskResults: taskResults.sort((a, b) => b.currentMonthlyMinutes - a.currentMonthlyMinutes || a.selectionIndex - b.selectionIndex),
+        // Largest monthly saving first: the first task is the one flagged as the priority to hand over.
+        taskResults: taskResults.sort((a, b) => b.savedMonthlyMinutes - a.savedMonthlyMinutes || b.currentMonthlyMinutes - a.currentMonthlyMinutes || a.selectionIndex - b.selectionIndex),
         clones: [...cloneMap.values()],
         recommendation,
         estimateStatus: 'heuristic'
     });
 }
 
-function routeHardware(snapshot, taskResults, sciScores) {
-    const gradeKeys = ['a', 'aplus', 's', 'splus', 'ss'];
-    const baseTier = Math.max(...taskResults.map(task => getRecipe(task.recipeId).scales[task.scale].baseTier), 1);
-    let gradeIndex = clamp(baseTier - 1, 0, 2);
-    let needsReview = false;
-    const reasons = [];
-    const parallel = snapshot.executionNeeds.parallelBand;
-    const largeTasks = taskResults.filter(task => task.scale === 'large');
-    const hasLargeMediaOrCoding = largeTasks.some(task => task.profiles.some(profile => ['media', 'coding'].includes(profile)));
-    const totalBaselineMinutes = taskResults.reduce((sum, task) => sum + task.baselineMonthlyMinutes, 0);
-    const totalBaselineHours = totalBaselineMinutes / 60;
-    const weightedComputeIntensity = totalBaselineMinutes > 0
-        ? taskResults.reduce((sum, task) => sum + task.workflowMetrics.computeIntensity * task.baselineMonthlyMinutes, 0) / totalBaselineMinutes
-        : 1;
+// Hardware routing follows the HQ scenarios.
+// 1. Demand level (1-4): the heaviest selected task (its compute class, nudged by the chosen load).
+// 2. Load level (1-3): how many tasks run at once, monthly hours and how many tasks are at heavy load.
+// 3. One user: the demand x load table picks the personal scenario and grade.
+//    Shared: head count picks the scenario (2-5 Homelab, 6-25 Workstations, 26-50 Premium, 50+ Scale).
+// 4. Caps: freelancers never get an enterprise scenario; students never go past a single desktop (S).
+const ROUTE_OUTCOMES = Object.freeze({
+    a: { scenarioId: 'personal', tier: 'a' },
+    aplus: { scenarioId: 'personal', tier: 'aplus' },
+    s: { scenarioId: 'development', tier: 's' },
+    homelab: { scenarioId: 'homelab', tier: 'splus' },
+    workstation: { scenarioId: 'workstation', tier: 'splus' },
+    premium: { scenarioId: 'premium', tier: 'splus' },
+    scale: { scenarioId: 'scale', tier: 'ss' }
+});
+const INDIVIDUAL_ROUTE = Object.freeze({
+    1: ['a', 'a', 'aplus'],
+    2: ['a', 'aplus', 'aplus'],
+    3: ['aplus', 's', 's'],
+    4: ['s', 's', 'homelab']
+});
+const DEMAND_LABELS = ['輕量', '中等', '高', '模型開發'];
+const LOAD_LABELS = ['低', '中', '高'];
+// Component upgrade lists for the scenarios that split the S+ tier.
+const SCENARIO_COMPONENTS = Object.freeze({
+    homelab: { cpu: { all: 'NVIDIA GB10 Grace Blackwell Superchip' }, mb: { all: 'NVIDIA DGX Spark 整合平台' }, gpu: { all: 'NVIDIA Blackwell（整合式）' } },
+    workstation: { cpu: { all: 'Intel Xeon W-3400 系列' }, mb: { all: 'Intel W790 工作站平台' }, gpu: { all: 'NVIDIA RTX 6000 Ada 工作站系列' } },
+    premium: { mb: { amd: 'Pro WS WRX90E-SAGE SE', intel: 'Pro WS W890E-SAGE SE' }, gpu: { all: '2 × NVIDIA RTX PRO 6000（每張 96GB）' } }
+});
 
-    if (parallel === '2' && largeTasks.length) gradeIndex = Math.max(gradeIndex, 1);
-    if (parallel === '3-4') gradeIndex = Math.max(gradeIndex, hasLargeMediaOrCoding ? 2 : 1);
-    if (parallel === '5+') gradeIndex = Math.max(gradeIndex, 2);
+function getDemandLevel(taskResults) {
+    const shift = { small: -0.5, standard: 0, large: 0.5 };
+    let peak = 0, peakTask = null;
     taskResults.forEach(task => {
-        const batchProfile = task.profiles.some(profile => ['document', 'analytics', 'knowledge', 'monitoring'].includes(profile));
-        if (batchProfile && ((task.scale === 'standard' && task.frequency > 20) || (task.scale === 'large' && task.frequency > 5))) {
-            gradeIndex = Math.max(gradeIndex, 1);
-        }
+        const demand = (getRecipe(task.recipeId).computeClass || 1) + (shift[task.scale] || 0);
+        if (demand > peak) { peak = demand; peakTask = task; }
     });
-    if (weightedComputeIntensity >= 3.35) gradeIndex = Math.max(gradeIndex, 1);
-    if (weightedComputeIntensity >= 4 && ['3-4', '5+'].includes(parallel)) gradeIndex = Math.max(gradeIndex, 2);
+    return { level: peak >= 3.75 ? 4 : peak >= 2.75 ? 3 : peak >= 1.75 ? 2 : 1, peakTask };
+}
 
-    const sPlusDemand = weightedComputeIntensity >= 3.5
-        && (totalBaselineHours >= 160 || parallel === '5+' || largeTasks.length >= 3);
-    if (sPlusDemand) gradeIndex = Math.max(gradeIndex, 3);
+function getLoadLevel(parallel, totalHours, largeTaskCount) {
+    const points = ({ '1': 0, '2': 1, '3-4': 2, '5+': 3, unknown: 1 }[parallel] || 0) + (totalHours >= 160 ? 1 : 0) + (largeTaskCount >= 3 ? 1 : 0);
+    return points >= 4 ? 3 : points >= 2 ? 2 : 1;
+}
 
-    const ssDemand = sciScores.targetSci >= 75
-        && weightedComputeIntensity >= 3.35
-        && (totalBaselineHours >= 320 || (parallel === '5+' && largeTasks.length >= 3));
-    if (ssDemand) gradeIndex = 4;
+function routeHardware(snapshot, taskResults) {
+    const isStudent = isStudentFunction(snapshot.functionId);
+    const isFreelancer = snapshot.persona === 'soho';
+    const parallel = snapshot.executionNeeds.parallelBand;
+    const users = isStudent ? '1' : (snapshot.executionNeeds.sharedUsers || '1');
+    const totalHours = taskResults.reduce((sum, task) => sum + task.baselineMonthlyMinutes, 0) / 60;
+    const largeTaskCount = taskResults.filter(task => task.scale === 'large').length;
+    const { level: demandLevel, peakTask } = getDemandLevel(taskResults);
+    const loadLevel = getLoadLevel(parallel, totalHours, largeTaskCount);
+    const reasons = [];
 
-    gradeIndex = clamp(gradeIndex, 0, gradeKeys.length - 1);
-    const tierKey = gradeKeys[gradeIndex];
+    let outcome = INDIVIDUAL_ROUTE[demandLevel][loadLevel - 1];
+    if (isStudent && !['a', 'aplus', 's'].includes(outcome)) outcome = 's';
+    const soloGrade = hardwareCatalog[ROUTE_OUTCOMES[outcome].tier].strength.grade;
+    const demandReason = `所選任務的運算需求為「${DEMAND_LABELS[demandLevel - 1]}」${peakTask ? `，最吃資源的是「${peakTask.title}」` : ''}。`;
+    const loadReason = `同時執行與工作量的負載為「${LOAD_LABELS[loadLevel - 1]}」，每月約 ${Math.round(totalHours)} 小時。`;
+
+    if (users === '1') {
+        reasons.push(demandReason, loadReason);
+    } else {
+        const headcount = users === '6+' ? '6 人以上' : users.replace('-', '–').replace('+', ' 人以上').replace(/(\d)$/, '$1 人');
+        outcome = { '2-5': 'homelab', '6+': 'homelab', '6-25': 'workstation', '26-50': 'premium', '50+': 'scale' }[users] || outcome;
+        reasons.push(`單一工作情境的運算需求為「${DEMAND_LABELS[demandLevel - 1]}」、負載為「${LOAD_LABELS[loadLevel - 1]}」。`);
+        reasons.push(`所選的使用情境為 ${headcount}共用，多人同時使用需要更大的記憶體與同時服務能力。`);
+        if (users === '6+') reasons.push('個人工作者方案以可共用的 AI 節點為上限；更大規模請洽企業方案。');
+    }
+    if (isFreelancer && ['workstation', 'premium', 'scale'].includes(outcome)) outcome = 'homelab';
+
+    const { scenarioId, tier: tierKey } = ROUTE_OUTCOMES[outcome];
     const tier = hardwareCatalog[tierKey];
-    reasons.push(`本次工作量約 ${Math.round(totalBaselineHours)} 小時／月，工作流運算強度為 ${weightedComputeIntensity.toFixed(1)}／5。`);
-    if (tierKey === 'ss') reasons.push('高 SCI 代表大量流程可交由影分身處理，搭配極重工作量時需要更高的持續運算與記憶體容量。');
-    if (parallel === '5+') needsReview = true;
+    const models = tier.models.filter(model => getModelScenarioId(tierKey, model) === scenarioId).map(model => ({ ...model }));
     return {
+        scenarioId,
         tier: tierKey,
         grade: tier.strength.grade,
         tierLabel: tier.label,
         validationStatus: 'pending',
-        needsReview,
-        models: tier.models.map(model => ({ ...model })),
-        primaryModel: { ...tier.models[0] },
-        componentSeries: JSON.parse(JSON.stringify(tier.components)),
+        needsReview: parallel === '5+' || parallel === 'unknown',
+        demandLevel,
+        loadLevel,
+        sharedUsers: users,
+        models,
+        primaryModel: models[0] ? { ...models[0] } : null,
+        componentSeries: JSON.parse(JSON.stringify(SCENARIO_COMPONENTS[scenarioId] || tier.components)),
         strength: { ...tier.strength },
-        reasons: reasons.slice(0, 3)
+        reasons
     };
 }
 
@@ -1440,15 +1638,19 @@ function renderResult() {
         ? clamp((result.time.currentHoursMonthly - result.time.targetHoursMonthly) / result.time.currentHoursMonthly * 100, 0, 100)
         : 0;
     const targetScore = Math.round(result.sci.target);
-    const targetDescription = `${getSciNarrative(result.sci.target, 'target')} 導入後 SCI 預估達 <strong>${targetScore} 分</strong>：既有工具、流程與影分身合計可承接約 <strong>${targetScore}% 的全人工工作量</strong>。相較目前，預估可釋放約 <strong>${formatPercent(workHourReleaseRate)}% 的現行人工工時</strong>。`;
+    const targetDescription = `<span class="sci-line">${getSciNarrative(result.sci.target, 'target')}</span><span class="sci-line">導入後可承接約 <strong>${targetScore}% 的全人工工作量</strong>。</span><span class="sci-line">相較目前，預估可釋放約 <strong>${formatPercent(workHourReleaseRate)}% 的現行人工工時</strong>。</span>`;
     document.getElementById('sci-gap').textContent = `+${Math.round(result.sci.gap)} 點`;
     document.getElementById('current-sci-card').innerHTML = renderSciCard('目前 SCI', result.sci.current, getSciLevel(result.sci.current), getSciNarrative(result.sci.current, 'current'), 'current', 0);
     document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', result.sci.target, '建立本次影分身流程後', targetDescription, 'target', result.sci.current);
+    resetTeamView(result);
     document.getElementById('metric-highlights').innerHTML = renderMetricHighlights(result);
+    document.getElementById('team-view-label').textContent = '';
+    document.getElementById('team-toggle-slot').innerHTML = renderTeamToggle(result);
     document.getElementById('workflow-result-table').innerHTML = renderWorkflowResults(result);
     document.getElementById('clone-list').innerHTML = renderReportClonePlan(result.clones);
     renderHardware(result.recommendation, result);
     setResultSectionsHidden(false);
+    setReportCard(0);
     observeReveals();
     requestAnimationFrame(animateSciJourney);
 }
@@ -1461,8 +1663,32 @@ function setResultSectionsHidden(hidden) {
 function renderSciCard(label, score, status, description, variant, fromValue) {
     const rounded = Math.round(score);
     const barPercent = clamp(score / SCI_CONFIG.scaleMax * 100, 0, 100);
-    const infoButton = variant === 'current' ? '<button type="button" class="sci-info-trigger" id="sci-info-trigger" aria-label="SCI 是什麼？點擊查看計算方式">?</button>' : '';
-    return `<div class="sci-card__top"><span class="sci-card__label"><strong>${label}</strong>${infoButton}</span><span>${status}</span></div><div class="sci-card__score"><strong data-sci-number data-from="${Math.round(fromValue)}" data-value="${rounded}">${Math.round(fromValue)}</strong><span>／${SCI_CONFIG.scaleMax}</span></div><div class="sci-card__bar" aria-hidden="true"><i data-sci-bar style="--score:${barPercent}%"></i></div><p>${description}</p>`;
+    const numberMarkup = variant === 'target' ? renderSciFillNumber(Math.round(fromValue), rounded, fromValue, score) : String(Math.round(fromValue));
+    const infoButton = variant === 'current' ? '<button type="button" class="sci-info-trigger term-help" id="sci-info-trigger" aria-label="SCI 是什麼？點擊查看計算方式">?</button>' : '';
+    return `<div class="sci-card__top"><span class="sci-card__label"><strong>${label}</strong>${infoButton}</span><span>${status}</span></div><div class="sci-card__score"><strong data-sci-number data-from="${Math.round(fromValue)}" data-value="${rounded}">${numberMarkup}</strong><span>／${SCI_CONFIG.scaleMax}</span></div><div class="sci-card__bar" aria-hidden="true"><i data-sci-bar style="--score:${barPercent}%"></i></div><p>${description}</p>`;
+}
+
+// Hollow target number. The viewBox is in font units (digits are 100 units tall in type size, about 72 in cap height, baseline at y=78),
+// so the liquid level maps the SCI score onto the real height of the digits.
+function renderSciFillNumber(startValue, endValue, fromScore, toScore) {
+    const width = String(endValue).length * 62 + 12;
+    const levelY = score => (78 - clamp(score / SCI_CONFIG.scaleMax, 0, 1) * 72).toFixed(1);
+    const segments = Math.ceil((width + 240) / 30);
+    const wave = `M-120 0 q15 -4 30 0 ${'t30 0 '.repeat(segments)}V130 H-120 Z`;
+    return `<svg class="sci-fill" viewBox="0 0 ${width} 86" style="--w:${width};--from-y:${levelY(fromScore)};--to-y:${levelY(toScore)}" aria-hidden="true">
+        <defs>
+            <linearGradient id="sci-liquid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6f9bff"/><stop offset=".5" stop-color="#253eec"/><stop offset="1" stop-color="#4a2ff0"/></linearGradient>
+            <clipPath id="sci-clip"><text x="5" y="78">${startValue}</text></clipPath>
+        </defs>
+        <text class="sci-fill__outline" x="5" y="78">${startValue}</text>
+        <g clip-path="url(#sci-clip)"><g class="sci-fill__level"><path class="sci-fill__wave sci-fill__wave--back" d="${wave}"/><path class="sci-fill__wave" d="${wave}"/></g></g>
+    </svg><span class="visually-hidden" data-sci-text>${startValue}</span>`;
+}
+
+function setSciNumber(element, value) {
+    const texts = element.querySelectorAll('text, [data-sci-text]');
+    if (texts.length) texts.forEach(node => { node.textContent = value; });
+    else element.textContent = value;
 }
 
 function getSciNarrative(score, variant) {
@@ -1498,24 +1724,86 @@ function getSciNarrative(score, variant) {
     return narrative[variant];
 }
 
+const TEAM_RANGES = Object.freeze({ '2-5': [2, 5], '6+': [6, null], '6-25': [6, 25], '26-50': [26, 50], '50+': [50, null] });
+
 function renderMetricHighlights(result) {
+    const team = teamView.active && Boolean(getTeamBounds(result));
+    const factor = team ? teamView.size : 1;
     return `
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('clock')}</span>
-            <div><span>釋放工時</span><strong>${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}</strong></div>
+            <div><span>${team ? '團隊釋放工時' : '釋放工時'}</span><strong>${formatHours(team ? result.taskResults.reduce((sum, task) => sum + task.savedMonthlyMinutes, 0) / 60 * factor : result.time.savedHoursMonthly)} ${getTimeUnit()}</strong></div>
         </article>
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('receipt')}</span>
-            <div><span>工時價值</span><strong>${formatCurrency(result.cost.laborSavedMonthlyTwd)}</strong></div>
+            <div><span>${team ? '團隊工時價值' : '工時價值'}</span><strong>${formatCurrency(result.cost.laborSavedMonthlyTwd * factor)}</strong></div>
         </article>
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('zap')}</span>
-            <div><span>約等同於</span><strong>${formatTokens(result.tokens.savedMonthly)}</strong><span class="impact-hero__unit">雲端 Token 費用</span></div>
-        </article>`;
+            <div><span>約等同於</span><strong>${formatTokens(result.tokens.savedMonthly * factor)}</strong><span class="impact-hero__unit">雲端 Token 費用</span></div>
+        </article>
+        ${team ? `<p class="impact-team-note">以 ${teamView.size} 人、每人工作量與你相近推估，實際效益依各自工作內容而定。</p>` : ''}`;
+}
+
+// A switch on the first card flips both report cards between the personal figures and a team estimate (personal figures times a head count the viewer can adjust).
+const teamView = { active: false, size: 1 };
+
+function getTeamBounds(result = assessmentState.result) {
+    const range = result && TEAM_RANGES[result.recommendation.sharedUsers];
+    return range ? { min: range[0], max: range[1] || 500 } : null;
+}
+
+function getDisplayedTaskResults(result = assessmentState.result) {
+    const factor = teamView.active && getTeamBounds(result) ? teamView.size : 1;
+    if (factor === 1) return result.taskResults;
+    return result.taskResults.map(task => ({
+        ...task,
+        currentMonthlyMinutes: task.currentMonthlyMinutes * factor,
+        targetMonthlyMinutes: task.targetMonthlyMinutes * factor,
+        savedMonthlyMinutes: task.savedMonthlyMinutes * factor,
+        savedCostMonthlyTwd: task.savedCostMonthlyTwd * factor
+    }));
+}
+
+function renderTeamToggle(result) {
+    const bounds = getTeamBounds(result);
+    if (!bounds) return '';
+    const stepper = teamView.active ? `<span class="team-stepper">以<button type="button" data-team-step="-1" aria-label="減少人數" ${teamView.size <= bounds.min ? 'disabled' : ''}>−</button><b aria-live="polite">${teamView.size}</b><button type="button" data-team-step="1" aria-label="增加人數" ${teamView.size >= bounds.max ? 'disabled' : ''}>+</button>人估算</span>` : '';
+    return `<div class="team-toggle" role="group" aria-label="切換個人或團隊估算"><button type="button" data-team-view="personal" class="${teamView.active ? '' : 'is-active'}" aria-pressed="${!teamView.active}">個人</button><button type="button" data-team-view="team" class="${teamView.active ? 'is-active' : ''}" aria-pressed="${teamView.active}">團隊估算</button></div>${stepper}`;
+}
+
+function resetTeamView(result) {
+    const bounds = getTeamBounds(result);
+    teamView.active = false;
+    teamView.size = bounds ? Math.min(bounds.max, Math.max(bounds.min, Math.floor((bounds.min + (TEAM_RANGES[result.recommendation.sharedUsers][1] || bounds.min)) / 2))) : 1;
+}
+
+function refreshTeamViews() {
+    const result = assessmentState.result;
+    if (!result) return;
+    document.getElementById('team-toggle-slot').innerHTML = renderTeamToggle(result);
+    document.getElementById('metric-highlights').innerHTML = renderMetricHighlights(result);
+    document.getElementById('team-view-label').textContent = teamView.active && getTeamBounds(result) ? `團隊估算・${teamView.size} 人` : '';
+    document.getElementById('workflow-result-table').innerHTML = renderWorkflowResults(result);
+    document.querySelectorAll('.metric-section, .report-card--workflow').forEach(scope => {
+        observeReveals(scope);
+        scope.querySelectorAll('.reveal').forEach(element => element.classList.add('is-inview'));
+    });
+}
+
+function handleTeamControl(event) {
+    const view = event.target.closest('[data-team-view]');
+    const step = event.target.closest('[data-team-step]');
+    if (!view && !step) return;
+    const bounds = getTeamBounds();
+    if (!bounds) return;
+    if (view) teamView.active = view.dataset.teamView === 'team';
+    if (step) teamView.size = clamp(teamView.size + Number(step.dataset.teamStep), bounds.min, bounds.max);
+    refreshTeamViews();
 }
 
 function renderWorkflowResults(result) {
-    return `<div class="workflow-stack">${renderWorkloadOverview(result)}</div>`;
+    return `<div class="workflow-stack">${renderWorkloadOverview({ ...result, taskResults: getDisplayedTaskResults(result) })}</div>`;
 }
 
 function renderWorkflowImpactCard(task, index) {
@@ -1577,6 +1865,7 @@ function renderWorkloadOverview(result) {
 function toggleTaskDetail(index) {
     const result = assessmentState.result;
     if (!result || !result.taskResults[index]) return;
+    const displayed = getDisplayedTaskResults(result);
     const panel = document.getElementById('workload-task-detail');
     if (!panel) return;
     const buttons = document.querySelectorAll('[data-task-toggle]');
@@ -1586,7 +1875,7 @@ function toggleTaskDetail(index) {
         button.classList.toggle('is-selected', isSelected);
         button.setAttribute('aria-expanded', String(isSelected));
     });
-    panel.innerHTML = renderWorkflowImpactCard(result.taskResults[nextOpenIndex], nextOpenIndex);
+    panel.innerHTML = renderWorkflowImpactCard(displayed[nextOpenIndex], nextOpenIndex);
     panel.hidden = false;
     observeReveals(panel);
     panel.dataset.openIndex = String(nextOpenIndex);
@@ -1654,32 +1943,274 @@ function toggleClonePlanDetail(button) {
     detail.hidden = !willOpen;
 }
 
+// The report is a deck of three cards: arrows, dots, arrow keys or a horizontal drag move between them.
+function setReportCard(index) {
+    const cards = [...document.querySelectorAll('[data-report-card]')];
+    reportCardIndex = clamp(index, 0, cards.length - 1);
+    cards.forEach((card, position) => {
+        const offset = position - reportCardIndex;
+        card.dataset.pos = offset < 0 ? 'past' : String(Math.min(offset, 2));
+        card.classList.toggle('is-active', offset === 0);
+        card.inert = offset !== 0;
+    });
+    document.getElementById('deck-prev').disabled = reportCardIndex === 0;
+    document.getElementById('deck-next').disabled = reportCardIndex === cards.length - 1;
+    document.querySelectorAll('[data-deck-dot]').forEach(dot => dot.setAttribute('aria-selected', String(Number(dot.dataset.deckDot) === reportCardIndex)));
+    // Phones show one card as a long page, so the bottom bar carries the card switcher.
+    const mobileNames = ['SCI 與效益', '任務分工', '設備建議'];
+    document.getElementById('deck-mobile-prev').disabled = reportCardIndex === 0;
+    document.getElementById('deck-mobile-next').disabled = reportCardIndex === cards.length - 1;
+    document.getElementById('deck-mobile-label').innerHTML = `<b>${reportCardIndex + 1}／${cards.length}</b>${mobileNames[reportCardIndex] || ''}`;
+    setTimeout(checkReveals, 380);
+}
+
+function initReportDeck() {
+    const deck = document.getElementById('report-deck');
+    if (!deck) return;
+    document.getElementById('deck-prev').addEventListener('click', () => setReportCard(reportCardIndex - 1));
+    document.getElementById('deck-next').addEventListener('click', () => setReportCard(reportCardIndex + 1));
+    const mobileStep = delta => {
+        setReportCard(reportCardIndex + delta);
+        window.scrollTo({ top: 0 });
+    };
+    document.getElementById('deck-mobile-prev').addEventListener('click', () => mobileStep(-1));
+    document.getElementById('deck-mobile-next').addEventListener('click', () => mobileStep(1));
+    document.querySelectorAll('[data-deck-dot]').forEach(dot => dot.addEventListener('click', () => setReportCard(Number(dot.dataset.deckDot))));
+    deck.querySelectorAll('[data-report-card]').forEach(card => card.addEventListener('scroll', checkReveals, { passive: true }));
+    document.addEventListener('keydown', event => {
+        if (assessmentState.currentStep !== 4 || !elements.modal.hidden || event.target.closest('input, select, textarea')) return;
+        if (event.key === 'ArrowRight') setReportCard(reportCardIndex + 1);
+        if (event.key === 'ArrowLeft') setReportCard(reportCardIndex - 1);
+    });
+    // Drag: the front card follows the pointer; the card that would come next sharpens as the drag nears the commit point.
+    const cards = () => [...deck.querySelectorAll('[data-report-card]')];
+    const clearDragStyles = () => cards().forEach(card => { card.style.transform = ''; card.style.opacity = ''; [...card.children].forEach(child => { child.style.opacity = ''; }); });
+    let drag = null;
+    deck.addEventListener('pointerdown', event => {
+        if (event.button > 0 || event.target.closest('button, a, summary, input, select, label, .deck-arrow')) return;
+        // With a mouse the card is only grabbed by its left and right edges; everywhere else behaves normally.
+        if (event.pointerType !== 'touch' && !isDeckEdge(event)) return;
+        drag = { x: event.clientX, y: event.clientY, id: event.pointerId, active: false, dx: 0 };
+    });
+    const armDrag = () => {
+        drag.active = true;
+        deck.classList.add('is-dragging');
+        deck.setPointerCapture?.(drag.id);
+        window.getSelection()?.removeAllRanges();
+    };
+    deck.addEventListener('pointermove', event => {
+        if (!drag || event.pointerId !== drag.id) return;
+        const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+        if (!drag.active) {
+            if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+            armDrag();
+        }
+
+        const all = cards(), current = all[reportCardIndex];
+        const target = dx < 0 ? all[reportCardIndex + 1] : all[reportCardIndex - 1];
+        const threshold = deck.clientWidth * 0.22;
+        const moved = target ? dx : dx * 0.18;
+        const progress = target ? Math.min(Math.abs(dx) / threshold, 1) : 0;
+        drag.dx = dx; drag.commit = Boolean(target) && progress >= 1;
+        clearDragStyles();
+        if (dx < 0) {
+            current.style.transform = `translateX(${moved}px) rotate(${moved / 90}deg)`;
+            if (target) {
+                target.style.transform = `translateX(${26 * (1 - progress)}px) scale(${0.955 + 0.045 * progress})`;
+                target.style.opacity = String(0.8 + 0.2 * progress);
+                [...target.children].forEach(child => { child.style.opacity = String(0.3 + 0.7 * progress); });
+            }
+        } else if (target) {
+            current.style.transform = `translateX(${26 * progress}px) scale(${1 - 0.045 * progress})`;
+            [...current.children].forEach(child => { child.style.opacity = String(1 - 0.7 * progress); });
+            target.style.transform = `translateX(${-112 * (1 - progress)}%) rotate(${-3 * (1 - progress)}deg)`;
+            target.style.opacity = String(progress);
+        } else {
+            current.style.transform = `translateX(${moved}px)`;
+        }
+    });
+    const endDrag = event => {
+        if (!drag || (event && event.pointerId !== drag.id)) return;
+        const finished = drag; drag = null;
+        if (!finished.active) return;
+        deck.classList.remove('is-dragging');
+        clearDragStyles();
+        // swallow the click that follows a drag so nothing under the pointer activates
+        const swallowClick = clickEvent => { clickEvent.stopPropagation(); clickEvent.preventDefault(); };
+        deck.addEventListener('click', swallowClick, { capture: true, once: true });
+        setTimeout(() => deck.removeEventListener('click', swallowClick, { capture: true }), 80);
+        if (finished.commit) setReportCard(reportCardIndex + (finished.dx < 0 ? 1 : -1));
+    };
+    deck.addEventListener('pointerup', endDrag);
+    deck.addEventListener('pointercancel', endDrag);
+    // Wheel: scrolling past the end of a card carries on to the next one, and past the top goes back.
+    let wheelTravel = 0, wheelLock = 0, wheelTimer = 0;
+    deck.addEventListener('wheel', event => {
+        if (matchMedia('(max-width: 800px)').matches || Math.abs(event.deltaY) < Math.abs(event.deltaX)) return;
+        const card = cards()[reportCardIndex];
+        const atTop = card.scrollTop <= 1, atBottom = card.scrollTop + card.clientHeight >= card.scrollHeight - 1;
+        const direction = Math.sign(event.deltaY);
+        if (Date.now() < wheelLock || (direction > 0 && !atBottom) || (direction < 0 && !atTop)) { wheelTravel = 0; return; }
+        if (Math.sign(wheelTravel) !== direction) wheelTravel = 0;
+        wheelTravel += event.deltaY;
+        clearTimeout(wheelTimer); wheelTimer = setTimeout(() => { wheelTravel = 0; }, 260);
+        if (Math.abs(wheelTravel) < 140) return;
+        const nextIndex = reportCardIndex + direction;
+        wheelTravel = 0;
+        if (nextIndex < 0 || nextIndex >= cards().length) return;
+        wheelLock = Date.now() + 750;
+        setReportCard(nextIndex);
+        const shown = cards()[nextIndex];
+        shown.scrollTop = direction > 0 ? 0 : shown.scrollHeight;
+    }, { passive: true });
+    setReportCard(0);
+}
+
+// Custom pointer (dot + trailing ring + click ripple) and the glow that follows it across the frame.
+// The strips along the left and right edge of the front report card act as its drag handles.
+function isDeckEdge(event) {
+    const card = document.querySelector('.report-card.is-active');
+    if (!card) return false;
+    const rect = card.getBoundingClientRect();
+    if (event.clientY < rect.top || event.clientY > rect.bottom) return false;
+    const edge = 64;
+    return (event.clientX >= rect.left && event.clientX <= rect.left + edge) || (event.clientX <= rect.right && event.clientX >= rect.right - edge);
+}
+
+// Text a reader could select: an element that directly holds text and is not part of a control.
+function isSelectableText(target, x, y) {
+    if (!(target instanceof Element) || target.closest('button, a, summary, label, select, input')) return false;
+    if (!target.matches('p, h2, h3, h4, li, span, strong, small, b, em, dt, dd')) return false;
+    // Only the glyphs themselves count: a paragraph box is wider than its text.
+    const range = document.createRange();
+    return [...target.childNodes].some(node => {
+        if (node.nodeType !== 3 || !node.textContent.trim()) return false;
+        range.selectNodeContents(node);
+        return [...range.getClientRects()].some(rect => x >= rect.left - 2 && x <= rect.right + 2 && y >= rect.top - 2 && y <= rect.bottom + 2);
+    });
+}
+
+function initPointerEffects() {
+    if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    const root = document.documentElement;
+    const ring = Object.assign(document.createElement('div'), { className: 'cursor-ring' });
+    ring.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(ring);
+    root.classList.add('has-cursor');
+    const instant = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const pointer = { x: -100, y: -100 }, trail = { x: -100, y: -100 };
+    // The glow chases the pointer much more slowly than the reticle, and fades in and out instead of switching.
+    // The glow is a soft body on a loose spring: it lags, overshoots, wobbles to rest, and stretches along its direction of travel.
+    const glow = { x: 0, y: 0, vx: 0, vy: 0, level: 0, card: null, targetX: 0, targetY: 0, targetLevel: 0 };
+    let frame = 0;
+    const interactive = 'button, a, label, summary, select, [role="tab"], [data-task-toggle], input[type="radio"], input[type="checkbox"]';
+    const textual = 'input[type="number"], input[type="search"], input[type="text"], textarea';
+    const render = () => {
+        const ease = instant ? 1 : 0.2, drift = instant ? 1 : 0.045;
+        trail.x += (pointer.x - trail.x) * ease;
+        trail.y += (pointer.y - trail.y) * ease;
+        ring.style.transform = `translate(${trail.x}px, ${trail.y}px)`;
+        if (instant) { glow.x = glow.targetX; glow.y = glow.targetY; glow.vx = glow.vy = 0; }
+        else {
+            glow.vx = (glow.vx + (glow.targetX - glow.x) * 0.012) * 0.9;
+            glow.vy = (glow.vy + (glow.targetY - glow.y) * 0.012) * 0.9;
+            glow.x += glow.vx; glow.y += glow.vy;
+        }
+        glow.level += (glow.targetLevel - glow.level) * drift;
+        const stretchX = clamp(Math.abs(glow.vx) / 26, 0, 0.55), stretchY = clamp(Math.abs(glow.vy) / 26, 0, 0.55);
+        if (glow.card) {
+            glow.card.style.setProperty('--mx', `${glow.x.toFixed(1)}px`);
+            glow.card.style.setProperty('--my', `${glow.y.toFixed(1)}px`);
+            glow.card.style.setProperty('--glow', glow.level.toFixed(3));
+            glow.card.style.setProperty('--rx', `${(440 * (1 + stretchX - stretchY * 0.5)).toFixed(0)}px`);
+            glow.card.style.setProperty('--ry', `${(440 * (1 + stretchY - stretchX * 0.5)).toFixed(0)}px`);
+        }
+        const moving = Math.abs(pointer.x - trail.x) + Math.abs(pointer.y - trail.y) > 0.3
+            || Math.abs(glow.targetX - glow.x) + Math.abs(glow.targetY - glow.y) > 0.5 || Math.abs(glow.vx) + Math.abs(glow.vy) > 0.05 || Math.abs(glow.targetLevel - glow.level) > 0.004;
+        frame = moving ? requestAnimationFrame(render) : 0;
+    };
+    document.addEventListener('pointermove', event => {
+        if (event.pointerType === 'touch') return;
+        pointer.x = event.clientX; pointer.y = event.clientY;
+        if (!root.classList.contains('cursor-visible')) { trail.x = pointer.x; trail.y = pointer.y; root.classList.add('cursor-visible'); }
+        const target = event.target instanceof Element ? event.target : null;
+        const onControl = Boolean(target?.closest(interactive));
+        const frontCard = target?.closest('.report-card.is-active');
+        const onEdge = Boolean(frontCard) && !onControl && isDeckEdge(event);
+        const onText = Boolean(target?.closest(textual)) || Boolean(frontCard && !onEdge && isSelectableText(target, event.clientX, event.clientY));
+        root.classList.toggle('cursor-text', onText);
+        root.classList.toggle('cursor-grab', onEdge);
+        root.classList.toggle('cursor-hover', onControl && !target.closest(':disabled'));
+        const card = assessmentState.currentStep === 4 ? document.querySelector('.report-card.is-active') : document.querySelector('.assessment-card');
+        if (card !== glow.card) {
+            if (glow.card) glow.card.style.setProperty('--glow', '0');
+            glow.card = card; glow.level = 0;
+        }
+        if (card) {
+            const rect = card.getBoundingClientRect();
+            const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+            glow.targetLevel = inside ? 1 : 0;
+            if (inside) {
+                glow.targetX = event.clientX - rect.left; glow.targetY = event.clientY - rect.top;
+                if (glow.level < 0.01) { glow.x = glow.targetX; glow.y = glow.targetY; glow.vx = glow.vy = 0; }
+            }
+        }
+        if (!frame) frame = requestAnimationFrame(render);
+    }, { passive: true });
+    document.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'touch') return;
+        root.classList.add('cursor-down');
+        const ripple = Object.assign(document.createElement('div'), { className: 'cursor-ripple' });
+        ripple.style.left = `${event.clientX}px`; ripple.style.top = `${event.clientY}px`;
+        document.body.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+    }, { passive: true });
+    ['pointerup', 'pointercancel'].forEach(type => document.addEventListener(type, () => root.classList.remove('cursor-down'), { passive: true }));
+    document.documentElement.addEventListener('mouseleave', () => {
+        root.classList.remove('cursor-visible');
+        glow.targetLevel = 0;
+        if (!frame) frame = requestAnimationFrame(render);
+    });
+}
+
 function previousStep3Panel() {
     goToStep3Panel(step3PanelIndex - 1);
 }
 
+// Clone avatars come from the seven agent classes in the task data, one picture per class.
+const AGENT_CLASSES = Object.freeze({
+    data: '數據分析代理人', productivity: '生產力與自動化代理人', content: '內容創作代理人', dev: '技術開發代理人',
+    retrieval: '檢索與資安代理人', engineering: '工程設計與驗證代理人', education: '教育與人才發展代理人'
+});
+
+function getAgentClass(recipeId) {
+    const key = globalThis.SCIWorkflowV2.getWorkflow(recipeId)?.agentClass;
+    return AGENT_CLASSES[key] ? key : 'productivity';
+}
+
 function getCloneAvatarPath(recipeId) {
-    const family = String(recipeId || '').charAt(0);
-    const number = Number.parseInt(String(recipeId || '').slice(1), 10);
-    const fallbackNumber = Number.isFinite(number) ? ((number - 1) % 8) + 1 : 1;
-    const avatarId = ['S', 'E', 'B'].includes(family) ? `${family}${String(fallbackNumber).padStart(2, '0')}` : 'S08';
-    return `avatars/${avatarId}.webp`;
+    return `img/avatars/agent-${getAgentClass(recipeId)}.webp`;
 }
 
 function renderHardware(recommendation, result) {
-    document.getElementById('shadow-strength').innerHTML = renderShadowStrength(recommendation.strength, result);
+    document.getElementById('shadow-strength').innerHTML = renderShadowStrength(recommendation, result);
     const modelSpecLabels = {
         mb: ['主機板', 'MB', 'motherboard'], cpu: ['處理器', 'CPU', 'cpu'], gpu: ['顯示卡', 'VGA', 'gpu'],
         ram: ['記憶體', 'RAM', 'memory'], ssd: ['儲存裝置', 'SSD', 'database'], case: ['機殼', 'CASE', 'case'],
         cooling: ['散熱系統', 'COOLING', 'fan'], psu: ['電源供應器', 'PSU', 'zap']
     };
-    document.getElementById('platform-grid').innerHTML = recommendation.models.map((model, index) => `<article class="hardware-model-card">
-        <header><div><h4>${model.name}</h4><p>${getModelFit(model, index)}</p></div>${renderDeviceIllustration(model)}</header>
-        <span class="hardware-grade-stamp" aria-label="影分身戰力 ${recommendation.grade} 級"><small>影分身戰力</small><strong>${recommendation.grade}</strong></span>
+    document.getElementById('platform-grid').innerHTML = !recommendation.models.length
+        ? '<p class="platform-empty">這個情境需要雙顯示卡工作站，目前沒有對應的現成機型，請參考上方的基本配置。</p>'
+        : recommendation.models.map((model, index) => `<article class="hardware-model-card">
+        <header><div><span class="hardware-scenario-tag">${HQ_SCENARIOS.find(item => item.id === getModelScenarioId(recommendation.tier, model)).zh}</span><h4>${model.name}</h4><p>${getModelFit(model, index)}</p></div><div class="device-visual" data-grade="${recommendation.grade}" role="img" aria-label="影分身戰力 ${recommendation.grade} 級"><span class="device-visual__grade" aria-hidden="true">${recommendation.grade}</span>${renderDeviceIllustration(model)}</div></header>
         <div class="hardware-quick-specs"><span><small>GPU／VRAM</small><strong>${model.gpu}</strong></span><span><small>記憶體</small><strong>${model.ram}</strong></span><span><small>儲存</small><strong>${model.ssd}</strong></span></div>
         <details class="hardware-full-specs" open><summary>完整配置</summary><div class="hardware-model-specs">${Object.entries(modelSpecLabels).filter(([key]) => !['gpu', 'ram', 'ssd'].includes(key) && !(key === 'case' && model.integratedChassis)).map(([key, [zh, en, icon]]) => `<div class="hardware-model-spec"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${model[key]}</p></div>`).join('')}</div></details>
-        <div class="hardware-model-card__action">${renderPurchaseLink('了解更多', campaignConfig.productLinks.systems[recommendation.tier], `system-${index}`)}</div>
+        <div class="hardware-model-card__action">${renderPurchaseLink('了解更多', campaignConfig.productLinks.systemModels[model.name] || campaignConfig.productLinks.systems[recommendation.tier], `system-${index}`)}</div>
     </article>`).join('');
+    const scenarioSection = document.getElementById('scenario-section');
+    if (scenarioSection) scenarioSection.innerHTML = renderScenarioSection(recommendation);
+    const frameworkSection = document.getElementById('framework-section');
+    if (frameworkSection) frameworkSection.innerHTML = renderFrameworkSection();
     const sharedParts = document.getElementById('shared-parts');
     sharedParts.innerHTML = '';
     sharedParts.hidden = true;
@@ -1694,10 +2225,177 @@ function renderHardware(recommendation, result) {
         const specs = series.all
             ? `<p class="component-series-single">${series.all}</p>`
             : `<div class="dual-spec"><span><em>${series.leftLabel || 'AMD 平台'}</em>${series.amd}</span><span><em>${series.rightLabel || 'Intel 平台'}</em>${series.intel}</span></div>`;
-        const link = campaignConfig.productLinks.components[recommendation.tier][key];
-        return `<article class="component-series-card"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div class="component-series-card__heading"><small>${en}</small><strong>${zh}</strong><p>${getComponentReason(key)}</p></div><div class="component-series-card__spec">${specs}</div>${renderPurchaseLink(cta, link, key)}</article>`;
+        const link = (campaignConfig.productLinks.scenarioComponents[recommendation.scenarioId] || campaignConfig.productLinks.components[recommendation.tier])[key];
+        return `<article class="component-series-card"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div class="component-series-card__heading"><small>${en}</small><strong>${zh}</strong><p>${getComponentReason(key)}</p></div><div class="component-series-card__spec">${specs}</div>${renderComponentLinks(cta, link, series)}</article>`;
     }).join('');
     selectHardwareTab('system');
+}
+
+// The six local-AI scenarios from the HQ Agent Computer page are the primary classification; our A–SS builds are sorted into them.
+const HQ_SCENARIOS = Object.freeze([
+    { id: 'personal', group: '個人／專業玩家／中小企業', name: 'Personal AI', zh: '個人 AI', tagline: '日常 AI 與寫程式',
+        description: '在自己的設備上對話、搜尋個人文件並取得寫程式協助，資料不外流、離線也能用。',
+        capability: '7B–32B Q4 量化模型・個人 RAG', bestFor: ['對話', '文件問答', '個人 RAG', '個人 AI Agent', '地端程式助理', '創作流程'],
+        hq: [['主機板', 'AMD：ROG STRIX B850／TUF Gaming X870 系列；Intel：ROG STRIX B860／TUF Gaming Z890 系列'], ['顯示卡', 'GeForce RTX 5060 Ti 16GB 或 ASUS TURBO Radeon AI PRO R9700 32GB'], ['記憶體', '32–64GB'], ['整合式平台', 'NVIDIA RTX Spark：ProArt GR1X、ProArt P16（H7607）、ProArt P14（H7407）']] },
+    { id: 'development', group: '個人／專業玩家／中小企業', name: 'AI Development', zh: 'AI 開發', tagline: '開發與微調模型',
+        description: '在桌邊完成模型的原型製作、微調與測試，準備好再擴大規模，程式碼與資料都留在地端。',
+        capability: '32B Q4 量化模型・模型開發', bestFor: ['AI 程式開發', 'RAG 開發', 'Agent 開發', '模型微調', '大型模型原型', '多 Agent 協作開發'],
+        hq: [['主機板', 'AMD：ROG STRIX X870E／ProArt X870E 系列；Intel：ROG STRIX Z890／ProArt Z890 系列'], ['顯示卡', 'GeForce RTX 5090 32GB'], ['記憶體', '128GB'], ['整合式平台', 'NVIDIA RTX Spark：ProArt P16（H7607）、ProArt P14（H7407）；NVIDIA DGX Spark：ASUS Ascent GX10']] },
+    { id: 'homelab', group: '個人／專業玩家／中小企業', name: 'Homelab / AI Nodes', zh: '家用實驗室／AI 節點', tagline: '全天候 Agent 與共用 AI',
+        description: '讓 AI 為家庭或小型團隊全天候運作，提供 24 小時 Agent、私有 RAG 與共用 AI 服務。',
+        capability: '7B–120B 模型', bestFor: ['地端模型服務', '多模態流程', '全天候 Agent', '私有 RAG', '共用 AI 服務', '居家自動化'],
+        hq: [['主機板', 'AMD：ROG CROSSHAIR X870E 系列；Intel：ROG MAXIMUS Z890 系列'], ['顯示卡', '2 × GeForce RTX 5090（每張 32GB）'], ['記憶體', '256GB'], ['整合式平台', 'NVIDIA DGX Spark：ASUS Ascent GX10（可叢集，執行 7B 至 120B 模型）']] },
+    { id: 'workstation', group: '企業', name: 'Enterprise Workstations', zh: '企業工作站', tagline: '執行更大的地端模型',
+        description: '以單一工作站執行 70B 等級全精度模型，資料留在自己的場域。', users: '最多 25 位使用者・專屬工作負載',
+        capability: '70B 以上全精度模型', bestFor: ['工廠邊緣 AI', '視覺語言模型分析', '工程 Copilot', '文件分析', '專業推理'],
+        hq: [['主機板', 'AMD：Pro WS WRX90E-SAGE SE；Intel：Pro WS W890E-SAGE SE'], ['顯示卡', '1 × RTX PRO 6000（96GB）'], ['記憶體', '2TB R-DIMM']] },
+    { id: 'premium', group: '企業', name: 'Enterprise Workstations Premium', zh: '企業工作站進階版', tagline: '同時服務多位使用者',
+        description: '一台雙顯示卡工作站即可成為整個部門的 AI 服務，多個模型同時運作。', users: '最多 50 位使用者・共用 AI 服務',
+        capability: '全精度模型・122B 單一模型或 27B 多人共用服務', bestFor: ['共用 AI 助理', '工作流程自動化', '部門知識 AI'],
+        hq: [['主機板', 'AMD：Pro WS WRX90E-SAGE SE；Intel：Pro WS W890E-SAGE SE'], ['顯示卡', '2 × RTX PRO 6000（每張 96GB）'], ['記憶體', '2TB R-DIMM']] },
+    { id: 'scale', group: '企業', name: 'Enterprise Scale', zh: '企業級規模', tagline: '擴展企業 AI',
+        description: '超越單一工作站的企業 AI 平台，支援大規模 RAG、Agent 協調與跨組織的分散式推論。', users: '50 位以上使用者・橫向擴充服務',
+        capability: '超越單一工作站・企業 AI 平台', bestFor: ['企業 RAG 與 API', 'Agent 協調', '分散式推論'],
+        hq: [['工作站', 'ExpertCenter Pro ET900N G3'], ['運算平台', 'NVIDIA GB300']] }
+]);
+
+function getModelScenarioId(tierKey, model) {
+    if (tierKey === 'a' || tierKey === 'aplus') return 'personal';
+    if (tierKey === 's') return 'development';
+    if (tierKey === 'splus') return /Spark|DGX/i.test(model.name) ? 'homelab' : 'workstation';
+    return 'scale';
+}
+
+// Our own builds that fall under one HQ scenario, each with its strength grade.
+function getScenarioBuilds(scenarioId) {
+    return Object.entries(hardwareCatalog).flatMap(([tierKey, tier]) => tier.models
+        .filter(model => getModelScenarioId(tierKey, model) === scenarioId)
+        .map(model => ({ grade: tier.strength.grade, model })));
+}
+
+// Jargon on the scenario card gets a small "?" that opens a plain-language explanation.
+const GLOSSARY = Object.freeze({
+    size: { match: null, term: '模型大小（幾 B）', text: 'B 代表 Billion（十億），指模型的參數量。例如 7B 是 70 億個參數、32B 是 320 億、70B 是 700 億、120B 是 1,200 億。數字越大，模型通常越聰明，但需要的顯示記憶體也越多。' },
+    rag: { match: 'RAG', term: 'RAG（檢索增強生成）', text: 'Retrieval-Augmented Generation。AI 回答前，先從你指定的文件或資料庫找出相關內容，再依據這些內容作答，因此能回答公司內部或個人資料的問題，也比較不容易憑空編造。' },
+    quant: { match: 'Q4 量化', term: 'Q4 量化', text: '把模型的數值精度壓縮到 4 位元，讓模型占用的顯示記憶體大幅減少、速度更快，回答品質只會略為下降。這是在個人電腦上執行大型模型最常見的做法。' },
+    full: { match: '全精度', term: '全精度模型', text: '不經過量化壓縮、保留原始數值精度的模型。回答品質最完整，但需要的顯示記憶體是量化版本的數倍。' }
+});
+
+function renderTermHelp(id) {
+    return `<button type="button" class="term-help" data-term="${id}" aria-label="${GLOSSARY[id].term} 是什麼？">?</button>`;
+}
+
+// Turns the first glossary term found in each text into an underlined link; `used` keeps one link per term per card.
+function withGlossary(text, used) {
+    let html = text;
+    for (const [id, entry] of Object.entries(GLOSSARY)) {
+        if (!entry.match || used.has(id) || !html.includes(entry.match)) continue;
+        used.add(id);
+        html = html.replace(entry.match, () => `<button type="button" class="term-link" data-term="${id}" aria-label="${entry.term} 是什麼？">${entry.match}</button>`);
+    }
+    return html;
+}
+
+function openGlossaryModal(trigger) {
+    const entry = GLOSSARY[trigger.dataset.term];
+    if (!entry) return;
+    elements.modalContent.innerHTML = `<div class="glossary-modal"><span class="step-kicker">名詞解釋</span><h2 id="modal-title">${entry.term}</h2><p>${entry.text}</p></div>`;
+    openModal(trigger);
+}
+
+// How each "best for" use actually helps in day-to-day work; shown under the tags when one is pressed.
+const USE_CASES = Object.freeze({
+    '對話': '像跟同事討論一樣直接發問，請它整理想法、改寫信件或解釋不懂的內容。模型在自己的電腦上執行，對話內容不會傳到外部。',
+    '文件問答': '把合約、報告或手冊交給 AI，直接問「第三章的重點是什麼」「違約金怎麼算」，它會從文件找出答案，省下逐頁翻找的時間。',
+    '個人 RAG': 'RAG 是讓 AI 先查你的資料再回答。把自己的筆記、過往專案與檔案建成資料庫後，AI 會依據你的內容作答，而不是只憑一般常識。',
+    '個人 AI Agent': '不只回答問題，還能照你交代的步驟自己動手：整理檔案、彙整資料、產出初稿，你只需要做最後確認。',
+    '地端程式助理': '在編輯器裡即時補完程式、解釋錯誤訊息、協助重構與撰寫測試；原始碼留在本機，不必上傳到雲端服務。',
+    '創作流程': '協助發想文案、產生圖片草稿、整理腳本與素材，把重複的前置作業交給 AI，把時間留給創意判斷。',
+    'AI 程式開發': '讓 AI 參與整個開發流程：讀懂既有程式、提出修改、撰寫測試並修正錯誤，可同時處理較大的專案內容。',
+    'RAG 開發': '在自己的電腦上建立並測試「先查資料再回答」的系統，反覆調整資料切分與檢索方式，確認效果後再部署給團隊使用。',
+    'Agent 開發': '設計會自己呼叫工具、分步完成任務的 AI Agent，在本機反覆測試流程，不必擔心雲端用量費用或資料外流。',
+    '模型微調': '用自己的資料對現成模型再訓練一小段，讓它熟悉公司的用語、格式與專業領域，回答更貼近實際需求。',
+    '大型模型原型': '直接在桌邊載入較大的模型試做功能，快速驗證想法是否可行，再決定是否投入更多資源。',
+    '多 Agent 協作開發': '讓多個 AI Agent 分工合作，例如一個寫程式、一個審查、一個測試，同時進行以縮短開發時間。',
+    '地端模型服務': '把模型架成內部服務，家中或辦公室的其他電腦與應用程式都能連進來使用，不必每台都裝高階顯示卡。',
+    '多模態流程': '同時處理文字、圖片、聲音與影片，例如把會議錄音轉成紀要、從照片擷取資訊，再整理成報告。',
+    '全天候 Agent': 'AI Agent 24 小時在背景執行，定時整理信件、監看資料變化、產出每日摘要，你上班時結果已經準備好。',
+    '私有 RAG': '把團隊的內部文件建成只有自己人能查的知識庫，AI 依據這些內容回答，機密資料不會離開自己的設備。',
+    '共用 AI 服務': '一台設備同時服務家人或小型團隊，大家共用同一套模型與知識庫，不必各自訂閱雲端方案。',
+    '居家自動化': '讓 AI 串接家中的裝置與服務，依情境自動執行，例如整理監視器畫面的重點、依行程調整設備。',
+    '工廠邊緣 AI': '在產線現場直接判讀感測器與影像資料，即時發現異常，不必把資料送到雲端等待回應。',
+    '視覺語言模型分析': '讓 AI 同時看懂影像與文字，用來判讀產線影像、圖表、設計圖或掃描文件，並用文字說明判斷依據。',
+    '工程 Copilot': '協助工程師查詢規範、比對設計文件、產生報告初稿與檢查清單，縮短查資料與寫文件的時間。',
+    '文件分析': '一次讀取大量合約、規格書或技術文件，整理差異、擷取關鍵條款並標出需要人工確認的地方。',
+    '專業推理': '用完整精度的大型模型處理需要多步驟思考的問題，例如技術評估、風險分析與方案比較，回答更完整可靠。',
+    '共用 AI 助理': '整個部門共用同一個 AI 助理，最多數十人同時使用，回答品質與使用規則一致，也方便統一管理。',
+    '工作流程自動化': '把跨人員的例行流程交給 AI，例如彙整各單位回報、產生週報、分派待辦事項，減少人工轉交與等待。',
+    '部門知識 AI': '把部門累積的文件、作業流程與過往案例建成知識庫，新進同仁直接提問就能找到答案，資深同仁不必重複解說。',
+    '企業 RAG 與 API': '建立全公司可用的知識查詢服務，並以 API 提供給內部系統串接，各部門的應用都能使用同一套 AI 能力。',
+    'Agent 協調': '統一管理大量 AI Agent 的分工、順序與權限，讓跨部門的複雜流程能自動銜接並留下紀錄。',
+    '分散式推論': '把模型運算分散到多台設備同時處理，可服務更多使用者、執行更大的模型，尖峰時段也能維持回應速度。'
+});
+
+function renderScenarioTags(scenario) {
+    return `<div class="scenario-usecases"><ul class="scenario-tags">${scenario.bestFor.map(tag => `<li><button type="button" class="scenario-tag" data-usecase="${tag}" aria-expanded="false">${tag}</button></li>`).join('')}</ul><p class="scenario-tag-note" aria-live="polite" hidden></p></div>`;
+}
+
+// Pressing a use tag shows how it helps, right under the tags; pressing it again hides the note.
+function toggleUseCase(button) {
+    const group = button.closest('.scenario-usecases');
+    const note = group.querySelector('.scenario-tag-note');
+    const wasOpen = button.getAttribute('aria-expanded') === 'true';
+    group.querySelectorAll('.scenario-tag').forEach(item => item.setAttribute('aria-expanded', 'false'));
+    note.hidden = wasOpen;
+    if (wasOpen) return;
+    button.setAttribute('aria-expanded', 'true');
+    note.innerHTML = `<strong>${button.dataset.usecase}</strong>${USE_CASES[button.dataset.usecase] || ''}`;
+}
+
+function renderScenarioHqSpec(scenario) {
+    return `<div class="scenario-table-wrap"><table class="scenario-table"><tbody>${scenario.hq.map(([label, value]) => `<tr><th scope="row">${label}</th><td>${value}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function renderScenarioBuilds(builds) {
+    return `<div class="scenario-table-wrap"><table class="scenario-table scenario-table--builds"><thead><tr><th scope="col">戰力</th><th scope="col">機型</th><th scope="col">顯示卡</th><th scope="col">處理器</th><th scope="col">記憶體</th></tr></thead><tbody>${builds.map(({ grade, model }) => `<tr><td><b>${grade}</b></td><th scope="row">${model.name}</th><td>${model.gpu}</td><td>${model.cpu}</td><td>${model.ram}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function renderScenarioSection(recommendation) {
+    const scenario = HQ_SCENARIOS.find(item => item.id === recommendation.scenarioId);
+    const strength = recommendation.strength;
+    const used = new Set();
+    return `<header class="section-pill-heading"><h4 class="section-pill">本次建議情境</h4></header>
+        <div class="scenario-list"><article class="scenario-card">
+            <button type="button" class="scenario-card__grade" data-grade="${recommendation.grade}" data-strength-scale="${recommendation.grade}" data-scenario="${recommendation.scenarioId}" aria-label="影分身戰力 ${recommendation.grade} 級，${strength.label}。查看六大情境與影分身戰力解析"><small>影分身戰力</small><strong>${recommendation.grade}</strong><em>${strength.label}</em><span class="scenario-card__hint" aria-hidden="true">六大情境與戰力解析 →</span></button>
+            <div class="scenario-card__body">
+                <h4>${scenario.zh}<small>${scenario.name}</small></h4>
+                <p><b>${scenario.tagline}。</b>${scenario.description}</p>
+                <div class="scenario-facts"><span><small>模型能力${/\d+B/.test(scenario.capability) ? renderTermHelp('size') : ''}</small><strong>${withGlossary(scenario.capability, used)}</strong></span>${scenario.users ? `<span><small>服務規模</small><strong>${scenario.users}</strong></span>` : ''}</div>
+                <small class="scenario-label">適合用途（點選看說明）</small>
+                ${renderScenarioTags(scenario)}
+                <div class="scenario-more">
+                    <details class="scenario-hq"><summary>為什麼是這個建議</summary><ul class="scenario-reasons">${recommendation.reasons.map(reason => `<li>${reason}</li>`).join('')}</ul></details>
+                    <details class="scenario-hq" ${recommendation.models.length ? '' : 'open'}><summary>基本配置</summary>${renderScenarioHqSpec(scenario)}</details>
+                </div>
+            </div>
+        </article></div>`;
+}
+
+// Agent frameworks from the HQ Agent Computer page.
+const AGENT_FRAMEWORKS = Object.freeze([
+    { id: 'zenni', url: 'https://www.asus.com/tw/content/asus-zenni-claw/', vendor: 'ASUS', name: 'ASUS Zenni Claw', description: 'ASUS 自行設計的 Agentic AI 助理。透過引導式設定，以及可直接使用的工作、旅遊與生活技能，讓 Agent 更容易上手；並能依裝置與任務，在地端與雲端之間彈性切換。' },
+    { id: 'rocm', url: 'https://www.amd.com/en/products/software/rocm/rocm-ai.html', vendor: 'AMD', name: 'ROCm.AI', description: '結合 AMD Skills、ROCm CLI 與 AMD Hyperloom，把 AMD 的專業知識、更簡單的工作流程與 Agent 最佳化，帶進開發者慣用的工具。' },
+    { id: 'superclaw', url: 'https://aibuilder.intel.com/#/superclaw', vendor: 'Intel', name: 'SuperClaw', description: '針對 Intel Core Ultra NPU 最佳化的 Agent 執行環境，在入門與主流裝置上以 CPU 優先的方式進行推論。' },
+    { id: 'hermes', url: 'https://hermes-agent.nousresearch.com/', vendor: 'Nous Research', name: 'Hermes Agent', description: '可自我改進的 AI Agent，具備瀏覽器管理面板與多平台訊息整合，並支援 200 種以上的 LLM 模型。' },
+    { id: 'nemoclaw', url: 'https://www.nvidia.com/zh-tw/ai/nemoclaw/', vendor: 'NVIDIA', name: 'NemoClaw', description: '強化安全性的 NVIDIA Agent 框架，適用於 GPU 加速的工作負載，可在搭載 RTX 顯示卡的電腦、DGX Spark 或 DGX Station 上使用。' }
+]);
+
+function renderFrameworkSection() {
+    return `<header class="section-pill-heading"><h4 class="section-pill" id="framework-title">找出適合您的 Agent</h4><p>可一鍵部署的框架組合，搭配上方的硬體使用；依你的晶片平台選擇合適的生態系。</p></header>
+        <div class="framework-grid">${AGENT_FRAMEWORKS.map(item => `<article class="framework-card">
+            <span class="framework-card__vendor">${item.vendor}</span><h5>${item.name}</h5><p>${item.description}</p>
+            <a class="framework-card__link" href="${item.url}" target="_blank" rel="noopener noreferrer" aria-label="了解更多：${item.name}（另開新視窗）">了解更多<span aria-hidden="true">→</span></a>
+        </article>`).join('')}</div>`;
 }
 
 function getModelFit(model, index) {
@@ -1707,9 +2405,20 @@ function getModelFit(model, index) {
     return '可依軟體相容性與擴充需求選擇的平台配置';
 }
 
+// Official product shots of each build's chassis; builds without a confirmed image show none.
+const DEVICE_IMAGES = Object.freeze([
+    [/Pioneer/, 'prime-ap303', 'ASUS Prime AP303 機殼'],
+    [/Professional/, 'tuf-gt502-horizon', 'TUF Gaming GT502 Horizon 機殼'],
+    [/NUC/, 'rog-nuc-16', 'ROG NUC 16'],
+    [/Master/, 'rog-cronox-argb', 'ROG Cronox ARGB 機殼'],
+    [/ET700I/, 'expertcenter-pro-et700i-w7', 'ExpertCenter Pro ET700I W7'],
+    [/ET900N/, 'expertcenter-pro-et900n-g3', 'ExpertCenter Pro ET900N G3'],
+    [/Spark/, 'asus-ascent-gx10', 'ASUS Ascent GX10']
+]);
+
 function renderDeviceIllustration(model) {
-    const compact = model.integratedChassis;
-    return `<svg class="device-illustration ${compact ? 'is-compact' : ''}" viewBox="0 0 120 92" aria-hidden="true"><path d="M18 8h72a8 8 0 0 1 8 8v62a6 6 0 0 1-6 6H18a6 6 0 0 1-6-6V14a6 6 0 0 1 6-6Z"/><path d="M25 20h46M25 29h34M79 20h7M79 29h7"/><circle cx="76" cy="59" r="15"/><circle cx="76" cy="59" r="7"/><path d="M25 49h24v25H25zM106 25v42"/></svg>`;
+    const match = DEVICE_IMAGES.find(([pattern]) => pattern.test(model.name));
+    return match ? `<img class="device-photo" src="img/devices/${match[1]}.webp" alt="${match[2]}">` : '';
 }
 
 function getComponentReason(key) {
@@ -1720,12 +2429,11 @@ function getComponentReason(key) {
     }[key] || '';
 }
 
-function renderShadowStrength(strength, result) {
+function renderShadowStrength(recommendation, result) {
+    const strength = recommendation.strength;
     const comparisons = getLocalValueComparisons(result);
     return `<article class="shadow-strength-card">
-        <div class="shadow-strength-card__score"><span>影分身戰力</span><strong>${strength.grade}</strong><b>級</b></div>
-        <div class="shadow-strength-card__body"><div><strong>${strength.label}</strong><span>${strength.capacity}</span></div><div class="shadow-strength-meter" aria-label="影分身戰力 ${strength.grade} 級"><i style="--strength:${strength.meter}%"></i></div><p>${strength.description} 這是依設備規格與本次工作負載提供的相對運算餘裕建議。</p><button class="strength-scale-button" type="button" data-strength-scale="${strength.grade}">查看 A 至 SS 各級配置<span aria-hidden="true">→</span></button></div>
-        <header class="local-value-heading"><span>從目前限制到地端工作方式</span><strong>為什麼值得把影分身軍團建立在自己的設備上</strong></header>
+        <header class="local-value-heading"><strong>為什麼值得把影分身軍團建立在自己的設備上</strong></header>
         <div class="local-value-comparisons">${comparisons.map(item => `<article><div><span>目前痛點</span><p>${item.before}</p></div><i aria-hidden="true"></i><div><span>地端影分身</span><p>${item.after}</p></div></article>`).join('')}</div>
     </article>`;
 }
@@ -1746,7 +2454,15 @@ function getLocalValueComparisons(result) {
     ];
 }
 
+function renderComponentLinks(label, link, series) {
+    if (!link) return '';
+    const anchor = (href, text) => `<a class="button button--accent hardware-buy-link" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="${text}（另開新視窗）">${text}</a>`;
+    if (typeof link === 'string') return `<div class="component-links">${anchor(link, label)}</div>`;
+    return `<div class="component-links">${anchor(link.amd, series.leftLabel || 'AMD 平台')}${anchor(link.intel, series.rightLabel || 'Intel 平台')}</div>`;
+}
+
 function renderPurchaseLink(label, href, kind) {
+    if (href) return `<a class="button button--accent hardware-buy-link" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="${label}（另開新視窗）">${label}</a>`;
     return `<button class="button button--accent hardware-buy-link" type="button" data-buy-link="${kind}" aria-label="${label}">${label}</button>`;
 }
 
@@ -1792,7 +2508,7 @@ function refreshAssessmentResult() {
 function answersReadyForCalculation() {
     if (!assessmentState.persona || !assessmentState.selectedRecipeIds.length) return false;
     if (!assessmentState.selectedRecipeIds.every(id => isAnswerComplete(assessmentState.taskAnswers[id]))) return false;
-    if (!assessmentState.executionNeeds.parallelBand) return false;
+    if (!assessmentState.executionNeeds.parallelBand || !assessmentState.executionNeeds.sharedUsers) return false;
     const cost = Number(assessmentState.costAmountTwd);
     if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return false;
     return Boolean(assessmentState.cloudUsage);
@@ -1831,7 +2547,7 @@ function showDataCollectionDetails(trigger) {
             <header>
                 <span class="step-kicker">匿名資料蒐集說明</span>
                 <h2 id="modal-title">我們會蒐集什麼？</h2>
-                <p>當你按下「查看我的影分身效益」時，系統會把這次評估的內容匿名傳回，用於分析常見工作型態並改善這項工具。</p>
+                <p>當你按下「查看結果」時，系統會把這次評估的內容匿名傳回，用於分析常見工作型態並改善這項工具。</p>
             </header>
             <ul class="data-consent-list">
                 <li>Step 1–3 的填寫內容：工作身分、選擇的任務、時間與頻率、成本與雲端 AI 使用狀況。</li>
@@ -1843,7 +2559,7 @@ function showDataCollectionDetails(trigger) {
                 <p>資料僅以這組瀏覽器隨機識別碼區分。你可以清除瀏覽器資料來重設它。</p>
                 <code>${escapeHtml(anonymousVisitorId)}</code>
             </div>
-            <p class="data-consent-hint">若不希望提供資料，請不要按下「查看我的影分身效益」。</p>
+            <p class="data-consent-hint">若不希望提供資料，請不要按下「查看結果」。</p>
             <div class="data-consent-actions">
                 <button class="button button--accent" type="button" data-close-modal>我了解了</button>
             </div>
@@ -1959,7 +2675,18 @@ const REPORT_SNAPSHOT_CSS = `
     .report-snapshot__brand img { width: 150px; height: 58px; object-fit: contain; }
     .report-snapshot .step { display: grid !important; height: auto !important; min-height: 0 !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
     .report-snapshot .reveal { opacity: 1 !important; transform: none !important; }
-    .report-snapshot .result-actions, .report-snapshot .sci-info-trigger, .report-snapshot .strength-scale-button, .report-snapshot .clone-plan-line, .report-snapshot .hardware-tabs, .report-snapshot .hardware-buy-link, .report-snapshot .result-header .step-kicker { display: none !important; }
+    .report-snapshot .scenario-card__grade::before { transform: none !important; }
+    .report-snapshot .sci-fill__level { transform: translateY(calc(var(--to-y) * 1px)) !important; animation: none !important; }
+    .report-snapshot .sci-fill__wave { animation: none !important; }
+    .report-snapshot .team-toggle button:not(.is-active), .report-snapshot .team-stepper button { display: none !important; }
+    .report-snapshot .scenario-card__grade > * { opacity: 1 !important; transform: none !important; }
+    .report-snapshot .step { display: block !important; }
+    .report-snapshot .report-deck { margin: 0 !important; }
+    .report-snapshot .report-card { position: static !important; display: block !important; overflow: visible !important; margin: 0 0 28px !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; transform: none !important; opacity: 1 !important; }
+    .report-snapshot .report-card > * { opacity: 1 !important; }
+    .report-snapshot .report-card--summary { display: grid !important; }
+    .report-snapshot .deck-arrow, .report-snapshot .deck-dots { display: none !important; }
+    .report-snapshot .result-actions, .report-snapshot .deck-mobile-nav, .report-snapshot .sci-info-trigger, .report-snapshot .term-help, .report-snapshot .strength-scale-button, .report-snapshot .clone-plan-line, .report-snapshot .hardware-tabs, .report-snapshot .hardware-buy-link, .report-snapshot .result-header .step-kicker { display: none !important; }
 `;
 
 function blobToDataUrl(blob) {
@@ -2001,7 +2728,8 @@ async function createReportSnapshotBlob() {
     clone.hidden = false;
     clone.querySelectorAll('.reveal').forEach(node => node.classList.add('is-inview'));
     clone.querySelectorAll('.sci-overview').forEach(node => node.classList.add('is-animated'));
-    clone.querySelectorAll('[id]').forEach(node => { if (node.id !== 'donut-grad') node.removeAttribute('id'); });
+    // Ids referenced by SVG paint and clip urls must survive, or the gradients and the number's liquid clip are lost in the image.
+    clone.querySelectorAll('[id]').forEach(node => { if (!['donut-grad', 'sci-liquid', 'sci-clip'].includes(node.id)) node.removeAttribute('id'); });
     clone.id = 'step-4';
 
     const stylesheetHref = document.querySelector('link[rel="stylesheet"][href*="styles.css"]').href;
@@ -2014,7 +2742,7 @@ async function createReportSnapshotBlob() {
     root.className = 'report-snapshot';
     const brand = document.createElement('div');
     brand.className = 'report-snapshot__brand';
-    brand.innerHTML = `<img src="img/ASUS AI agent computer badge.png" alt="ASUS AI Agent Computer"><span>診斷日期 ${taipeiDateStamp().replace(/-/g, '/')}</span>`;
+    brand.innerHTML = `<img src="img/agent-computer-badge.png" alt="ASUS AI Agent Computer"><span>診斷日期 ${taipeiDateStamp().replace(/-/g, '/')}</span>`;
     root.append(brand, clone);
     await Promise.all([...root.querySelectorAll('img')].map(async image => {
         try {
@@ -2265,13 +2993,13 @@ async function createReportBlob(result) {
     roundedRect(ctx, left, y, contentWidth, 218, 18, '#101826', 'rgba(148,163,184,.22)');
     canvasText(ctx, '目前 SCI', left + 28, y + 38, `700 14px ${font}`, '#9AA8BC');
     canvasText(ctx, `${Math.round(result.sci.current)}`, left + 28, y + 116, `900 58px ${font}`, '#AAB5C8');
-    canvasText(ctx, '／100', left + 125, y + 116, `600 15px ${font}`, '#6F7E94');
+    canvasText(ctx, '', left + 125, y + 116, `600 15px ${font}`, '#6F7E94');
     canvasText(ctx, getSciLevel(result.sci.current), left + 28, y + 154, `700 14px ${font}`, '#20C9EB');
     ctx.fillStyle = 'rgba(148,163,184,.22)';
     ctx.fillRect(left + 210, y + 26, 1, 166);
     canvasText(ctx, '影分身團隊加入後 · 導入後 SCI', left + 244, y + 38, `700 14px ${font}`, '#20C9EB');
     canvasText(ctx, `${Math.round(result.sci.target)}`, left + 244, y + 116, `900 76px ${font}`, '#20C9EB');
-    canvasText(ctx, '／100', left + 341, y + 116, `600 15px ${font}`, '#6F7E94');
+    canvasText(ctx, '', left + 341, y + 116, `600 15px ${font}`, '#6F7E94');
     canvasText(ctx, `提升 ${Math.round(result.sci.gap)} 點`, left + 244, y + 154, `700 14px ${font}`, '#55D6A6');
     const metricX = left + 448;
     const reportMetrics = [
@@ -2367,28 +3095,36 @@ async function createReportBlob(result) {
 }
 
 function openStrengthScaleModal(trigger) {
-    const currentGrade = trigger.dataset.strengthScale;
+    const currentScenario = trigger.dataset.scenario;
     elements.modalContent.innerHTML = `
         <div class="strength-scale-modal">
             <header>
-                <span class="step-kicker">影分身戰力分級</span>
-                <h2 id="modal-title">A 至 SS 各級配置</h2>
-                <p>分級代表地端模型、多工具與平行流程可使用的運算餘裕；不代表固定速度倍數，也不等同 SCI。</p>
+                <span class="step-kicker">情境與戰力分級</span>
+                <h2 id="modal-title">六大情境與 A 至 SS 影分身戰力</h2>
+                <p>情境分類依 ASUS Agent Computer 的地端 AI 六大情境；每個情境列出基本配置，以及我們歸入該情境的建議配置與戰力等級。分級代表運算餘裕，不代表固定速度倍數，也不等同 SCI。</p>
             </header>
-            <div class="strength-scale-list">${Object.values(hardwareCatalog).map(tier => {
-                const model = tier.models[0];
-                const isCurrent = tier.strength.grade === currentGrade;
-                return `<article class="${isCurrent ? 'is-current' : ''}">
-                    <div class="strength-scale-grade"><strong>${tier.strength.grade}</strong>${isCurrent ? '<em>本次建議</em>' : ''}</div>
+            <div class="strength-scale-list">${HQ_SCENARIOS.map((scenario, index) => {
+                const builds = getScenarioBuilds(scenario.id);
+                const grades = builds.length ? [...new Set(builds.map(build => build.grade))] : [hardwareCatalog[ROUTE_OUTCOMES[scenario.id].tier].strength.grade];
+                const isCurrent = scenario.id === currentScenario;
+                const groupTitle = index === 0 || HQ_SCENARIOS[index - 1].group !== scenario.group ? `<h3 class="strength-scale-group">${scenario.group}</h3>` : '';
+                return `${groupTitle}<article class="${isCurrent ? 'is-current' : ''}">
+                    <div class="strength-scale-grade"><small>戰力</small><strong>${grades.join('<i>–</i>')}</strong>${isCurrent ? '<em>本次建議</em>' : ''}</div>
                     <div class="strength-scale-copy">
-                        <h3>${tier.strength.label}<small>${tier.strength.capacity}</small></h3>
-                        <dl><div><dt>GPU</dt><dd>${model.gpu}</dd></div><div><dt>CPU</dt><dd>${model.cpu}</dd></div><div><dt>記憶體</dt><dd>${model.ram}</dd></div><div><dt>儲存</dt><dd>${model.ssd}</dd></div></dl>
-                        <p>代表機型：${tier.models.map(item => item.name).join('、')}</p>
+                        <h3>${scenario.zh}<small>${scenario.name}</small><em>${scenario.tagline}</em></h3>
+                        <p class="strength-scale-capability">${scenario.capability}${scenario.users ? `・${scenario.users}` : ''}</p>
+                        ${renderScenarioTags(scenario)}
+                        <h4>基本配置</h4>
+                        ${renderScenarioHqSpec(scenario)}
+                        ${builds.length ? `<h4>我們的建議配置</h4>${renderScenarioBuilds(builds)}` : ''}
                     </div>
                 </article>`;
             }).join('')}</div>
         </div>`;
     openModal(trigger);
+    const current = elements.modalContent.querySelector('.strength-scale-list article.is-current');
+    if (current) requestAnimationFrame(() => current.scrollIntoView({ block: 'start' }));
+    setTimeout(() => current?.scrollIntoView({ block: 'start' }), 60);
 }
 
 function openSciInfoModal(trigger) {
@@ -2489,9 +3225,10 @@ function resetAssessment() {
         selectedRecipeIds: [],
         taskAnswers: {},
         archivedAnswers: {},
-        executionNeeds: { parallelBand: '' },
+        executionNeeds: { parallelBand: '', sharedUsers: '' },
         costAmountTwd: '',
-        costPeriod: 'hour',
+        costBand: '',
+        costPeriod: 'month',
         periodHours: 160,
         hourlyCostTwd: '',
         cloudUsage: '',
@@ -2573,7 +3310,7 @@ function animateSciJourney() {
         const from = Number(element.dataset.from);
         const to = Number(element.dataset.value);
         if (reduceMotion) {
-            element.textContent = String(to);
+            setSciNumber(element, String(to));
             return;
         }
         const start = performance.now();
@@ -2581,7 +3318,7 @@ function animateSciJourney() {
         const tick = now => {
             const progress = clamp((now - start) / duration, 0, 1);
             const eased = 1 - Math.pow(1 - progress, 3);
-            element.textContent = String(Math.round(from + (to - from) * eased));
+            setSciNumber(element, String(Math.round(from + (to - from) * eased)));
             if (progress < 1) requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
@@ -2667,8 +3404,29 @@ function getTimeUnit() {
     return '小時';
 }
 
+function showSharedError(message, field, focusTarget = field) {
+    field.classList.add('field-error');
+    return showError(message, focusTarget);
+}
+
+// A short shake on the flagged fields and on the button that was pressed, so a missed field is hard to overlook.
+function shakeInvalid() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const targets = [...document.querySelectorAll('.step:not([hidden]) .field-error')].filter(element => element.offsetParent);
+    if (!elements.navigation.hidden) targets.push(elements.nextButton);
+    else if (assessmentState.currentStep === 3) targets.push(elements.step3Next);
+    targets.forEach(element => {
+        element.classList.remove('is-shaking');
+        void element.offsetWidth;
+        element.classList.add('is-shaking');
+        element.addEventListener('animationend', () => element.classList.remove('is-shaking'), { once: true });
+    });
+}
+
 function showError(message, target = null) {
     elements.formError.textContent = message;
+    elements.step3Error.textContent = message;
+    shakeInvalid();
     if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         setTimeout(() => target.focus?.({ preventScroll: true }), 220);
@@ -2678,6 +3436,7 @@ function showError(message, target = null) {
 
 function clearError() {
     if (elements.formError) elements.formError.textContent = '';
+    if (elements.step3Error) elements.step3Error.textContent = '';
 }
 
 function formatHours(value) {
