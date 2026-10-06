@@ -16,8 +16,29 @@ var SHEET_HEADERS = [
   '目前 SCI', '導入後 SCI', 'SCI 提升',
   '目前每月工時', '導入後每月工時', '每月釋放工時', '每月節省費用', '等值 Token',
   '影分身戰力', '設備級距', '推薦整機', '任務結果 JSON', '影分身 JSON', '設備推薦 JSON',
-  '報表圖片', '完整資料 JSON', '來源頁面', '資料格式版本', '報告產生時間'
+  '報表圖片', '完整資料 JSON', '來源頁面', '資料格式版本', '報告產生時間',
+  // 2026-10 新增欄位：一律加在最後面，既有資料列的欄位位置才不會跑掉。
+  '工作領域', '成本或收入範圍', '共用人數', '建議情境', '運算需求等級', '負載等級'
 ];
+
+var SCENARIO_NAMES = {
+  personal: '個人 AI',
+  development: 'AI 開發',
+  homelab: '家用實驗室／AI 節點',
+  workstation: '企業工作站',
+  premium: '企業工作站進階版',
+  scale: '企業級規模'
+};
+var COST_BAND_NAMES = {
+  '10000-40000': '1–4 萬',
+  '50000-90000': '5–9 萬',
+  '100000-150000': '10–15 萬',
+  '160000-190000': '16–19 萬',
+  '200000+': '20 萬以上',
+  other: '其他（自填）'
+};
+var DEMAND_LEVEL_NAMES = { 1: '輕量', 2: '中等', 3: '高', 4: '模型開發' };
+var LOAD_LEVEL_NAMES = { 1: '低', 2: '中', 3: '高' };
 
 function doPost(e) {
   try {
@@ -161,7 +182,13 @@ function buildSheetRow(data, imageUrl, archiveUrl) {
     safeCell(archiveUrl),
     safeCell(data.sourcePage),
     safeCell(data.schemaVersion),
-    safeCell(result.generatedAt)
+    safeCell(result.generatedAt),
+    safeCell(assessment.functionId),
+    safeCell(COST_BAND_NAMES[assessment.costBand] || assessment.costBand),
+    safeCell(recommendation.sharedUsers || (assessment.executionNeeds && assessment.executionNeeds.sharedUsers)),
+    safeCell(SCENARIO_NAMES[recommendation.scenarioId] || recommendation.scenarioId),
+    safeCell(DEMAND_LEVEL_NAMES[recommendation.demandLevel] || recommendation.demandLevel),
+    safeCell(LOAD_LEVEL_NAMES[recommendation.loadLevel] || recommendation.loadLevel)
   ];
 }
 
