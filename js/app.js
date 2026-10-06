@@ -380,6 +380,12 @@ function initialize() {
     document.getElementById('step3-reselect').addEventListener('click', previousStep);
     initReportDeck();
     initPointerEffects();
+    // Once the assessment has started, closing or reloading the page asks for confirmation so answers are not lost by accident.
+    window.addEventListener('beforeunload', event => {
+        if (!assessmentState.persona && assessmentState.currentStep <= 1) return;
+        event.preventDefault();
+        event.returnValue = '';
+    });
     // Use tags appear both on the report card and inside the scenario modal.
     document.addEventListener('click', event => {
         const tag = event.target.closest('[data-usecase]');
@@ -1270,6 +1276,8 @@ function goToStep(step) {
     }
     assessmentState.currentStep = step;
     updateStepUI(true);
+    // The report always opens at the top of every card. This runs after the step is shown: scroll positions cannot be set while it is hidden.
+    if (step === 4) document.querySelectorAll('[data-report-card]').forEach(card => { card.scrollTop = 0; });
 }
 
 function updateStepUI(moveFocus) {
