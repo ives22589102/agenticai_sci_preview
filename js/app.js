@@ -229,8 +229,8 @@ const taskTaxonomyCatalog = Object.freeze(Object.fromEntries(recipeCatalog.map(r
 
 const hardwareCatalog = Object.freeze({
     a: Object.freeze({
-        label: 'A 級影分身戰力',
-        strength: Object.freeze({ grade: 'A', meter: 20, label: '初階協作', capacity: '適合日常內容、文件與單一工作流', description: '從地端文件整理、內容生成與一般資料工作開始建立影分身流程。' }),
+        label: 'A 級影身術戰力',
+        strength: Object.freeze({ grade: 'A', meter: 20, label: '初階協作', capacity: '適合日常內容、文件與單一工作流', description: '從地端文件整理、內容生成與一般資料工作開始建立影身術流程。' }),
         models: Object.freeze([
             Object.freeze({ name: 'Agent Pioneer-A', mb: 'AMD B850', cpu: 'AMD Ryzen 7 9700X', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '64GB（32GB×2）DDR5 6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 850W 金牌' }),
             Object.freeze({ name: 'Agent Pioneer-I', mb: 'Intel B860', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '64GB（32GB×2）DDR5 6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 850W 金牌' })
@@ -242,7 +242,7 @@ const hardwareCatalog = Object.freeze({
         })
     }),
     aplus: Object.freeze({
-        label: 'A+ 級影分身戰力',
+        label: 'A+ 級影身術戰力',
         strength: Object.freeze({ grade: 'A+', meter: 40, label: '進階協作', capacity: '適合多項內容與資料工作流', description: '提供更多顯示記憶體、系統記憶體與多工具並行空間。' }),
         models: Object.freeze([
             Object.freeze({ name: 'Agent Professional-A', mb: 'AMD X870', cpu: 'AMD Ryzen 9 9900X', gpu: 'AMD Radeon AI PRO R9700 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'ROG Strix Helios II', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
@@ -256,7 +256,7 @@ const hardwareCatalog = Object.freeze({
         })
     }),
     s: Object.freeze({
-        label: 'S 級影分身戰力',
+        label: 'S 級影身術戰力',
         strength: Object.freeze({ grade: 'S', meter: 60, label: '高效協作', capacity: '適合高負載創作與多流程持續運行', description: '以 RTX 5090 級顯示卡與高階桌上型平台承接高負載地端模型及創作流程。' }),
         models: Object.freeze([
             Object.freeze({ name: 'Agent Master-A', mb: 'AMD X870E', cpu: 'AMD Ryzen 9 9950X', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'ProArt LC 420', psu: 'ROG THOR III 1200W' }),
@@ -269,7 +269,7 @@ const hardwareCatalog = Object.freeze({
         })
     }),
     splus: Object.freeze({
-        label: 'S+ 級影分身戰力',
+        label: 'S+ 級影身術戰力',
         strength: Object.freeze({ grade: 'S+', meter: 80, label: '專業算力協作', capacity: '適合大型模型、專業資料與高併發工作', description: '面向工作站級顯示卡、大容量記憶體或整合式 Blackwell 平台。' }),
         models: Object.freeze([
             Object.freeze({ name: 'ET700I W7', mb: 'Intel W790', cpu: 'Intel Xeon W-3400', gpu: 'NVIDIA RTX 6000 Ada', ram: '512GB RDIMM DDR5 4800', ssd: '4TB PCIe 4.0', case: '整合式機身', cooling: '依工作站配置', psu: '1300W' }),
@@ -282,8 +282,8 @@ const hardwareCatalog = Object.freeze({
         })
     }),
     ss: Object.freeze({
-        label: 'SS 級影分身戰力',
-        strength: Object.freeze({ grade: 'SS', meter: 100, label: '極致算力協作', capacity: '適合超大型算力需求與極重工作負載', description: '為高 SCI 且需要大量影分身工作持續並行的極重度情境提供最高階地端算力。' }),
+        label: 'SS 級影身術戰力',
+        strength: Object.freeze({ grade: 'SS', meter: 100, label: '極致算力協作', capacity: '適合超大型算力需求與極重工作負載', description: '為高 SCI 且需要大量影身術工作持續並行的極重度情境提供最高階地端算力。' }),
         models: Object.freeze([
             Object.freeze({ name: 'ET900N G3', mb: '整合式 NVIDIA GB300 平台', cpu: 'Grace 72-Core Neoverse V2', gpu: 'NVIDIA GB300 Grace Blackwell Ultra', ram: '748GB', ssd: '8TB', case: '整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '1600W Titanium' })
         ]),
@@ -746,7 +746,7 @@ function renderRecipeSelection() {
                     <summary>看看分身怎麼幫你</summary>
                     <div class='recipe-detail__body'>
                         <div class='recipe-detail__human'><h4>人工處理</h4><ol>${list('human')}</ol></div>
-                        <div class='recipe-detail__shadow'><h4>影分身協助</h4><ol>${list('ai')}</ol></div>
+                        <div class='recipe-detail__shadow'><h4>影身術協助</h4><ol>${list('ai')}</ol></div>
                     </div>
                 </details>
             </article>
@@ -1716,7 +1716,7 @@ function renderResult() {
     // The line under the two scores ties the target SCI to the grade of device it takes, and jumps to the device card.
     document.getElementById('device-bridge-text').innerHTML = `要達到 SCI <b>${Math.round(result.sci.target)}</b>，你需要 <b>${result.recommendation.grade} 級戰力</b>的 Agent Computer`;
     document.getElementById('current-sci-card').innerHTML = renderSciCard('目前 SCI', result.sci.current, getSciLevel(result.sci.current), getSciNarrative(result.sci.current, 'current'), 'current', 0);
-    document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', result.sci.target, '建立本次影分身流程後', targetDescription, 'target', result.sci.current);
+    document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', result.sci.target, '建立本次影身術流程後', targetDescription, 'target', result.sci.current);
     resetTeamView(result);
     document.getElementById('metric-highlights').innerHTML = renderMetricHighlights(result);
     document.getElementById('team-view-label').textContent = '';
@@ -1926,7 +1926,7 @@ function createZenniDent(canvas, image) {
 
 // Shown between pressing 查看結果 and the report: a short "calculating" screen with Zenni, then the report cards rise into place like a projection.
 // The report itself is rendered underneath straight away; this only covers it and replays the entrance animations when it lifts.
-const REPORT_INTRO_STEPS = ['正在盤點任務工時', '正在計算 SCI 影分身指數', '正在比對六大情境', '正在配置影分身軍團'];
+const REPORT_INTRO_STEPS = ['正在盤點任務工時', '正在計算 SCI 影身術指數', '正在比對六大情境', '正在配置影身術軍團'];
 let reportIntroTimers = [];
 let introFx = null;
 
@@ -2211,23 +2211,23 @@ function getSciNarrative(score, variant) {
     const narratives = [
         {
             max: 19,
-            current: '目前的 SCI 偏低，工作仍以人工處理為主，還有許多環節可以運用影分身協作。',
-            target: '預估導入後，可開始讓影分身承接重複性任務，建立第一批可複製的協作流程。'
+            current: '目前的 SCI 偏低，工作仍以人工處理為主，還有許多環節可以運用影身術協作。',
+            target: '預估導入後，可開始讓影身術承接重複性任務，建立第一批可複製的協作流程。'
         },
         {
             max: 39,
             current: '你已經透過部分工具或流程減少人工投入，但跨任務的協作仍有提升空間。',
-            target: '預估導入後，更多工作可由影分身協助處理，減少人工在任務之間反覆切換。'
+            target: '預估導入後，更多工作可由影身術協助處理，減少人工在任務之間反覆切換。'
         },
         {
             max: 59,
             current: '你已有一定程度的工具協作基礎，下一步可以串接更多工作環節。',
-            target: '預估導入後，影分身可參與更多工作環節，讓人力更集中在審核與決策。'
+            target: '預估導入後，影身術可參與更多工作環節，讓人力更集中在審核與決策。'
         },
         {
             max: 79,
             current: '多數工作已有工具或流程協助，人工主要投入在較複雜的環節。',
-            target: '預估導入後，多數標準化工作可透過工具、流程與影分身協作完成。'
+            target: '預估導入後，多數標準化工作可透過工具、流程與影身術協作完成。'
         },
         {
             max: 100,
@@ -2334,10 +2334,10 @@ function renderWorkflowImpactCard(task, index) {
     const humanShare = 100 - shadowShare;
     return `<article class="workflow-impact-card">
         <header><div class="workflow-impact-card__identity"><img class="workflow-clone-avatar" src="${getCloneAvatarPath(task.recipeId)}" alt="${task.cloneTag}"><div><span>TASK ${String(index + 1).padStart(2, '0')} · ${task.scaleLabel} · ${getFrequencyLabel(task)}</span><h4>${task.title}</h4></div></div></header>
-        <div class="workflow-detail-columns"><div><span>影分身可協助</span><p>${task.assist}</p></div><div><span>仍需人工</span><p>${task.review}</p></div>
-            <div class="share-chart" role="img" aria-label="影分身協助 ${formatPercent(shadowShare)}%，人工處理 ${formatPercent(humanShare)}%">
+        <div class="workflow-detail-columns"><div><span>影身術可協助</span><p>${task.assist}</p></div><div><span>仍需人工</span><p>${task.review}</p></div>
+            <div class="share-chart" role="img" aria-label="影身術協助 ${formatPercent(shadowShare)}%，人工處理 ${formatPercent(humanShare)}%">
                 <div class="share-donut">${renderDonut(shadowShare)}<strong>${formatPercent(shadowShare)}<small>%</small></strong></div>
-                <ul><li class="is-shadow"><i></i>影分身協助 <b>${formatPercent(shadowShare)}%</b></li><li><i></i>人工處理 <b>${formatPercent(humanShare)}%</b></li></ul>
+                <ul><li class="is-shadow"><i></i>影身術協助 <b>${formatPercent(shadowShare)}%</b></li><li><i></i>人工處理 <b>${formatPercent(humanShare)}%</b></li></ul>
             </div>
         </div>
         <div class="workflow-impact-grid">
@@ -2362,7 +2362,7 @@ function renderWorkloadOverview(result) {
             <span class="time-comparison-row__title"><b>${String(index + 1).padStart(2, '0')}</b><strong>${task.title}${index === 0 ? '<em class="priority-task-label">優先導入</em>' : ''}</strong><small>${getFrequencyLabel(task)}・目前 ${formatHours(currentHours)} 小時／月</small></span>
             <span class="time-comparison-row__chart">
                 <span class="saving-bar" style="--kept:${keptShare}%" aria-hidden="true"><i class="saving-bar__kept"></i><i class="saving-bar__saved"></i><em>${formatPercent(task.reliefRate)}%</em></span>
-                <span class="saving-bar__labels"><span>仍需人工 <b>${formatHours(targetHours)} 小時</b></span><span>影分身可協助 <b>${formatHours(task.savedMonthlyMinutes / 60)} 小時</b></span></span>
+                <span class="saving-bar__labels"><span>仍需人工 <b>${formatHours(targetHours)} 小時</b></span><span>影身術可協助 <b>${formatHours(task.savedMonthlyMinutes / 60)} 小時</b></span></span>
             </span>
             <span class="time-comparison-row__saved"><small>每月省下</small><span class="time-reduction-value"><strong aria-label="每月省下 ${formatHours(task.savedMonthlyMinutes / 60)} 小時，下降 ${formatPercent(task.reliefRate)}%">${formatHours(task.savedMonthlyMinutes / 60)} 小時</strong></span></span>
         </button>`;
@@ -2371,7 +2371,7 @@ function renderWorkloadOverview(result) {
         <div class="saving-summary">
             <div class="saving-donut" role="img" aria-label="整體人工工時減少 ${Math.round(totalSavedShare)}%">${renderDonut(totalSavedShare)}<strong>${Math.round(totalSavedShare)}<small>%</small></strong><span>工時減少</span></div>
             <div class="saving-summary__copy">
-                <h4 id="workload-overview-title">導入影分身後，每月合計省下</h4>
+                <h4 id="workload-overview-title">導入影身術後，每月合計省下</h4>
                 <strong>${formatHours(totalSavedHours)}<small> 小時</small></strong>
             </div>
             <div class="saving-summary__compare">
@@ -2379,7 +2379,7 @@ function renderWorkloadOverview(result) {
                 <div class="is-after"><span>導入後工時</span><i style="--bar:${100 - totalSavedShare}%"></i><b>${formatHours(totalTargetHours)} 小時</b></div>
             </div>
         </div>
-        <div class="time-comparison-legend"><span><i></i>導入後仍需人工</span><span><i></i>影分身可協助的工時</span></div>
+        <div class="time-comparison-legend"><span><i></i>導入後仍需人工</span><span><i></i>影身術可協助的工時</span></div>
         <div class="time-comparison-list">${rows}</div>
         <div class="workload-task-detail" id="workload-task-detail" data-open-index="0">${renderWorkflowImpactCard(result.taskResults[0], 0)}</div>
     </section>`;
@@ -2449,7 +2449,7 @@ function renderCloneCard(clone, index) {
 function renderReportClonePlan(clones) {
     const names = clones.map(clone => clone.name.replace(/分身$/u, ''));
     // Names only, side by side; a clone's capability opens below when its chip is pressed.
-    return `<p class="clone-plan-line">本次規劃 ${clones.length} 個影分身，點選名稱查看可協助的內容</p>
+    return `<p class="clone-plan-line">本次規劃 ${clones.length} 項影身術，點選名稱查看可協助的內容</p>
         <div class="clone-plan-list">${clones.map((clone, index) => `<button type="button" class="clone-plan-item" data-clone-toggle="${index}" aria-expanded="false" aria-controls="clone-plan-detail">
             <span class="clone-plan-avatar"><img src="${getCloneAvatarPath(clone.recipeId)}" alt=""></span>
             <strong>${names[index]}</strong>
@@ -2728,7 +2728,7 @@ function renderHardware(recommendation, result) {
     document.getElementById('platform-grid').innerHTML = !recommendation.models.length
         ? '<p class="platform-empty">這個情境需要雙顯示卡工作站，目前沒有對應的現成機型，請參考上方的基本配置。</p>'
         : recommendation.models.map((model, index) => `<article class="hardware-model-card">
-        <header><div><span class="hardware-scenario-tag">${HQ_SCENARIOS.find(item => item.id === getModelScenarioId(recommendation.tier, model)).zh}</span><h4>${model.name}</h4><p>${getModelFit(model, index)}</p></div><div class="device-visual" data-grade="${recommendation.grade}" role="img" aria-label="影分身戰力 ${recommendation.grade} 級"><span class="device-visual__grade" aria-hidden="true">${recommendation.grade}</span>${renderDeviceIllustration(model)}</div></header>
+        <header><div><span class="hardware-scenario-tag">${HQ_SCENARIOS.find(item => item.id === getModelScenarioId(recommendation.tier, model)).zh}</span><h4>${model.name}</h4><p>${getModelFit(model, index)}</p></div><div class="device-visual" data-grade="${recommendation.grade}" role="img" aria-label="影身術戰力 ${recommendation.grade} 級"><span class="device-visual__grade" aria-hidden="true">${recommendation.grade}</span>${renderDeviceIllustration(model)}</div></header>
         <div class="hardware-quick-specs"><span><small>GPU／VRAM</small><strong>${model.gpu}</strong></span><span><small>記憶體</small><strong>${model.ram}</strong></span><span><small>儲存</small><strong>${model.ssd}</strong></span></div>
         <details class="hardware-full-specs" open><summary>完整配置</summary><div class="hardware-model-specs">${Object.entries(modelSpecLabels).filter(([key]) => !['gpu', 'ram', 'ssd'].includes(key) && !(key === 'case' && model.integratedChassis)).map(([key, [zh, en, icon]]) => `<div class="hardware-model-spec"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${model[key]}</p></div>`).join('')}</div></details>
         <div class="hardware-model-card__action">${renderPurchaseLink('了解更多', campaignConfig.productLinks.systemModels[model.name] || campaignConfig.productLinks.systems[recommendation.tier], `system-${index}`)}</div>
@@ -2892,7 +2892,7 @@ function renderScenarioSection(recommendation) {
     const used = new Set();
     return `<header class="section-pill-heading"><h4 class="section-pill">本次建議情境</h4></header>
         <div class="scenario-list"><article class="scenario-card">
-            <button type="button" class="scenario-card__grade" data-grade="${recommendation.grade}" data-strength-scale="${recommendation.grade}" data-scenario="${recommendation.scenarioId}" aria-label="影分身戰力 ${recommendation.grade} 級，${strength.label}。查看六大情境與影分身戰力解析"><small>影分身戰力</small><strong>${recommendation.grade}</strong><em>${strength.label}</em><span class="scenario-card__hint" aria-hidden="true">六大情境與戰力解析 →</span></button>
+            <button type="button" class="scenario-card__grade" data-grade="${recommendation.grade}" data-strength-scale="${recommendation.grade}" data-scenario="${recommendation.scenarioId}" aria-label="影身術戰力 ${recommendation.grade} 級，${strength.label}。查看六大情境與影身術戰力解析"><small>影身術戰力</small><strong>${recommendation.grade}</strong><em>${strength.label}</em><span class="scenario-card__hint" aria-hidden="true">六大情境與戰力解析 →</span></button>
             <div class="scenario-card__body">
                 <h4>${scenario.zh}<small>${scenario.name}</small></h4>
                 <p><b>${scenario.tagline}。</b>${scenario.description}</p>
@@ -2959,8 +2959,8 @@ function renderShadowStrength(recommendation, result) {
     const strength = recommendation.strength;
     const comparisons = getLocalValueComparisons(result);
     return `<article class="shadow-strength-card">
-        <header class="local-value-heading"><strong>為什麼值得把影分身軍團建立在自己的設備上</strong></header>
-        <div class="local-value-comparisons">${comparisons.map(item => `<article><div><span>目前痛點</span><p>${item.before}</p></div><i aria-hidden="true"></i><div><span>地端影分身</span><p>${item.after}</p></div></article>`).join('')}</div>
+        <header class="local-value-heading"><strong>為什麼值得把影身術軍團建立在自己的設備上</strong></header>
+        <div class="local-value-comparisons">${comparisons.map(item => `<article><div><span>目前痛點</span><p>${item.before}</p></div><i aria-hidden="true"></i><div><span>地端影身術</span><p>${item.after}</p></div></article>`).join('')}</div>
     </article>`;
 }
 
@@ -2974,7 +2974,7 @@ function getLocalValueComparisons(result) {
             ? '免費雲端方案常受模型、額度與使用時段限制。'
             : '尚未建立 AI 工作流程，重複任務仍需從零開始處理。';
     return [
-        { before: lowSciPain, after: '讓固定流程交由地端影分身持續協作，逐步減少人工工作量。' },
+        { before: lowSciPain, after: '讓固定流程交由地端影身術持續協作，逐步減少人工工作量。' },
         { before: cloudPain, after: '把適合的流程移到自己的設備執行，減少可替代的訂閱與用量依賴。' },
         { before: '工作檔案需要上傳，流程也容易受到連線、額度與服務方案調整影響。', after: '資料與模型流程留在地端，建立可持續使用及擴充的工作環境。' }
     ];
@@ -3080,7 +3080,7 @@ function showDataCollectionDetails(trigger) {
             </header>
             <ul class="data-consent-list">
                 <li>Step 1–3 的填寫內容：工作身分、選擇的任務、時間與頻率、成本與雲端 AI 使用狀況。</li>
-                <li>計算結果：SCI 分數、每月省下工時、節省費用、影分身與設備推薦。</li>
+                <li>計算結果：SCI 分數、每月省下工時、節省費用、影身術與設備推薦。</li>
                 <li>與「下載 PNG」相同的那張完整報表圖片。</li>
                 <li>操作紀錄：在這個網站上點了哪些按鈕、標籤與連結，以及看了報告的哪些部分。</li>
             </ul>
@@ -3177,8 +3177,8 @@ async function previewReport(trigger) {
         }
         clearReportPreview();
         reportPreviewUrl = URL.createObjectURL(blob);
-        const filename = `ASUS-影分身導入報告-${taipeiDateStamp()}.png`;
-        elements.modalContent.innerHTML = `<div class="report-preview"><header><span class="step-kicker">完整報告預覽</span><h2 id="modal-title">你的影分身導入報告</h2><p>請先檢查內容，確認後再下載 PNG 圖片。</p></header><div class="report-preview__toolbar"><button class="text-button" type="button" id="preview-size-toggle" aria-pressed="false">查看原始尺寸</button></div><div class="report-preview__image"><img src="${reportPreviewUrl}" alt="影分身導入報告預覽"></div><div class="report-preview__actions"><button class="button button--quiet" type="button" data-close-modal>返回報告</button><a class="button button--accent" href="${reportPreviewUrl}" download="${filename}" id="report-download-link">下載 PNG 圖片</a></div></div>`;
+        const filename = `ASUS-影身術導入報告-${taipeiDateStamp()}.png`;
+        elements.modalContent.innerHTML = `<div class="report-preview"><header><span class="step-kicker">完整報告預覽</span><h2 id="modal-title">你的影身術導入報告</h2><p>請先檢查內容，確認後再下載 PNG 圖片。</p></header><div class="report-preview__toolbar"><button class="text-button" type="button" id="preview-size-toggle" aria-pressed="false">查看原始尺寸</button></div><div class="report-preview__image"><img src="${reportPreviewUrl}" alt="影身術導入報告預覽"></div><div class="report-preview__actions"><button class="button button--quiet" type="button" data-close-modal>返回報告</button><a class="button button--accent" href="${reportPreviewUrl}" download="${filename}" id="report-download-link">下載 PNG 圖片</a></div></div>`;
         elements.modalContent.querySelector('[data-close-modal]').addEventListener('click', closeModal);
         document.getElementById('preview-size-toggle').addEventListener('click', event => {
             const preview = elements.modalContent.querySelector('.report-preview__image');
@@ -3373,11 +3373,11 @@ async function createReportBlobV2(result) {
     roundedRect(ctx, left, y, 52, 52, 15, colors.blue);
     canvasText(ctx, 'AI', left + 26, y + 35, `900 22px ${font}`, '#FFFFFF', 'center');
     canvasText(ctx, 'AGENT COMPUTER', left + 68, y + 23, `900 17px ${font}`, colors.text);
-    canvasText(ctx, '影分身戰力測驗', left + 68, y + 45, `700 12px ${font}`, colors.blue);
+    canvasText(ctx, '影身術戰力測驗', left + 68, y + 45, `700 12px ${font}`, colors.blue);
     canvasText(ctx, `診斷日期 ${formatTaipeiDate(result.generatedAt)}`, width - left, y + 30, `600 12px ${font}`, colors.muted, 'right');
 
     y += 92;
-    canvasText(ctx, '你的影分身導入報告', left, y, `900 40px ${font}`, colors.text);
+    canvasText(ctx, '你的影身術導入報告', left, y, `900 40px ${font}`, colors.text);
     canvasText(ctx, `${personaCatalog[result.persona].name} · ${result.taskResults.length} 項工作`, left, y + 31, `600 14px ${font}`, colors.muted);
 
     y += 70;
@@ -3404,7 +3404,7 @@ async function createReportBlobV2(result) {
     });
 
     y += 220;
-    heading(`本次規劃：共 ${result.clones.length} 個影分身`, y);
+    heading(`本次規劃：共 ${result.clones.length} 項影身術`, y);
     y += 34;
     result.clones.forEach((clone, index) => {
         const column = index % 3;
@@ -3427,7 +3427,7 @@ async function createReportBlobV2(result) {
     });
     y += cloneRows * 92 + 34;
 
-    heading('哪些工作交給影分身？', y);
+    heading('哪些工作交給影身術？', y);
     y += 36;
     result.taskResults.forEach((task, index) => {
         card(left, y, contentWidth, 98, index === 0 ? '#F4FAFF' : '#FFFFFF');
@@ -3443,7 +3443,7 @@ async function createReportBlobV2(result) {
     });
 
     y += 12;
-    heading('找尋最適合您影分身軍團的設備', y);
+    heading('找尋最適合您影身術軍團的設備', y);
     y += 38;
     const hardwareLabels = {
         mb: '主機板 MB', cpu: '處理器 CPU', gpu: '顯示卡 VGA', ram: '記憶體 RAM',
@@ -3452,7 +3452,7 @@ async function createReportBlobV2(result) {
     result.recommendation.models.forEach(hardware => {
         card(left, y, contentWidth, hardwareHeight);
         canvasText(ctx, hardware.name, left + 24, y + 36, `900 19px ${font}`, colors.text);
-        canvasText(ctx, `${result.recommendation.strength.grade} 級影分身戰力`, width - left - 24, y + 36, `800 13px ${font}`, colors.blue, 'right');
+        canvasText(ctx, `${result.recommendation.strength.grade} 級影身術戰力`, width - left - 24, y + 36, `800 13px ${font}`, colors.blue, 'right');
         ctx.strokeStyle = colors.line;
         ctx.beginPath();
         ctx.moveTo(left + 24, y + 58);
@@ -3517,7 +3517,7 @@ async function createReportBlob(result) {
     canvasText(ctx, `診斷日期 ${formatTaipeiDate(result.generatedAt)}`, width - left, y + 29, `500 13px ${font}`, '#8391A7', 'right');
 
     y += 96;
-    canvasText(ctx, 'SCI 影分身工作效益報告', left, y, `800 38px ${font}`, '#FFFFFF');
+    canvasText(ctx, 'SCI 影身術工作效益報告', left, y, `800 38px ${font}`, '#FFFFFF');
     canvasText(ctx, `${personaCatalog[result.persona].name} · ${result.taskResults.length} 項工作`, left, y + 34, `500 15px ${font}`, '#9AA8BC');
 
     y += 82;
@@ -3528,7 +3528,7 @@ async function createReportBlob(result) {
     canvasText(ctx, getSciLevel(result.sci.current), left + 28, y + 154, `700 14px ${font}`, '#20C9EB');
     ctx.fillStyle = 'rgba(148,163,184,.22)';
     ctx.fillRect(left + 210, y + 26, 1, 166);
-    canvasText(ctx, '影分身團隊加入後 · 導入後 SCI', left + 244, y + 38, `700 14px ${font}`, '#20C9EB');
+    canvasText(ctx, '影身術團隊加入後 · 導入後 SCI', left + 244, y + 38, `700 14px ${font}`, '#20C9EB');
     canvasText(ctx, `${Math.round(result.sci.target)}`, left + 244, y + 116, `900 76px ${font}`, '#20C9EB');
     canvasText(ctx, '', left + 341, y + 116, `600 15px ${font}`, '#6F7E94');
     canvasText(ctx, `提升 ${Math.round(result.sci.gap)} 點`, left + 244, y + 154, `700 14px ${font}`, '#55D6A6');
@@ -3547,7 +3547,7 @@ async function createReportBlob(result) {
 
     y += 246;
 
-    canvasText(ctx, '影分身介入前後，工作如何重新分配', left, y + 22, `800 21px ${font}`, '#FFFFFF');
+    canvasText(ctx, '影身術介入前後，工作如何重新分配', left, y + 22, `800 21px ${font}`, '#FFFFFF');
     canvasText(ctx, '以同一批工作全人工完成所需時間為基準', left, y + 44, `500 11px ${font}`, '#8391A7');
     const barX = left + 150;
     const barWidth = contentWidth - 150;
@@ -3556,10 +3556,10 @@ async function createReportBlob(result) {
     canvasText(ctx, '整體協作比例', left, y + 78, `700 11px ${font}`, '#AAB5C8');
     drawOverallDistributionBar(ctx, barX, y + 65, barWidth, 22, humanShare, aiShare);
     canvasText(ctx, `人工處理 ${Math.round(humanShare)}%`, barX, y + 107, `600 11px ${font}`, '#AAB5C8');
-    canvasText(ctx, `影分身可協助 ${Math.round(aiShare)}%`, barX + barWidth, y + 107, `700 11px ${font}`, '#55D6A6', 'right');
-    canvasText(ctx, '影分身介入前', left, y + 145, `700 11px ${font}`, '#AAB5C8');
+    canvasText(ctx, `影身術可協助 ${Math.round(aiShare)}%`, barX + barWidth, y + 107, `700 11px ${font}`, '#55D6A6', 'right');
+    canvasText(ctx, '影身術介入前', left, y + 145, `700 11px ${font}`, '#AAB5C8');
     drawTaskDistributionBar(ctx, result.taskResults, barX, y + 132, barWidth, 18, false, font);
-    canvasText(ctx, '影分身介入後', left, y + 183, `700 11px ${font}`, '#AAB5C8');
+    canvasText(ctx, '影身術介入後', left, y + 183, `700 11px ${font}`, '#AAB5C8');
     drawTaskDistributionBar(ctx, result.taskResults, barX, y + 170, barWidth, 18, true, font);
     y += 218;
 
@@ -3577,7 +3577,7 @@ async function createReportBlob(result) {
         y += taskRowHeight;
     });
 
-    canvasText(ctx, '影分身團隊', left, y + 22, `800 21px ${font}`, '#FFFFFF');
+    canvasText(ctx, '影身術團隊', left, y + 22, `800 21px ${font}`, '#FFFFFF');
     y += 46;
     result.clones.forEach((clone, index) => {
         const column = index % 3;
@@ -3618,7 +3618,7 @@ async function createReportBlob(result) {
         y += hardwareCardHeight + hardwareCardGap;
     });
 
-    wrapCanvasText(ctx, `SCI（Shadow-Clone Index）採 100 分制，代表相對於全人工基準，可由影分身協助承接的人工工作比例。影分身戰力採 A、A+、S、S+、SS 五級，代表推薦設備的相對地端運算餘裕，不等同 SCI。`, left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
+    wrapCanvasText(ctx, `SCI（Shadow-Clone Index）採 100 分制，代表相對於全人工基準，可由影身術協助承接的人工工作比例。影身術戰力採 A、A+、S、S+、SS 五級，代表推薦設備的相對地端運算餘裕，不等同 SCI。`, left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
     canvasText(ctx, `${result.scoringVersion} · ${result.workflowCatalogVersion} · ${result.recipeCatalogVersion} · ${result.hardwareCatalogVersion}`, left, height - 38, `500 9px ${font}`, '#4F5C70');
     canvasText(ctx, 'ASUS AGENTIC AI', width - left, height - 38, `700 11px ${font}`, '#20C9EB', 'right');
 
@@ -3631,7 +3631,7 @@ function openStrengthScaleModal(trigger) {
         <div class="strength-scale-modal">
             <header>
                 <span class="step-kicker">情境與戰力分級</span>
-                <h2 id="modal-title">六大情境與 A 至 SS 影分身戰力</h2>
+                <h2 id="modal-title">六大情境與 A 至 SS 影身術戰力</h2>
                 <p>情境分類依 ASUS Agent Computer 的地端 AI 六大情境；每個情境列出基本配置，以及我們歸入該情境的建議配置與戰力等級。分級代表運算餘裕，不代表固定速度倍數，也不等同 SCI。</p>
             </header>
             <div class="strength-scale-list">${HQ_SCENARIOS.map((scenario, index) => {
@@ -3663,8 +3663,8 @@ function openSciInfoModal(trigger) {
         <div class="sci-info-modal">
             <header>
                 <span class="step-kicker">SCI 說明</span>
-                <h2 id="modal-title">SCI（影分身指數）怎麼算？</h2>
-                <p>SCI 用來衡量相對於全人工完成同一批工作的基準，有多少人工工作可由既有工具、流程或影分身協助承接。</p>
+                <h2 id="modal-title">SCI（影身術指數）怎麼算？</h2>
+                <p>SCI 用來衡量相對於全人工完成同一批工作的基準，有多少人工工作可由既有工具、流程或影身術協助承接。</p>
             </header>
             <div class="sci-info-formula"><strong>先看例子：</strong>同一批工作若全人工需要 10 小時，導入後只需 4 小時人工處理，SCI 就是 60 分；其餘 40% 仍由人工完成。</div>
             <div class="sci-info-formula">SCI = (1 − <span>人工投入時間</span> ／ <span>同一批工作全人工完成所需時間</span>) × 100</div>
@@ -3676,8 +3676,8 @@ function openSciInfoModal(trigger) {
                 </article>
                 <article>
                     <strong>導入後 SCI</strong>
-                    <span>影分身預估可承接的比例</span>
-                    <p>例如導入後 SCI 為 67，代表約 67% 的全人工工作量可由影分身協助，仍有約 33% 需要人工處理。</p>
+                    <span>影身術預估可承接的比例</span>
+                    <p>例如導入後 SCI 為 67，代表約 67% 的全人工工作量可由影身術協助，仍有約 33% 需要人工處理。</p>
                 </article>
             </div>
         </div>`;
@@ -4115,7 +4115,7 @@ function drawHardwareGradeStamp(ctx, grade, x, y, font) {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#20C9EB';
     ctx.font = `800 7px ${font}`;
-    ctx.fillText('影分身戰力', 0, -7);
+    ctx.fillText('影身術戰力', 0, -7);
     ctx.font = `900 23px ${font}`;
     ctx.fillText(String(grade), 0, 15);
     ctx.restore();
@@ -4256,7 +4256,7 @@ function describeClick(target) {
     if ((el = pick('[data-team-step]'))) return ['調整團隊人數', String(teamView.size)];
     if ((el = pick('[data-hardware-tab]'))) return ['切換設備頁籤', el.textContent.trim()];
     if ((el = pick('[data-task-toggle]'))) return ['查看任務明細', el.querySelector('strong')?.firstChild?.textContent.trim() || ''];
-    if ((el = pick('[data-clone-toggle]'))) return ['查看影分身內容', el.textContent.trim()];
+    if ((el = pick('[data-clone-toggle]'))) return ['查看影身術內容', el.textContent.trim()];
     if ((el = pick('#device-bridge'))) return ['看推薦設備（第一張卡）'];
     if ((el = pick('#report-preview-button'))) return ['立即分享'];
     if ((el = pick('#report-download-link'))) return ['下載報告圖片'];
