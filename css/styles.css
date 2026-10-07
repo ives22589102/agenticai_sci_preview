@@ -52,68 +52,46 @@ h2[tabindex="-1"]:focus { outline: none; }
 body.landing-active { overflow: hidden; }
 body.landing-active .brand-header, body.landing-active .page-shell, body.landing-active .site-footer, body.landing-active .skip-link { display: none; }
 
-.landing-hero { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; overflow: hidden; background: #dfe9ff; }
-/* The banner keeps its 1920:740 ratio; a blurred copy of the same artwork fills whatever the viewport leaves over. */
-.landing-hero::before { content: ""; position: absolute; inset: -60px; background: url("../img/banner/background.jpg") center / cover no-repeat; filter: blur(34px) saturate(1.1); transform: scale(1.08); }
+.landing-hero { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; overflow: hidden; background: #040a1f; }
+/* The banner is one flattened key visual that keeps its 1920:740 ratio; a blurred copy of it fills whatever the viewport leaves over. */
+.landing-hero::before { content: ""; position: absolute; inset: -60px; background: url("../img/banner/kv.jpg") center / cover no-repeat; filter: blur(34px) saturate(1.1); transform: scale(1.08); }
 .landing-stage { position: relative; width: min(100vw, calc(100dvh * 1920 / 740)); aspect-ratio: 1920 / 740; container-type: inline-size; isolation: isolate; }
-.landing-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%); }
-.banner-cards { position: absolute; inset: 0; }
-.banner-layer { position: absolute; left: var(--l); top: var(--t); width: var(--w); height: auto; user-select: none; -webkit-user-drag: none; translate: calc(var(--px, 0) * var(--depth, 0) * 1px) calc(var(--py, 0) * var(--depth, 0) * 1px); transition: translate .5s cubic-bezier(.2, .7, .2, 1); }
-.banner-card { filter: drop-shadow(0 1.2cqw 1.4cqw rgba(20, 71, 128, .14)); }
-.banner-card--1 { --depth: 14; --float: 6.5s; --delay: 0s; }
-.banner-card--2 { --depth: 20; --float: 7.5s; --delay: .06s; }
-.banner-card--3 { --depth: 10; --float: 6s; --delay: .12s; }
-.banner-card--4 { --depth: 24; --float: 8s; --delay: .18s; }
-.banner-card--5 { --depth: 16; --float: 7s; --delay: .24s; }
-.banner-title { --depth: -8; }
-.banner-strip { --depth: -6; }
-.banner-ksp { --depth: -4; }
-.banner-cta { padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 1cqw; transform-origin: 50% 60%; }
-.banner-cta img { display: block; width: 100%; height: auto; transition: transform .35s var(--ease), filter .35s; }
-.banner-cta:hover img, .banner-cta:focus-visible img { transform: scale(1.045); filter: drop-shadow(0 0 1.1cqw rgba(255, 255, 255, .75)); }
-.banner-cta:active img { transform: scale(.985); }
-.banner-cta:focus-visible { outline: 3px solid #fff; outline-offset: 6px; }
+.landing-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 5%, #000 95%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 5%, #000 95%, transparent 100%); }
+.landing-crop { display: none; }
+/* The call to action is part of the artwork, so the button is a transparent hotspot placed over it (x 47.5-95.5%, y 78.5-92.5% of the picture). */
+.banner-cta { position: absolute; left: 47.5%; top: 78.5%; width: 48%; height: 14%; padding: 0; border: 0; border-radius: 1cqw; background: transparent; cursor: pointer; transition: background .3s, box-shadow .3s; }
+.banner-cta:hover, .banner-cta:focus-visible { background: rgba(255, 255, 255, .07); box-shadow: 0 0 2.2cqw rgba(120, 190, 255, .55); }
+.banner-cta:active { background: rgba(255, 255, 255, .12); }
+.banner-cta:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
 /* Click hint: a tapping hand and a ripple on the tag, so the artwork reads as a button. */
-.banner-cta__hint { position: absolute; left: 21%; top: 52%; width: 3.3cqw; height: 3.3cqw; pointer-events: none; }
-.banner-cta__hint svg { position: relative; display: block; width: 100%; height: 100%; fill: #fff; stroke: #1a3fd0; stroke-width: 1.6; stroke-linejoin: round; filter: drop-shadow(0 .3cqw .5cqw rgba(10, 35, 90, .45)); transform-origin: 40% 10%; }
+.banner-cta__hint { position: absolute; left: 24%; top: 50%; width: 3.3cqw; height: 3.3cqw; pointer-events: none; }
+.banner-cta__hint svg { position: relative; display: block; width: 100%; height: 100%; fill: #fff; stroke: #1a3fd0; stroke-width: 1.6; stroke-linejoin: round; filter: drop-shadow(0 .3cqw .5cqw rgba(0, 10, 40, .6)); transform-origin: 40% 10%; }
 .banner-cta__hint i { position: absolute; left: 38%; top: 12%; width: 2.6cqw; height: 2.6cqw; margin: -1.3cqw 0 0 -1.3cqw; border: .22cqw solid #fff; border-radius: 50%; opacity: 0; }
 @keyframes banner-tap { 0%, 55%, 100% { transform: translate(18%, 22%) rotate(-8deg); } 25%, 35% { transform: translate(0, 0) rotate(-8deg) scale(.92); } }
 @keyframes banner-ripple { 0%, 28% { opacity: 0; transform: scale(.3); } 34% { opacity: .95; transform: scale(.5); } 70%, 100% { opacity: 0; transform: scale(1.7); } }
-@keyframes banner-drop { from { opacity: 0; transform: translateY(-9%) scale(.9); } to { opacity: 1; transform: none; } }
-@keyframes banner-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3.2%); } }
-@keyframes banner-from-right { from { opacity: 0; transform: translateX(7%); } to { opacity: 1; transform: none; } }
-@keyframes banner-wipe { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
-@keyframes banner-rise { from { opacity: 0; transform: translateY(40%); } to { opacity: 1; transform: none; } }
-@keyframes banner-pop { 0% { opacity: 0; transform: scale(.82); } 70% { opacity: 1; transform: scale(1.04); } 100% { opacity: 1; transform: none; } }
-@keyframes banner-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
-@keyframes banner-bg-in { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+@keyframes banner-glow { 0%, 100% { box-shadow: 0 0 0 rgba(120, 190, 255, 0); } 50% { box-shadow: 0 0 2cqw rgba(120, 190, 255, .45); } }
+@keyframes banner-bg-in { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: no-preference) {
-    .landing-bg { animation: banner-bg-in .5s var(--ease) both; }
-    .banner-card { animation: banner-drop .55s var(--ease) var(--delay) both, banner-float var(--float) ease-in-out calc(var(--delay) + .55s) infinite; }
-    .banner-title { animation: banner-from-right .55s var(--ease) .1s both; }
-    .banner-strip { animation: banner-wipe .45s var(--ease) .25s both; }
-    .banner-ksp { animation: banner-rise .45s var(--ease) .32s both; }
-    .banner-slogan { animation: banner-rise .4s var(--ease) .4s both; }
+    .landing-bg, .landing-crop { animation: banner-bg-in .6s var(--ease) both; }
     .banner-cta__hint svg { animation: banner-tap 1.8s ease-in-out 1.2s infinite; }
     .banner-cta__hint i { animation: banner-ripple 1.8s ease-out 1.2s infinite; }
-    .banner-cta { animation: banner-pop .5s var(--ease) .45s both, banner-pulse 2.6s ease-in-out 1.3s infinite; }
+    .banner-cta { animation: banner-glow 2.6s ease-in-out 1.3s infinite; }
 }
-/* Portrait screens: the same layers restack into a column so nothing shrinks to an unreadable strip. */
+/* Portrait screens: the wide picture would shrink to an unreadable strip, so its left part (title and devices) and its right part
+   (agent cards and call to action) are shown one above the other. The whole banner is the button there. */
 @media (max-width: 800px) and (orientation: portrait) {
-    .landing-hero { display: block; overflow-y: auto; background: linear-gradient(to bottom, rgba(84, 108, 240, .9) 0, rgba(118, 138, 246, .6) 24%, transparent 46%), #dfe9ff url("../img/banner/background.jpg") center bottom / auto 100% no-repeat; }
+    .landing-hero { display: block; overflow-y: auto; }
     .landing-hero::before, .landing-bg { display: none; }
-    .landing-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.6dvh; width: 100%; min-height: 100dvh; aspect-ratio: auto; padding: 5dvh 4vw 4dvh; }
-    .banner-layer { position: static; width: auto; translate: none; }
-    .banner-title { order: 1; width: 94%; }
-    .banner-strip { order: 2; width: 94%; margin-top: -1.2dvh; }
-    .banner-ksp { order: 3; width: 100%; }
-    .banner-cards { order: 4; position: relative; inset: auto; width: 100%; aspect-ratio: 975 / 617; flex: none; }
-    .banner-cards .banner-layer { position: absolute; left: var(--ml); top: var(--mt); width: var(--mw); }
-    .banner-slogan { order: 5; width: 62%; margin-top: auto; }
-    .banner-cta { order: 6; width: 98%; }
-    .banner-cta { position: relative; left: auto; top: auto; }
-    .banner-cta__hint { width: 8.5cqw; height: 8.5cqw; top: 46%; }
-    .banner-cta__hint i { width: 7cqw; height: 7cqw; margin: -3.5cqw 0 0 -3.5cqw; border-width: .6cqw; }
+    .landing-stage { display: flex; flex-direction: column; justify-content: center; width: 100%; min-height: 100dvh; aspect-ratio: auto; }
+    .landing-crop { display: block; flex: none; width: 100%; overflow: hidden; }
+    .landing-crop img { display: block; height: auto; max-width: none; }
+    .landing-crop--left { aspect-ratio: 3480 / 3083; }
+    .landing-crop--left img { width: 229.885%; }
+    .landing-crop--right { aspect-ratio: 4480 / 3083; }
+    .landing-crop--right img { width: 178.571%; margin-left: -78.571%; }
+    .banner-cta { inset: 0; width: auto; height: auto; border-radius: 0; animation: none; }
+    .banner-cta:hover, .banner-cta:focus-visible { background: transparent; box-shadow: none; }
+    .banner-cta__hint { display: none; }
 }
 
 /* A compact navy brand band; the assessment lives on an open light canvas. */
