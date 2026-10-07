@@ -1647,3 +1647,13 @@ body.landing-active .zenni-edge, body.landing-active .zenni-corner { display: no
     html { scroll-behavior: auto; }
     *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
 }
+
+/* Desktop: the page itself does not scroll, so the disclaimer takes a strip at the bottom of the window and the assessment gives up that height. */
+@media (min-width: 801px) and (min-height: 560px) {
+    .page-shell { height: calc(100dvh - 76px - 30px); padding-bottom: 6px; }
+    .site-footer { height: 30px; padding: 4px 130px 0 0; font-size: 11.5px; line-height: 1.45; overflow: hidden; }
+}
+@media (min-width: 801px) and (max-width: 1320px) and (min-height: 560px) {
+    .page-shell { height: calc(100dvh - 76px - 46px); }
+    .site-footer { height: 46px; }
+}
