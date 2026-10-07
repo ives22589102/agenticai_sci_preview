@@ -466,6 +466,7 @@ function enterAssessment() {
     trackEvent('assessment_started', { entry: 'landing_banner' });
     document.body.classList.remove('landing-active');
     if (elements.landingHero) elements.landingHero.hidden = true;
+    startZenniSequence();
     window.scrollTo(0, 0);
     requestAnimationFrame(() => document.getElementById('step-1-title')?.focus({ preventScroll: true }));
 }
@@ -1236,6 +1237,7 @@ function nextStep() {
         if (!isStep3Complete() && step3PanelIndex < getStep3PanelCount() - 1) return nextStep3Panel();
         if (!validateStep3()) return;
         refreshAssessmentResult();
+        playReportIntro();
         goToStep(4);
     }
 }
@@ -1664,6 +1666,417 @@ function renderResult() {
     setReportCard(0);
     observeReveals();
     requestAnimationFrame(animateSciJourney);
+}
+
+// ---- Zenni ----
+// 1. A second after the assessment opens, Zenni peeks in from the right edge and says hello, then leaves.
+// 2. A few seconds later it rises in the bottom-right corner, says two lines, and stays there.
+// 3. Poking it makes it giggle, and the spot that was pressed dents inward and springs back; a moment later it says its two lines again.
+// 4. While it is being poked, and when a required field is left empty (red frame), it switches to its shy face for a moment.
+const ZENNI_WELCOME = ['和 Zenni 一起打造你的千軍萬馬吧！', '測完記得看看推薦設備喔！'];
+const ZENNI_TICKLES = ['哈哈哈好癢～', '住手啦～', '不要再戳了><'];
+let zenniStarted = false;
+let showZenniShy = () => {};
+
+function startZenniSequence() {
+    const edge = document.getElementById('zenni-edge');
+    const corner = document.getElementById('zenni-corner');
+    const bubble = document.getElementById('zenni-bubble');
+    if (zenniStarted || !edge || !corner) return;
+    zenniStarted = true;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const say = (text, duration) => {
+        bubble.textContent = text;
+        bubble.classList.add('is-talking');
+        clearTimeout(say.timer);
+        say.timer = setTimeout(() => bubble.classList.remove('is-talking'), duration);
+    };
+    // The two regular lines, one after the other; replayed a moment after Zenni has been poked.
+    let lineTimers = [];
+    const sayLines = delay => {
+        lineTimers.forEach(clearTimeout);
+        lineTimers = [setTimeout(() => say(ZENNI_WELCOME[0], 4200), delay), setTimeout(() => say(ZENNI_WELCOME[1], 3800), delay + 4700)];
+    };
+    const settle = () => {
+        corner.classList.add('is-in');
+        sayLines(900);
+    };
+    if (reduced) settle();
+    else {
+        setTimeout(() => edge.classList.add('is-peeking'), 900);
+        edge.addEventListener('animationend', event => { if (event.target === edge) edge.classList.remove('is-peeking'); });
+        setTimeout(settle, 900 + 4800 + 2000);
+    }
+
+    const body = document.getElementById('zenni-body');
+    const dent = createZenniDent(document.getElementById('zenni-canvas'), document.getElementById('zenni-image'));
+    if (dent) corner.classList.add('has-webgl');
+    body.zenniDent = dent;
+    // The shy face has the same framing as the regular one, so the two pictures are simply swapped.
+    const image = document.getElementById('zenni-image');
+    const faces = { normal: image.getAttribute('src'), shy: 'img/zenni/zenni-shy.webp?v=2' };
+    const shyImage = new Image();
+    shyImage.src = faces.shy;
+    let shyTimer = 0;
+    const setFace = shy => {
+        if (dent) { if (!shy || shyImage.complete && shyImage.naturalWidth) dent.setImage(shy ? shyImage : image); }
+        else image.src = shy ? faces.shy : faces.normal;
+    };
+    showZenniShy = (duration = 1800) => {
+        setFace(true);
+        clearTimeout(shyTimer);
+        shyTimer = setTimeout(() => setFace(false), duration);
+    };
+    let tickleIndex = -1;
+    body.addEventListener('pointerdown', event => {
+        showZenniShy();
+        const rect = body.getBoundingClientRect();
+        dent?.press((event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height);
+        tickleIndex = (tickleIndex + 1 + Math.floor(Math.random() * (ZENNI_TICKLES.length - 1))) % ZENNI_TICKLES.length;
+        bubble.classList.remove('is-giggling');
+        void bubble.offsetWidth;
+        bubble.classList.add('is-giggling');
+        say(ZENNI_TICKLES[tickleIndex], 1800);
+        sayLines(2600);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => body.addEventListener(type, () => dent?.release()));
+}
+
+// Draws Zenni's picture through a small WebGL shader. While pressed, the texture around the pressed point is pulled inward and shaded
+// like a hollow with a lit rim; on release the depth springs back past zero and settles. Returns null when WebGL is unavailable.
+function createZenniDent(canvas, image) {
+    const gl = canvas.getContext('webgl', { premultipliedAlpha: true, alpha: true });
+    if (!gl) return null;
+    const compile = (type, source) => {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
+    };
+    const vertex = compile(gl.VERTEX_SHADER, 'attribute vec2 p; varying vec2 v; void main(){ v = vec2(p.x * .5 + .5, .5 - p.y * .5); gl_Position = vec4(p, 0., 1.); }');
+    const fragment = compile(gl.FRAGMENT_SHADER, `precision mediump float;
+        uniform sampler2D t; uniform vec2 point; uniform float depth; uniform float aspect; varying vec2 v;
+        void main(){
+            vec2 d = v - point; d.x *= aspect;
+            float r = length(d);
+            float radius = .36;
+            float f = smoothstep(radius, 0., r);
+            vec2 uv = point + (v - point) * (1. + depth * .7 * f);
+            vec4 c = texture2D(t, uv);
+            float hollow = 1. - depth * .42 * f * f;
+            float rim = depth * .3 * smoothstep(radius, radius * .62, r) * smoothstep(radius * .25, radius * .62, r);
+            float light = .5 + .5 * dot(normalize(d + vec2(.0001)), vec2(-.55, -.83));
+            c.rgb = c.rgb * hollow + c.a * rim * light;
+            gl_FragColor = c;
+        }`);
+    if (!vertex || !fragment) return null;
+    const program = gl.createProgram();
+    gl.attachShader(program, vertex);
+    gl.attachShader(program, fragment);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return null;
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    const position = gl.getAttribLocation(program, 'p');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+    const uniforms = { point: gl.getUniformLocation(program, 'point'), depth: gl.getUniformLocation(program, 'depth'), aspect: gl.getUniformLocation(program, 'aspect') };
+    const state = { x: .5, y: .4, depth: 0, velocity: 0, target: 0, frame: 0, ready: false };
+
+    const draw = () => {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniform2f(uniforms.point, state.x, state.y);
+        gl.uniform1f(uniforms.depth, state.depth);
+        gl.uniform1f(uniforms.aspect, canvas.width / canvas.height);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    };
+    const setTexture = source => {
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+        if (state.ready) draw();
+    };
+    const upload = () => {
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(120 * ratio * 2);
+        canvas.height = Math.round(canvas.width * image.naturalHeight / image.naturalWidth);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+        gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        setTexture(image);
+        state.ready = true;
+        draw();
+    };
+    if (image.complete && image.naturalWidth) upload(); else image.addEventListener('load', upload, { once: true });
+
+    // Spring: pressed in quickly, released with a little overshoot (the surface bulges out slightly before settling).
+    const step = () => {
+        const stiffness = state.target ? 0.42 : 0.16, damping = state.target ? 0.55 : 0.78;
+        state.velocity = (state.velocity + (state.target - state.depth) * stiffness) * damping;
+        state.depth += state.velocity;
+        if (state.ready) draw();
+        const resting = Math.abs(state.target - state.depth) < 0.002 && Math.abs(state.velocity) < 0.002;
+        state.frame = resting ? 0 : requestAnimationFrame(step);
+        if (resting) { state.depth = state.target; if (state.ready) draw(); }
+    };
+    const run = () => { if (!state.frame) state.frame = requestAnimationFrame(step); };
+    return {
+        press(x, y) { state.x = clamp(x, 0, 1); state.y = clamp(y, 0, 1); state.target = 1; run(); },
+        release() { state.target = 0; run(); },
+        setImage(source) { if (state.ready) setTexture(source); },
+        preview(x, y, depth) { state.x = x; state.y = y; state.depth = depth; if (state.ready) draw(); }
+    };
+}
+
+// Shown between pressing 查看結果 and the report: a short "calculating" screen with Zenni, then the report cards rise into place like a projection.
+// The report itself is rendered underneath straight away; this only covers it and replays the entrance animations when it lifts.
+const REPORT_INTRO_STEPS = ['正在盤點任務工時', '正在計算 SCI 影分身指數', '正在比對六大情境', '正在配置影分身軍團'];
+let reportIntroTimers = [];
+let introFx = null;
+
+// The effect around Zenni on the intro screen, in the style of a game "skill" effect:
+//  - six ribbons of light spiral upward round the body in three layers: thin fast ones close in, broad slow ones far out;
+//  - each ribbon twists as it goes, so its width keeps changing, and its colour runs through a gradient from a pale head to nothing at the tail;
+//  - a circle on the floor under the feet, with rotating dashed rings and pulses that spread outward;
+//  - small motes of light drifting upward.
+// Everything is placed in 3D and projected by hand. Whatever is behind Zenni goes on the back canvas and whatever is nearer goes on the
+// front canvas, which is what makes the ribbons pass round the body. Positions depend only on the time, so any frame can be drawn on its own.
+function createIntroFx(backCanvas, frontCanvas) {
+    const back = backCanvas.getContext('2d'), front = frontCanvas.getContext('2d');
+    if (!back || !front) return null;
+    const TAU = Math.PI * 2, SCALE = 2.6;
+    const fract = value => ((value % 1) + 1) % 1;
+    const CYAN = [64, 196, 255], BLUE = [59, 107, 255], VIOLET = [130, 102, 255], PALE = [110, 212, 255], LILAC = [164, 142, 255];
+    let size = 0, unit = 0, center = 0, frame = 0, started = 0;
+    // radius and swell are in units of Zenni's box; width is the widest half-width in px at a 300px box; colours run head, middle, tail.
+    const ribbons = [
+        { radius: 0.19, swell: 0.13, width: 3.6, speed: 7.2, period: 1.9, span: 0.62, strength: 1, phase: 0, offset: 0, colors: [PALE, CYAN, BLUE] },
+        { radius: 0.19, swell: 0.13, width: 3.2, speed: 6.6, period: 2.1, span: 0.62, strength: 1, phase: 3.3, offset: 0.5, colors: [LILAC, VIOLET, BLUE] },
+        { radius: 0.3, swell: 0.2, width: 6.5, speed: 5.0, period: 2.5, span: 0.8, strength: 0.95, phase: 1.2, offset: 0.2, colors: [PALE, CYAN, VIOLET] },
+        { radius: 0.3, swell: 0.2, width: 6, speed: 4.6, period: 2.8, span: 0.8, strength: 0.95, phase: 4.4, offset: 0.7, colors: [LILAC, BLUE, CYAN] },
+        { radius: 0.46, swell: 0.24, width: 10, speed: 3.3, period: 3.4, span: 1.05, strength: 0.85, phase: 2.4, offset: 0.35, colors: [PALE, BLUE, VIOLET] },
+        { radius: 0.46, swell: 0.24, width: 9, speed: 3.0, period: 3.8, span: 1.05, strength: 0.85, phase: 5.6, offset: 0.85, colors: [LILAC, CYAN, BLUE] }
+    ];
+    const motes = Array.from({ length: 48 }, () => ({ angle: Math.random() * TAU, radius: 0.16 + Math.random() * 0.62, life: 1.6 + Math.random() * 2.2, seed: Math.random(), size: 0.8 + Math.random() * 2, violet: Math.random() < 0.4 }));
+
+    // 3D to screen: x right, y down, z toward the viewer. The view looks slightly down, so nearer points sit a little lower and larger.
+    const project = (x, y, z) => {
+        const scale = 1 + z / (unit * 2.6);
+        return { x: center + x * scale, y: center + (y + z * 0.3) * scale, z, scale };
+    };
+    const mix = (from, to, amount) => from.map((value, index) => Math.round(value + (to[index] - value) * amount));
+    // One sample of a ribbon, "along" (0 head, 1 tail) of the way down its trail. The ribbon climbs from the feet to above the head while
+    // circling, and its radius swells round the middle of the body. It also twists, which shows as the width narrowing and widening.
+    const ribbonSample = (ribbon, time, along) => {
+        const when = time - along * ribbon.span;
+        const height = fract(when / ribbon.period + ribbon.offset), angle = ribbon.phase + ribbon.speed * when;
+        const radius = unit * (ribbon.radius + ribbon.swell * Math.sin(Math.PI * height));
+        const sample = project(Math.cos(angle) * radius, unit * (0.42 - 0.94 * height), Math.sin(angle) * radius);
+        const twist = 0.22 + 0.78 * Math.abs(Math.sin(angle * 0.55 + ribbon.phase * 2));
+        sample.height = height;
+        sample.half = (ribbon.width * Math.pow(1 - along, 0.75) * twist + 0.2) * sample.scale * unit / 300;
+        sample.alpha = Math.pow(1 - along, 1.25) * Math.min(1, Math.sin(Math.PI * height) * 2.4) * ribbon.strength;
+        sample.color = along < 0.4 ? mix(ribbon.colors[0], ribbon.colors[1], along / 0.4) : mix(ribbon.colors[1], ribbon.colors[2], (along - 0.4) / 0.6);
+        return sample;
+    };
+    // One stretch of ribbon that stays on one side of Zenni, drawn as a single shape so there are no joints along it. Within such a stretch
+    // the ribbon travels steadily across the screen, so a left-to-right gradient can carry its colour and fade from sample to sample.
+    // It is filled several times, wider and fainter each time, which gives soft edges instead of a hard outline.
+    const drawStretch = (context, samples, dim) => {
+        const first = samples[0], last = samples[samples.length - 1], width = last.x - first.x;
+        if (samples.length < 2 || Math.abs(width) < 0.5) return;
+        const stops = [];
+        let previous = 0;
+        for (const sample of samples) {
+            previous = Math.max(previous, Math.min(1, (sample.x - first.x) / width));
+            stops.push([previous, sample]);
+        }
+        for (const [spread, opacity] of [[2.8, 0.14], [1.5, 0.32], [1, 0.6], [0.55, 0.7]]) {
+            const gradient = context.createLinearGradient(first.x, 0, last.x, 0);
+            for (const [position, sample] of stops) gradient.addColorStop(position, `rgba(${sample.color.join(', ')}, ${(sample.alpha * opacity * dim).toFixed(3)})`);
+            context.fillStyle = gradient;
+            context.beginPath();
+            samples.forEach((sample, index) => context[index ? 'lineTo' : 'moveTo'](sample.x, sample.y - sample.half * spread));
+            for (let index = samples.length - 1; index >= 0; index--) context.lineTo(samples[index].x, samples[index].y + samples[index].half * spread);
+            context.fill();
+        }
+    };
+    const drawRibbon = (ribbon, time) => {
+        const steps = 72;
+        let stretch = [], nearer = null, previous = null;
+        const flush = () => { if (stretch.length > 1) drawStretch(nearer ? front : back, stretch, nearer ? 1 : 0.6); };
+        for (let index = 0; index <= steps; index++) {
+            const sample = ribbonSample(ribbon, time, index / steps);
+            // Going down the trail the ribbon gets lower; if it is suddenly higher it has wrapped from the feet to the top, so start afresh.
+            const wrapped = previous && sample.height > previous.height;
+            const side = sample.z > 0;
+            if (wrapped) { flush(); stretch = []; }
+            else if (nearer !== null && side !== nearer && stretch.length) { stretch.push(sample); flush(); stretch = []; }
+            stretch.push(sample);
+            nearer = side; previous = sample;
+        }
+        flush();
+        // The head: a small bright ball with a halo in the ribbon's colour.
+        const head = ribbonSample(ribbon, time, 0), context = head.z > 0 ? front : back;
+        const strength = head.alpha * (head.z > 0 ? 1 : 0.5), radius = (6 + ribbon.width * 1.1) * head.scale * unit / 300;
+        const halo = context.createRadialGradient(head.x, head.y, 0, head.x, head.y, radius);
+        halo.addColorStop(0, `rgba(255, 255, 255, ${(0.95 * strength).toFixed(3)})`);
+        halo.addColorStop(0.25, `rgba(${ribbon.colors[0].join(', ')}, ${(0.8 * strength).toFixed(3)})`);
+        halo.addColorStop(1, `rgba(${ribbon.colors[1].join(', ')}, 0)`);
+        context.fillStyle = halo;
+        context.beginPath(); context.arc(head.x, head.y, radius, 0, TAU); context.fill();
+    };
+
+    const drawFloor = time => {
+        back.save();
+        back.translate(center, center + unit * 0.42);
+        back.scale(1, 0.3);
+        const glow = back.createRadialGradient(0, 0, 0, 0, 0, unit * 0.82);
+        glow.addColorStop(0, 'rgba(64, 196, 255, .36)'); glow.addColorStop(0.5, 'rgba(92, 59, 255, .12)'); glow.addColorStop(1, 'rgba(92, 59, 255, 0)');
+        back.fillStyle = glow;
+        back.beginPath(); back.arc(0, 0, unit * 0.82, 0, TAU); back.fill();
+        const ring = (radius, width, style, dash, offset) => {
+            back.lineWidth = width; back.strokeStyle = style;
+            back.setLineDash(dash || []); back.lineDashOffset = offset || 0;
+            back.beginPath(); back.arc(0, 0, unit * radius, 0, TAU); back.stroke();
+        };
+        ring(0.74, 1.5, 'rgba(59, 107, 255, .28)');
+        ring(0.68, 4, 'rgba(64, 196, 255, .3)', [unit * 0.012, unit * 0.06], time * unit * 0.2);
+        ring(0.58, 2, 'rgba(59, 107, 255, .5)');
+        ring(0.48, 6, 'rgba(130, 102, 255, .45)', [unit * 0.13, unit * 0.07], -time * unit * 0.55);
+        ring(0.37, 2.5, 'rgba(64, 196, 255, .6)', [unit * 0.02, unit * 0.03], time * unit * 0.32);
+        ring(0.26, 1.5, 'rgba(130, 102, 255, .4)');
+        for (const shift of [0, 1 / 3, 2 / 3]) {
+            const pulse = fract(time / 1.8 + shift);
+            ring(0.1 + 0.72 * pulse, 5 * (1 - pulse) + 1, `rgba(64, 196, 255, ${(0.5 * (1 - pulse)).toFixed(3)})`);
+        }
+        back.setLineDash([]);
+        back.restore();
+    };
+    const drawMotes = time => {
+        for (const mote of motes) {
+            const life = fract(time / mote.life + mote.seed), angle = mote.angle + time * 0.7;
+            const point = project(Math.cos(angle) * unit * mote.radius, unit * (0.42 - 1.05 * life), Math.sin(angle) * unit * mote.radius);
+            const context = point.z > 0 ? front : back;
+            context.fillStyle = `rgba(${mote.violet ? '130, 102, 255' : '64, 196, 255'}, ${(Math.sin(Math.PI * life) * 0.8).toFixed(3)})`;
+            context.beginPath(); context.arc(point.x, point.y, mote.size * point.scale * unit / 300, 0, TAU); context.fill();
+        }
+    };
+    const draw = ms => {
+        const time = ms / 1000;
+        if (!size) return;
+        back.clearRect(0, 0, size, size); front.clearRect(0, 0, size, size);
+        drawFloor(time);
+        drawMotes(time);
+        ribbons.forEach(ribbon => drawRibbon(ribbon, time));
+    };
+    // Both canvases are SCALE times the width of Zenni's box and centred on it.
+    const resize = () => {
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        size = backCanvas.clientWidth; unit = size / SCALE; center = size / 2;
+        [[backCanvas, back], [frontCanvas, front]].forEach(([canvas, context]) => {
+            canvas.width = canvas.height = Math.round(size * ratio);
+            context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        });
+    };
+    const loop = now => { draw(now - started); frame = requestAnimationFrame(loop); };
+    return {
+        start() { resize(); cancelAnimationFrame(frame); started = performance.now(); draw(0); frame = requestAnimationFrame(loop); },
+        stop() { cancelAnimationFrame(frame); frame = 0; },
+        still(ms) { resize(); draw(ms); }
+    };
+}
+
+// Works out, for each report card, where it has to move to during the hand-out animation and stores the result as CSS variables.
+// Cards scale from the middle of their right edge, so a card of width W at scale s has its centre W * s / 2 to the left of that point.
+function placeReportHandout(deck) {
+    const core = document.querySelector('.report-intro__core').getBoundingClientRect();
+    const area = deck.getBoundingClientRect();
+    const fan = [{ x: -0.13, y: 0.03, turn: -16 }, { x: 0, y: -0.03, turn: -3 }, { x: 0.13, y: 0.02, turn: 11 }];
+    deck.querySelectorAll('.report-card').forEach(card => {
+        const pos = Number(card.dataset.pos) || 0;
+        const cardWidth = card.offsetWidth;
+        const anchorX = area.left + card.offsetLeft + cardWidth, anchorY = area.top + card.offsetTop + card.offsetHeight / 2;
+        const move = (x, y, scale) => [x - anchorX + cardWidth * scale / 2, y - anchorY];
+        // In Zenni's raised hand: three small cards fanned out just above it.
+        const handScale = core.width * 0.36 / cardWidth;
+        const hand = move(core.left + core.width * (0.27 + fan[pos].x), core.top + core.width * (0.2 + fan[pos].y), handScale);
+        // Side by side across the screen, then gathered at the centre.
+        const row = move(area.left + area.width * [0.18, 0.5, 0.82][pos], area.top + area.height / 2, 0.29);
+        const gather = move(area.left + area.width / 2 + pos * 14, area.top + area.height / 2, 0.4);
+        const set = (name, value) => card.style.setProperty(name, value);
+        set('--hand-x', `${hand[0]}px`); set('--hand-y', `${hand[1]}px`); set('--hand-scale', handScale); set('--hand-turn', `${fan[pos].turn}deg`);
+        set('--row-x', `${row[0]}px`); set('--row-y', `${row[1]}px`);
+        set('--gather-x', `${gather[0]}px`); set('--gather-y', `${gather[1]}px`);
+    });
+}
+
+function playReportIntro() {
+    const intro = document.getElementById('report-intro');
+    const deck = document.getElementById('report-deck');
+    if (!intro || !deck || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    reportIntroTimers.forEach(clearTimeout);
+    reportIntroTimers = [];
+    const status = document.getElementById('report-intro-status');
+    const later = (ms, fn) => reportIntroTimers.push(setTimeout(fn, ms));
+    intro.hidden = false;
+    introFx = introFx || createIntroFx(document.getElementById('report-intro-fx-back'), document.getElementById('report-intro-fx-front'));
+    introFx?.start();
+    intro.classList.remove('is-done', 'is-leaving', 'is-stage');
+    deck.classList.remove('is-projecting');
+    document.body.classList.remove('report-staging');
+    void intro.offsetWidth;
+    intro.classList.add('is-active');
+    REPORT_INTRO_STEPS.forEach((text, index) => later(index * 650, () => { status.textContent = text; }));
+    // Desktop: when the report is done the three report cards appear, small, in Zenni's raised hand. The deck is raised above the intro screen
+    // so the real cards can fly out of it, line up side by side and then stack, while Zenni and the rings fade away behind them.
+    const staged = matchMedia('(min-width: 801px)').matches;
+    const done = 2600;
+    // Show every card's content, not only the front one, well before the cards start moving so nothing repaints mid-flight.
+    if (staged) later(600, () => document.querySelectorAll('#step-4 .reveal').forEach(element => element.classList.add('is-inview')));
+    const replayReport = () => {
+        animateSciJourney();
+        document.querySelectorAll('#step-4 .reveal').forEach(element => element.classList.remove('is-inview'));
+        setTimeout(checkReveals, 500);
+    };
+    const finish = () => {
+        introFx?.stop();
+        intro.hidden = true;
+        intro.classList.remove('is-active', 'is-done', 'is-leaving', 'is-stage');
+    };
+    later(done, () => {
+        status.textContent = '報告完成！';
+        intro.classList.add('is-done');
+        if (!staged) return;
+        placeReportHandout(deck);
+        document.body.classList.add('report-staging');
+        deck.classList.add('is-projecting');
+    });
+    if (staged) {
+        later(done + 850, () => intro.classList.add('is-stage'));
+        // Zenni and the effect have faded out by now, so stop drawing it while the cards are moving.
+        later(done + 1400, () => introFx?.stop());
+        later(done + 2500, () => intro.classList.add('is-leaving'));
+        later(done + 3300, replayReport);
+        later(done + 3500, finish);
+        later(done + 3900, () => {
+            deck.classList.remove('is-projecting');
+            document.body.classList.remove('report-staging');
+        });
+    } else {
+        later(done + 700, () => {
+            deck.classList.add('is-projecting');
+            intro.classList.add('is-leaving');
+            replayReport();
+        });
+        later(done + 1300, finish);
+        later(done + 2600, () => deck.classList.remove('is-projecting'));
+    }
 }
 
 function setResultSectionsHidden(hidden) {
@@ -3432,6 +3845,7 @@ function shakeInvalid() {
     const targets = [...document.querySelectorAll('.step:not([hidden]) .field-error')].filter(element => element.offsetParent);
     if (!elements.navigation.hidden) targets.push(elements.nextButton);
     else if (assessmentState.currentStep === 3) targets.push(elements.step3Next);
+    showZenniShy(2200);
     targets.forEach(element => {
         element.classList.remove('is-shaking');
         void element.offsetWidth;
@@ -3750,6 +4164,7 @@ function describeClick(target) {
     if ((el = pick('.recipe-detail > summary'))) return ['展開任務細項', el.closest('[data-recipe-card]')?.dataset.recipeCard || ''];
     if ((el = pick('#consent-detail-button'))) return ['查看蒐集說明'];
     if ((el = pick('#start-assessment'))) return ['開始測驗'];
+    if ((el = pick('#zenni-body'))) return ['戳 Zenni'];
     return null;
 }
 

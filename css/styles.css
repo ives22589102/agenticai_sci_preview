@@ -1342,6 +1342,94 @@ button.scenario-card__grade:focus-visible { outline: 3px solid #fff; outline-off
 @media (prefers-reduced-motion: reduce) { .persona-art__blob { transition: none; } }
 @media (max-width: 540px) { .persona-art { right: 8px; top: 50%; height: 84px; margin-top: -42px; } .persona-card { padding-right: 104px; } }
 
+/* Zenni, part 1: a quick hello from the right edge of the window, once. */
+.zenni-edge { position: fixed; right: 0; top: 42%; z-index: 60; display: flex; flex-direction: row-reverse; align-items: center; gap: 4px; pointer-events: none; user-select: none; visibility: hidden; transform: translateX(105%); }
+.zenni-edge.is-peeking { visibility: visible; animation: zenni-slide-right 4.8s cubic-bezier(.4, 0, .2, 1) both; }
+.zenni-edge__body { display: block; width: 118px; margin-right: -14px; }
+.zenni-edge__wobble { display: block; transform: rotate(-90deg); }
+.zenni-edge.is-peeking .zenni-edge__wobble { animation: zenni-wobble-right 1.6s ease-in-out .5s 1; }
+.zenni-edge__body img { display: block; width: 100%; height: auto; filter: drop-shadow(0 6px 12px rgba(37, 62, 236, .28)); }
+.zenni-edge__bubble, .zenni-corner__bubble { position: relative; max-width: 240px; margin: 0; padding: 10px 16px; border: 1.5px solid #cfd9ff; border-radius: 18px; background: #fff; color: var(--navy); font-size: 15px; font-weight: 600; line-height: 1.55; box-shadow: 0 12px 26px -14px rgba(37, 62, 236, .55); }
+.zenni-edge__bubble { opacity: 0; }
+.zenni-edge__bubble::before { content: ""; position: absolute; top: 50%; right: -7px; width: 12px; height: 12px; margin-top: -6px; border: 1.5px solid #cfd9ff; border-width: 0 0 1.5px 1.5px; background: #fff; transform: rotate(-135deg); }
+.zenni-edge.is-peeking .zenni-edge__bubble { animation: zenni-bubble 4.8s ease both; }
+.zenni-edge__bubble { width: max-content; }
+@keyframes zenni-slide-right { 0%, 100% { transform: translateX(105%); } 14%, 84% { transform: translateX(0); } }
+@keyframes zenni-wobble-right { 0%, 100% { transform: rotate(-90deg); } 30% { transform: rotate(-82deg); } 65% { transform: rotate(-98deg); } }
+@keyframes zenni-bubble { 0%, 16% { opacity: 0; scale: .7; } 24%, 78% { opacity: 1; scale: 1; } 84%, 100% { opacity: 0; scale: .8; } }
+
+/* Zenni, part 2: it then settles in the bottom-right corner for good, hands on the bottom edge of the window. Poking it dents it where it was pressed (drawn in WebGL). */
+.zenni-corner { position: fixed; right: -24px; bottom: 0; z-index: 60; pointer-events: none; user-select: none; visibility: hidden; transform: translateY(108%); transition: transform .8s cubic-bezier(.3, 1.4, .5, 1), visibility 0s .8s; }
+.zenni-corner.is-in { visibility: visible; transform: translateY(4%); transition: transform .8s cubic-bezier(.3, 1.4, .5, 1), visibility 0s; }
+.zenni-corner__body { position: relative; display: block; width: 120px; padding: 0; border: 0; background: none; pointer-events: auto; touch-action: manipulation; filter: drop-shadow(0 -4px 12px rgba(37, 62, 236, .22)); transition: scale .25s var(--ease); transform-origin: 50% 100%; }
+.zenni-corner__body:hover { scale: 1.05; }
+.zenni-corner__body img, .zenni-corner__body canvas { display: block; width: 100%; height: auto; }
+.zenni-corner__body canvas { position: absolute; inset: 0; height: 100%; display: none; }
+.zenni-corner.has-webgl .zenni-corner__body canvas { display: block; }
+.zenni-corner.has-webgl .zenni-corner__body img { visibility: hidden; }
+.zenni-corner:not(.has-webgl) .zenni-corner__body:active { scale: .9 .82; }
+.zenni-corner__bubble { position: absolute; right: 104px; bottom: 74px; width: max-content; opacity: 0; scale: .7; transform-origin: 100% 100%; transition: opacity .3s, scale .35s cubic-bezier(.3, 1.5, .5, 1); }
+.zenni-corner__bubble::before { content: ""; position: absolute; right: 18px; bottom: -7px; width: 12px; height: 12px; border: 1.5px solid #cfd9ff; border-width: 0 1.5px 1.5px 0; background: #fff; transform: rotate(45deg); }
+.zenni-corner__bubble.is-talking { opacity: 1; scale: 1; }
+.zenni-corner__bubble.is-giggling { animation: zenni-giggle .45s ease; }
+@keyframes zenni-giggle { 0%, 100% { translate: 0; rotate: 0deg; } 20% { translate: -3px -2px; rotate: -3deg; } 40% { translate: 3px 1px; rotate: 3deg; } 60% { translate: -2px 1px; rotate: -2deg; } 80% { translate: 2px 0; rotate: 1deg; } }
+body.landing-active .zenni-edge, body.landing-active .zenni-corner { display: none; }
+@media (max-width: 800px) { .zenni-edge, .zenni-corner { display: none; } }
+@media (prefers-reduced-motion: reduce) { .zenni-corner, .zenni-corner.is-in { transition: none; } }
+
+/* Report intro: a light screen with Zenni inside three spinning rings of light, over a perspective grid, while the result is "calculated". */
+.report-intro { position: fixed; inset: 0; z-index: 120; display: grid; place-content: center; justify-items: center; gap: 18px; background: radial-gradient(ellipse at 50% 42%, #ffffff 0, #f1f5ff 46%, #dfe8ff 100%); color: var(--navy); opacity: 0; transition: opacity .35s; overflow: hidden; }
+.report-intro.is-active { opacity: 1; }
+.report-intro.is-leaving { opacity: 0; transition: opacity .6s; }
+.report-intro__grid { position: absolute; left: -20%; right: -20%; bottom: -8%; height: 62%; background: linear-gradient(rgba(60, 100, 230, .2) 1px, transparent 1px) 0 0 / 100% 44px, linear-gradient(90deg, rgba(60, 100, 230, .2) 1px, transparent 1px) 0 0 / 64px 100%; transform: perspective(520px) rotateX(64deg); transform-origin: 50% 100%; -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 92%); mask-image: linear-gradient(to top, #000 10%, transparent 92%); animation: intro-grid 1.6s linear infinite; }
+.report-intro__core, .report-intro__status, .report-intro__bar, .report-intro__grid { transition: opacity .5s; }
+.report-intro.is-stage .report-intro__core, .report-intro.is-stage .report-intro__status, .report-intro.is-stage .report-intro__bar, .report-intro.is-stage .report-intro__grid { opacity: 0; }
+.report-intro.is-stage.is-leaving { transition: opacity .9s; }
+.report-intro__core, .report-intro__status, .report-intro__bar { z-index: 1; }
+/* The effect around Zenni is drawn on two canvases by createIntroFx(): one behind the mascot and one in front of it. */
+.report-intro__fx { position: absolute; left: -80%; top: -80%; width: 260%; height: 260%; pointer-events: none; }
+.report-intro__fx--front { z-index: 2; }
+.report-intro__core { position: relative; display: grid; place-items: center; width: min(46vw, 300px); aspect-ratio: 1; }
+.report-intro__zenni { position: relative; grid-area: 1 / 1; width: auto; height: 62%; filter: drop-shadow(0 14px 26px rgba(37, 62, 236, .28)); animation: intro-float 2.4s ease-in-out infinite; transition: opacity .35s, transform .45s var(--ease); }
+.report-intro__zenni--done { opacity: 0; transform: scale(.7); }
+.report-intro.is-done .report-intro__zenni--work { opacity: 0; transform: scale(.7); }
+.report-intro.is-done .report-intro__zenni--done { opacity: 1; transform: scale(1.06); }
+.report-intro__status { position: relative; margin: 0; font-size: clamp(18px, 2vw, 24px); font-weight: 600; letter-spacing: .08em; }
+.report-intro__status::after { content: "…"; }
+.report-intro.is-done .report-intro__status::after { content: ""; }
+.report-intro__bar { position: relative; width: min(60vw, 340px); height: 6px; border-radius: 6px; background: #d9e2f6; overflow: hidden; }
+.report-intro__bar i { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #40c4ff, #8266ff); }
+.report-intro.is-active .report-intro__bar i { animation: intro-bar 2.6s cubic-bezier(.3, .6, .3, 1) forwards; }
+@keyframes intro-spin { to { transform: rotate(360deg); } }
+@keyframes intro-float { 50% { translate: 0 -8px; } }
+@keyframes intro-grid { to { background-position: 0 44px, 0 0; } }
+@keyframes intro-bar { to { width: 100%; } }
+
+/* When the intro finishes, the three report cards appear small in Zenni's raised hand, fly out to sit side by side, then gather into the stack
+   and grow to their final place. Positions come from placeReportHandout() as CSS variables (--hand-*, --row-*, --gather-*). */
+@media (min-width: 801px) {
+    body.report-staging #step-4 { animation: none; }
+    body.report-staging .report-deck { z-index: 130; }
+    /* Each card is promoted to its own layer and only transform and opacity change, so the flight is handled by the compositor without repainting. */
+    .report-deck.is-projecting .report-card { animation: hand-out 3.6s cubic-bezier(.4, 0, .2, 1) both; will-change: transform, opacity; backface-visibility: hidden; transition: none; box-shadow: 0 50px 80px -30px rgba(19, 62, 212, .5); }
+    .report-deck.is-projecting .report-card[data-pos="1"] { animation-delay: .07s; }
+    .report-deck.is-projecting .report-card[data-pos="2"] { animation-delay: .14s; }
+    .report-deck.is-projecting .report-card > * { animation: deal-content 3.6s ease both; }
+    .report-deck.is-projecting .deck-arrow { animation: holo-fade .6s ease-out 3.4s both; }
+    body:has(.report-deck.is-projecting) .result-actions, body:has(.report-deck.is-projecting) .deck-dots { animation: holo-fade .6s ease-out 3.3s both; }
+}
+@media (max-width: 800px) { .report-deck.is-projecting { animation: holo-fade .7s ease-out both; } }
+/* Timeline: 0-7% pop into the hand, 11-24% held there, 24-50% fly out to the row, 50-60% side by side, 60-76% gather, 76-100% grow into place. */
+@keyframes hand-out {
+    0% { opacity: 0; transform: translate(var(--hand-x), var(--hand-y)) scale(.01) rotate(var(--hand-turn)); }
+    7% { opacity: 1; transform: translate(var(--hand-x), var(--hand-y)) scale(calc(var(--hand-scale) * 1.14)) rotate(var(--hand-turn)); }
+    11%, 24% { opacity: 1; transform: translate(var(--hand-x), var(--hand-y)) scale(var(--hand-scale)) rotate(var(--hand-turn)); animation-timing-function: cubic-bezier(.6, 0, .15, 1); }
+    50%, 60% { opacity: 1; transform: translate(var(--row-x), var(--row-y)) scale(.29) rotate(0deg); animation-timing-function: cubic-bezier(.6, 0, .2, 1); }
+    76% { opacity: 1; transform: translate(var(--gather-x), var(--gather-y)) scale(.4) rotate(0deg); animation-timing-function: cubic-bezier(.3, 0, .2, 1); }
+}
+@keyframes deal-content { 0%, 70% { opacity: 1; } }
+@keyframes holo-fade { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
 @media (min-width: 1500px) { .landing-title--primary { top: 15%; } .landing-title--secondary { top: 49%; } }
 @media (max-width: 1150px) {
     .brand-header__inner, .page-shell { width: calc(100% - 64px); }

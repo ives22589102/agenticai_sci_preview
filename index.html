@@ -29,7 +29,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=6.26.1">
+    <link rel="stylesheet" href="css/styles.css?v=6.40.0">
 </head>
 <body class="landing-active">
     <h1 class="visually-hidden">SCI 影分身戰力解析｜ASUS Agent Computer</h1>
@@ -283,6 +283,32 @@
         </div>
     </main>
 
+
+    <div class="zenni-edge" id="zenni-edge" aria-hidden="true">
+        <span class="zenni-edge__body"><span class="zenni-edge__wobble"><img src="img/zenni/zenni-peek.webp" width="260" height="252" alt=""></span></span>
+        <p class="zenni-edge__bubble">嗨！我是 Zenni～<br>歡迎來到華碩影分身戰力解析</p>
+    </div>
+
+    <div class="zenni-corner" id="zenni-corner">
+        <p class="zenni-corner__bubble" id="zenni-bubble" aria-live="polite"></p>
+        <button class="zenni-corner__body" type="button" id="zenni-body" aria-label="戳一下 Zenni">
+            <img id="zenni-image" src="img/zenni/zenni-peek.webp" width="260" height="252" alt="">
+            <canvas id="zenni-canvas" width="260" height="252" aria-hidden="true"></canvas>
+        </button>
+    </div>
+
+    <div class="report-intro" id="report-intro" role="status" aria-live="polite" hidden>
+        <div class="report-intro__grid" aria-hidden="true"></div>
+        <div class="report-intro__core" aria-hidden="true">
+            <canvas class="report-intro__fx" id="report-intro-fx-back"></canvas>
+            <img class="report-intro__zenni report-intro__zenni--work" src="img/zenni/zenni-tablet.webp" width="274" height="420" alt="">
+            <img class="report-intro__zenni report-intro__zenni--done" src="img/zenni/zenni-wave.webp" width="316" height="420" alt="">
+            <canvas class="report-intro__fx report-intro__fx--front" id="report-intro-fx-front"></canvas>
+        </div>
+        <p class="report-intro__status" id="report-intro-status">正在盤點任務工時</p>
+        <div class="report-intro__bar" aria-hidden="true"><i></i></div>
+    </div>
+
     <div class="modal" id="modal" hidden>
         <div class="modal__backdrop" data-close-modal></div>
         <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
@@ -292,6 +318,6 @@
     </div>
 
     <script src="js/workflow-data.js?v=3.5.0"></script>
-    <script src="js/app.js?v=5.27.0"></script>
+    <script src="js/app.js?v=5.40.1"></script>
 </body>
 </html>
