@@ -2254,7 +2254,7 @@ function renderMetricHighlights(result) {
         </article>
 ${showsCloudTokens(result, factor) ? `<article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('zap')}</span>
-            <div><span>${team ? '團隊每月少用雲端' : '每月少用雲端'}</span><strong>${formatTokens(result.tokens.savedMonthly * factor)}</strong><span class="impact-hero__unit">Token，約省 ${formatCurrency(result.tokens.savedMonthlyTwd * factor)}</span></div>
+            <div><span>${team ? '團隊改用地端，每月省下' : '改用地端，每月省下'}</span><strong>${formatCurrency(result.tokens.savedMonthlyTwd * factor)}</strong><span class="impact-hero__unit">約 ${formatTokens(result.tokens.savedMonthly * factor)} 雲端 Token 費用</span></div>
         </article>` : ''}
         ${team ? `<p class="impact-team-note">以 ${teamView.size} 人、每人工作量與你相近推估，實際效益依各自工作內容而定。</p>` : ''}`;
 }
@@ -3385,13 +3385,13 @@ async function createReportBlobV2(result) {
     const metrics = [
         ['釋放工時', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
         ['工時價值', formatCurrency(result.cost.laborSavedMonthlyTwd)],
-        ['每月少用雲端', formatTokens(result.tokens.savedMonthly)]
+        ['改用地端，每月省下', formatCurrency(result.tokens.savedMonthlyTwd)]
     ].filter((metric, index) => index < 2 || showsCloudTokens(result));
     metrics.forEach((metric, index) => {
         const x = metricStart + index * 164;
         label(metric[0], x, y + 44);
         wrapCanvasText(ctx, metric[1], x, y + 84, 146, 29, 2, `800 25px ${font}`, colors.text);
-        if (index === 2) canvasText(ctx, `Token，約省 ${formatCurrency(result.tokens.savedMonthlyTwd)}`, x, y + 139, `600 10px ${font}`, colors.muted);
+        if (index === 2) canvasText(ctx, `約 ${formatTokens(result.tokens.savedMonthly)} 雲端 Token 費用`, x, y + 139, `600 10px ${font}`, colors.muted);
     });
 
     y += 220;
@@ -3527,7 +3527,7 @@ async function createReportBlob(result) {
     const reportMetrics = [
         ['釋放工時', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
         ['工時價值', formatCurrency(result.cost.laborSavedMonthlyTwd)],
-        ['每月少用雲端', formatTokens(result.tokens.savedMonthly), `Token，約省 ${formatCurrency(result.tokens.savedMonthlyTwd)}`]
+        ['改用地端，每月省下', formatCurrency(result.tokens.savedMonthlyTwd), `約 ${formatTokens(result.tokens.savedMonthly)} 雲端 Token 費用`]
     ].filter((metric, index) => index < 2 || showsCloudTokens(result));
     reportMetrics.forEach((metric, index) => {
         const x = metricX + index * 168;
