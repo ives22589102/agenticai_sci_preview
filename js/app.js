@@ -232,8 +232,8 @@ const hardwareCatalog = Object.freeze({
         label: 'A 級影分身戰力',
         strength: Object.freeze({ grade: 'A', meter: 20, label: '初階協作', capacity: '適合日常內容、文件與單一工作流', description: '從地端文件整理、內容生成與一般資料工作開始建立影分身流程。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'Agent Pioneer-A', mb: 'AMD B850', cpu: 'AMD Ryzen 7 9700X', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '64GB（32GB×2）DDR5 6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'ASUS PRIME AP303', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 850W 金牌' }),
-            Object.freeze({ name: 'Agent Pioneer-I', mb: 'Intel B860', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '64GB（32GB×2）DDR5 6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'ASUS PRIME AP303', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 850W 金牌' })
+            Object.freeze({ name: 'Agent Pioneer-A', mb: 'AMD B850', cpu: 'AMD Ryzen 7 9700X', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '64GB（32GB×2）DDR5 6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 850W 金牌' }),
+            Object.freeze({ name: 'Agent Pioneer-I', mb: 'Intel B860', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '64GB（32GB×2）DDR5 6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 850W 金牌' })
         ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 7 9000 系列', intel: 'Intel Core Ultra 7 桌上型處理器（系列 2）' },
@@ -245,8 +245,8 @@ const hardwareCatalog = Object.freeze({
         label: 'A+ 級影分身戰力',
         strength: Object.freeze({ grade: 'A+', meter: 40, label: '進階協作', capacity: '適合多項內容與資料工作流', description: '提供更多顯示記憶體、系統記憶體與多工具並行空間。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'Agent Professional-A', mb: 'AMD X870', cpu: 'AMD Ryzen 9 9900X', gpu: 'AMD Radeon AI PRO R9700 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
-            Object.freeze({ name: 'Agent Professional-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
+            Object.freeze({ name: 'Agent Professional-A', mb: 'AMD X870', cpu: 'AMD Ryzen 9 9900X', gpu: 'AMD Radeon AI PRO R9700 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'ROG Strix Helios II', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
+            Object.freeze({ name: 'Agent Professional-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'ROG Strix Helios II', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
             Object.freeze({ name: 'ASUS／ROG NUC', mb: '整合式系統', cpu: 'Intel Core Ultra 9', gpu: 'NVIDIA GeForce RTX 5070 Laptop GPU 12GB GDDR7', ram: '16GB DDR5-6400 CSO-DIMM×2', ssd: '1TB M.2 2280 NVMe PCIe 4.0 SSD', case: '整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '整合式系統' })
         ]),
         components: Object.freeze({
@@ -259,7 +259,7 @@ const hardwareCatalog = Object.freeze({
         label: 'S 級影分身戰力',
         strength: Object.freeze({ grade: 'S', meter: 60, label: '高效協作', capacity: '適合高負載創作與多流程持續運行', description: '以 RTX 5090 級顯示卡與高階桌上型平台承接高負載地端模型及創作流程。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'Agent Master-A', mb: 'AMD X870E', cpu: 'AMD Ryzen 9 9950X', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Cronox ARGB', cooling: 'ProArt LC 420', psu: 'ROG THOR III 1200W' }),
+            Object.freeze({ name: 'Agent Master-A', mb: 'AMD X870E', cpu: 'AMD Ryzen 9 9950X', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'ProArt LC 420', psu: 'ROG THOR III 1200W' }),
             Object.freeze({ name: 'Agent Master-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 9 285K', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB（32GB×4）DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Cronox ARGB', cooling: 'ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III 1200W' })
         ]),
         components: Object.freeze({
@@ -1711,8 +1711,10 @@ function renderResult() {
         ? clamp((result.time.currentHoursMonthly - result.time.targetHoursMonthly) / result.time.currentHoursMonthly * 100, 0, 100)
         : 0;
     const targetScore = Math.round(result.sci.target);
-    const targetDescription = `<span class="sci-line">${getSciNarrative(result.sci.target, 'target')}</span><span class="sci-line">導入後可承接約 <strong>${targetScore}% 的全人工工作量</strong>。</span><span class="sci-line">相較目前，預估可釋放約 <strong>${formatPercent(workHourReleaseRate)}% 的現行人工工時</strong>。</span>`;
+    const targetDescription = `<span class="sci-line">${getSciNarrative(result.sci.target, 'target')}</span><span class="sci-line">導入後可承接約 <strong>${targetScore}% 的全人工工作量</strong>。</span><span class="sci-line">相較目前，預估可省下約 <strong>${formatPercent(workHourReleaseRate)}% 的現行人工工時</strong>。</span>`;
     document.getElementById('sci-gap').textContent = `+${Math.round(result.sci.gap)} 點`;
+    // The line under the two scores ties the target SCI to the grade of device it takes, and jumps to the device card.
+    document.getElementById('device-bridge-text').innerHTML = `要達到 SCI <b>${Math.round(result.sci.target)}</b>，你需要 <b>${result.recommendation.grade} 級戰力</b>的 Agent Computer`;
     document.getElementById('current-sci-card').innerHTML = renderSciCard('目前 SCI', result.sci.current, getSciLevel(result.sci.current), getSciNarrative(result.sci.current, 'current'), 'current', 0);
     document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', result.sci.target, '建立本次影分身流程後', targetDescription, 'target', result.sci.current);
     resetTeamView(result);
@@ -2240,23 +2242,31 @@ function getSciNarrative(score, variant) {
 
 const TEAM_RANGES = Object.freeze({ '2-5': [2, 5], '6+': [6, null], '6-25': [6, 25], '26-50': [26, 50], '50+': [50, null] });
 
+// Saved time as whole 8-hour working days ("約 170 個工作天"); under one day it is shown in hours instead.
+function formatWorkDays(hours) {
+    const days = hours / 8;
+    return days >= 1 ? `約 ${new Intl.NumberFormat('zh-TW').format(Math.round(days))} 個工作天` : `約 ${formatHours(hours)} ${getTimeUnit()}`;
+}
+
 function renderMetricHighlights(result) {
     const team = teamView.active && Boolean(getTeamBounds(result));
     const factor = team ? teamView.size : 1;
+    const savedHours = team ? result.taskResults.reduce((sum, task) => sum + task.savedMonthlyMinutes, 0) / 60 * factor : result.time.savedHoursMonthly;
     return `
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('clock')}</span>
-            <div><span>${team ? '團隊釋放工時' : '釋放工時'}</span><strong>${formatHours(team ? result.taskResults.reduce((sum, task) => sum + task.savedMonthlyMinutes, 0) / 60 * factor : result.time.savedHoursMonthly)} ${getTimeUnit()}</strong></div>
+            <div><span>${team ? '每月替團隊省下' : '每月替你省下'}</span><strong>${formatWorkDays(savedHours)}</strong></div>
         </article>
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('receipt')}</span>
-            <div><span>${team ? '團隊工時價值' : '工時價值'}</span><strong>${formatCurrency(result.cost.laborSavedMonthlyTwd * factor)}</strong></div>
+            <div><span>省下的工作天價值等同</span><strong>${formatCurrency(result.cost.laborSavedMonthlyTwd * factor)}</strong></div>
         </article>
-${showsCloudTokens(result, factor) ? `<article class="impact-hero">
+        ${showsCloudTokens(result, factor) ? `<article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('zap')}</span>
-            <div><span>${team ? '團隊改用地端，每月省下' : '改用地端，每月省下'}</span><strong>${formatCurrency(result.tokens.savedMonthlyTwd * factor)}</strong><span class="impact-hero__unit">約 ${formatTokens(result.tokens.savedMonthly * factor)} 雲端 Token 費用</span></div>
+            <div><span>改用地端，每月省下</span><strong>${formatCurrency(result.tokens.savedMonthlyTwd * factor)}</strong></div>
         </article>` : ''}
-        ${team ? `<p class="impact-team-note">以 ${teamView.size} 人、每人工作量與你相近推估，實際效益依各自工作內容而定。</p>` : ''}`;
+        ${team ? `<p class="impact-team-note">以 ${teamView.size} 人推估</p>` : ''}
+    `;
 }
 
 // A switch on the first card flips both report cards between the personal figures and a team estimate (personal figures times a head count the viewer can adjust).
@@ -2335,7 +2345,7 @@ function renderWorkflowImpactCard(task, index) {
             <div><span>目前投入</span><strong>${formatHours(task.currentMonthlyMinutes / 60)} ${getTimeUnit()}／月</strong></div>
             <span class="workflow-arrow" aria-hidden="true">${iconSvg('arrow-right')}</span>
             <div><span>導入後</span><strong>${formatHours(task.targetMonthlyMinutes / 60)} ${getTimeUnit()}／月</strong></div>
-            <div class="saved-highlight"><span>每月可釋放</span><strong>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</strong><small>${task.savedCostMonthlyTwd > 0 ? `工時價值 ${formatCurrency(task.savedCostMonthlyTwd)}` : '未填人力時間價值'}</small></div>
+            <div class="saved-highlight"><span>每月可省下</span><strong>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</strong><small>${task.savedCostMonthlyTwd > 0 ? `工時價值 ${formatCurrency(task.savedCostMonthlyTwd)}` : '未填人力時間價值'}</small></div>
         </div>
     </article>`;
 }
@@ -2433,7 +2443,7 @@ function getRecipeContext(recipe) { return recipe.description; }
 function renderCloneCard(clone, index) {
     return `<article class="clone-card clone-card--compact" title="${clone.capability}">
         <div class="clone-avatar"><img src="${getCloneAvatarPath(clone.recipeId)}" alt=""><i aria-hidden="true"></i></div>
-        <div class="clone-card__body"><span class="clone-card__index">SHADOW ${String(index + 1).padStart(2, '0')}</span><h4>${clone.name}</h4><p><b>專長</b>${clone.capability}</p><strong class="clone-card__saving">每月可釋放 ${formatHours(clone.savedMonthlyMinutes / 60)} 小時</strong></div>
+        <div class="clone-card__body"><span class="clone-card__index">SHADOW ${String(index + 1).padStart(2, '0')}</span><h4>${clone.name}</h4><p><b>專長</b>${clone.capability}</p><strong class="clone-card__saving">每月可省下 ${formatHours(clone.savedMonthlyMinutes / 60)} 小時</strong></div>
     </article>`;
 }
 
@@ -2485,6 +2495,7 @@ function initReportDeck() {
     if (!deck) return;
     document.getElementById('deck-prev').addEventListener('click', () => setReportCard(reportCardIndex - 1));
     document.getElementById('deck-next').addEventListener('click', () => setReportCard(reportCardIndex + 1));
+    document.getElementById('device-bridge').addEventListener('click', () => setReportCard(2));
     const mobileStep = delta => {
         setReportCard(reportCardIndex + delta);
         window.scrollTo({ top: 0 });
@@ -2923,8 +2934,8 @@ function getModelFit(model, index) {
 
 // Official product shots of each build's chassis; builds without a confirmed image show none.
 const DEVICE_IMAGES = Object.freeze([
-    [/Pioneer/, 'prime-ap303', 'ASUS Prime AP303 機殼'],
-    [/Professional/, 'tuf-gt502-horizon', 'TUF Gaming GT502 Horizon 機殼'],
+    [/Pioneer/, 'tuf-gt502-horizon', 'TUF Gaming GT502 Horizon 機殼'],
+    [/Professional|Master-A/, 'rog-strix-helios-ii', 'ROG Strix Helios II 機殼'],
     [/NUC/, 'rog-nuc-16', 'ROG NUC 16'],
     [/Master/, 'rog-cronox-argb', 'ROG Cronox ARGB 機殼'],
     [/ET700I/, 'expertcenter-pro-et700i-w7', 'ExpertCenter Pro ET700I W7'],
@@ -2964,7 +2975,7 @@ function getLocalValueComparisons(result) {
             ? '免費雲端方案常受模型、額度與使用時段限制。'
             : '尚未建立 AI 工作流程，重複任務仍需從零開始處理。';
     return [
-        { before: lowSciPain, after: '讓固定流程交由地端影分身持續協作，逐步釋放人工工作量。' },
+        { before: lowSciPain, after: '讓固定流程交由地端影分身持續協作，逐步減少人工工作量。' },
         { before: cloudPain, after: '把適合的流程移到自己的設備執行，減少可替代的訂閱與用量依賴。' },
         { before: '工作檔案需要上傳，流程也容易受到連線、額度與服務方案調整影響。', after: '資料與模型流程留在地端，建立可持續使用及擴充的工作環境。' }
     ];
@@ -3070,7 +3081,7 @@ function showDataCollectionDetails(trigger) {
             </header>
             <ul class="data-consent-list">
                 <li>Step 1–3 的填寫內容：工作身分、選擇的任務、時間與頻率、成本與雲端 AI 使用狀況。</li>
-                <li>計算結果：SCI 分數、每月釋放工時、節省費用、影分身與設備推薦。</li>
+                <li>計算結果：SCI 分數、每月省下工時、節省費用、影分身與設備推薦。</li>
                 <li>與「下載 PNG」相同的那張完整報表圖片。</li>
                 <li>操作紀錄：在這個網站上點了哪些按鈕、標籤與連結，以及看了報告的哪些部分。</li>
             </ul>
@@ -3383,15 +3394,14 @@ async function createReportBlobV2(result) {
 
     const metricStart = left + 450;
     const metrics = [
-        ['釋放工時', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
-        ['工時價值', formatCurrency(result.cost.laborSavedMonthlyTwd)],
+        ['每月替你省下', formatWorkDays(result.time.savedHoursMonthly)],
+        ['省下的工作天價值等同', formatCurrency(result.cost.laborSavedMonthlyTwd)],
         ['改用地端，每月省下', formatCurrency(result.tokens.savedMonthlyTwd)]
     ].filter((metric, index) => index < 2 || showsCloudTokens(result));
     metrics.forEach((metric, index) => {
         const x = metricStart + index * 164;
         label(metric[0], x, y + 44);
         wrapCanvasText(ctx, metric[1], x, y + 84, 146, 29, 2, `800 25px ${font}`, colors.text);
-        if (index === 2) canvasText(ctx, `約 ${formatTokens(result.tokens.savedMonthly)} 雲端 Token 費用`, x, y + 139, `600 10px ${font}`, colors.muted);
     });
 
     y += 220;
@@ -3525,9 +3535,9 @@ async function createReportBlob(result) {
     canvasText(ctx, `提升 ${Math.round(result.sci.gap)} 點`, left + 244, y + 154, `700 14px ${font}`, '#55D6A6');
     const metricX = left + 448;
     const reportMetrics = [
-        ['釋放工時', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
-        ['工時價值', formatCurrency(result.cost.laborSavedMonthlyTwd)],
-        ['改用地端，每月省下', formatCurrency(result.tokens.savedMonthlyTwd), `約 ${formatTokens(result.tokens.savedMonthly)} 雲端 Token 費用`]
+        ['每月替你省下', formatWorkDays(result.time.savedHoursMonthly)],
+        ['省下的工作天價值等同', formatCurrency(result.cost.laborSavedMonthlyTwd)],
+        ['改用地端，每月省下', formatCurrency(result.tokens.savedMonthlyTwd)]
     ].filter((metric, index) => index < 2 || showsCloudTokens(result));
     reportMetrics.forEach((metric, index) => {
         const x = metricX + index * 168;
@@ -3560,10 +3570,10 @@ async function createReportBlob(result) {
         roundedRect(ctx, left, y, contentWidth, 128, 12, index % 2 ? '#121D2B' : '#101826');
         canvasText(ctx, `TASK ${String(index + 1).padStart(2, '0')} · ${task.title}`, left + 20, y + 29, `700 15px ${font}`, '#F5F7FB');
         canvasText(ctx, `${task.scaleLabel} · ${getFrequencyLabel(task)} · 目前 ${formatHours(task.currentMonthlyMinutes / 60)} 小時／月`, left + 20, y + 55, `500 11px ${font}`, '#8391A7');
-        wrapCanvasText(ctx, `由「${task.cloneTag}」協助${getAgentSupportScope(task)}；每月預估可釋放 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}。`, left + 20, y + 80, 420, 16, 2, `600 11px ${font}`, '#20C9EB');
+        wrapCanvasText(ctx, `由「${task.cloneTag}」協助${getAgentSupportScope(task)}；每月預估可省下 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}。`, left + 20, y + 80, 420, 16, 2, `600 11px ${font}`, '#20C9EB');
         canvasText(ctx, `目前 ${formatHours(task.currentMonthlyMinutes / 60)} ${getTimeUnit()}`, left + 465, y + 32, `600 12px ${font}`, '#AAB5C8');
         canvasText(ctx, `導入後 ${formatHours(task.targetMonthlyMinutes / 60)} ${getTimeUnit()}`, left + 465, y + 60, `600 12px ${font}`, '#AAB5C8');
-        canvasText(ctx, `每月可釋放 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}`, width - left - 18, y + 40, `800 14px ${font}`, '#20C9EB', 'right');
+        canvasText(ctx, `每月可省下 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}`, width - left - 18, y + 40, `800 14px ${font}`, '#20C9EB', 'right');
         canvasText(ctx, `人力成本價值 ${formatCurrency(task.savedCostMonthlyTwd)}`, width - left - 18, y + 62, `600 11px ${font}`, '#8391A7', 'right');
         y += taskRowHeight;
     });
@@ -3588,7 +3598,7 @@ async function createReportBlob(result) {
         }
         canvasText(ctx, clone.name, x + 68, cardY + 20, `700 11px ${font}`, '#BFF4FF');
         wrapCanvasText(ctx, clone.capability, x + 68, cardY + 38, 212, 13, 1, `500 9px ${font}`, '#9AA8BC');
-        canvasText(ctx, `每月可釋放 ${formatHours(clone.savedMonthlyMinutes / 60)} 小時`, x + 68, cardY + 56, `700 9px ${font}`, '#55D6A6');
+        canvasText(ctx, `每月可省下 ${formatHours(clone.savedMonthlyMinutes / 60)} 小時`, x + 68, cardY + 56, `700 9px ${font}`, '#55D6A6');
     });
     y += cloneRows * 78 + 34;
 
@@ -4248,6 +4258,7 @@ function describeClick(target) {
     if ((el = pick('[data-hardware-tab]'))) return ['切換設備頁籤', el.textContent.trim()];
     if ((el = pick('[data-task-toggle]'))) return ['查看任務明細', el.querySelector('strong')?.firstChild?.textContent.trim() || ''];
     if ((el = pick('[data-clone-toggle]'))) return ['查看影分身內容', el.textContent.trim()];
+    if ((el = pick('#device-bridge'))) return ['看推薦設備（第一張卡）'];
     if ((el = pick('#report-preview-button'))) return ['立即分享'];
     if ((el = pick('#report-download-link'))) return ['下載報告圖片'];
     if ((el = pick('#result-reset-button'))) return ['重新測驗'];
