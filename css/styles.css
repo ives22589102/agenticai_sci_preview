@@ -1373,6 +1373,12 @@ button.scenario-card__grade:focus-visible { outline: 3px solid #fff; outline-off
 .zenni-corner__bubble.is-talking { opacity: 1; scale: 1; }
 .zenni-corner__bubble.is-giggling { animation: zenni-giggle .45s ease; }
 @keyframes zenni-giggle { 0%, 100% { translate: 0; rotate: 0deg; } 20% { translate: -3px -2px; rotate: -3deg; } 40% { translate: 3px 1px; rotate: 3deg; } 60% { translate: -2px 1px; rotate: -2deg; } 80% { translate: 2px 0; rotate: 1deg; } }
+/* Full-body poses in the corner (asleep, celebrating) are drawn in the same frame as the head, so they are enlarged and moved into view. */
+.zenni-corner.is-pose .zenni-corner__body { scale: 1.5; translate: -40px -6px; }
+/* On the device card Zenni stands beside the heading with a hand held out toward it. */
+.report-card .hardware-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.hardware-guide { flex: none; width: auto; height: 92px; margin: -18px 6px -10px 0; filter: drop-shadow(0 8px 12px rgba(37, 62, 236, .2)); }
+@media (max-width: 800px) { .hardware-guide { display: none; } }
 body.landing-active .zenni-edge, body.landing-active .zenni-corner { display: none; }
 @media (max-width: 800px) { .zenni-edge, .zenni-corner { display: none; } }
 @media (prefers-reduced-motion: reduce) { .zenni-corner, .zenni-corner.is-in { transition: none; } }
@@ -1392,7 +1398,10 @@ body.landing-active .zenni-edge, body.landing-active .zenni-corner { display: no
 .report-intro__core { position: relative; display: grid; place-items: center; width: min(46vw, 300px); aspect-ratio: 1; }
 .report-intro__zenni { position: relative; grid-area: 1 / 1; width: auto; height: 62%; filter: drop-shadow(0 14px 26px rgba(37, 62, 236, .28)); animation: intro-float 2.4s ease-in-out infinite; transition: opacity .35s, transform .45s var(--ease); }
 .report-intro__zenni--done { opacity: 0; transform: scale(.7); }
-.report-intro.is-done .report-intro__zenni--work { opacity: 0; transform: scale(.7); }
+/* One pose per status line: searching, working on the tablet, thinking, presenting. Only the pose for the current step is shown. */
+.report-intro__zenni--work { opacity: 0; transform: scale(.86); }
+.report-intro[data-step="0"] .report-intro__zenni[data-step="0"], .report-intro[data-step="1"] .report-intro__zenni[data-step="1"], .report-intro[data-step="2"] .report-intro__zenni[data-step="2"], .report-intro[data-step="3"] .report-intro__zenni[data-step="3"] { opacity: 1; transform: none; }
+.report-intro.is-done .report-intro__zenni.report-intro__zenni--work { opacity: 0; transform: scale(.7); }
 .report-intro.is-done .report-intro__zenni--done { opacity: 1; transform: scale(1.06); }
 .report-intro__status { position: relative; margin: 0; font-size: clamp(18px, 2vw, 24px); font-weight: 600; letter-spacing: .08em; }
 .report-intro__status::after { content: "…"; }

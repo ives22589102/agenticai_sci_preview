@@ -29,7 +29,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=6.40.0">
+    <link rel="stylesheet" href="css/styles.css?v=6.43.0">
 </head>
 <body class="landing-active">
     <h1 class="visually-hidden">SCI 影分身戰力解析｜ASUS Agent Computer</h1>
@@ -229,6 +229,7 @@
                         <section class="hardware-section" id="hardware-section" aria-labelledby="hardware-title">
                             <div class="hardware-heading">
                                 <div><h3 id="hardware-title">找尋最適合您影分身軍團的設備</h3></div>
+                                <img class="hardware-guide" src="img/zenni/zenni-guide.webp" width="369" height="480" alt="" aria-hidden="true">
                             </div>
                             <section class="scenario-section" id="scenario-section" aria-label="本次建議情境"></section>
                             <div class="hardware-tabs" role="tablist" aria-label="設備建議類型">
@@ -301,8 +302,11 @@
         <div class="report-intro__grid" aria-hidden="true"></div>
         <div class="report-intro__core" aria-hidden="true">
             <canvas class="report-intro__fx" id="report-intro-fx-back"></canvas>
-            <img class="report-intro__zenni report-intro__zenni--work" src="img/zenni/zenni-tablet.webp" width="274" height="420" alt="">
-            <img class="report-intro__zenni report-intro__zenni--done" src="img/zenni/zenni-wave.webp" width="316" height="420" alt="">
+            <img class="report-intro__zenni report-intro__zenni--work" data-step="0" src="img/zenni/zenni-search.webp" width="515" height="640" alt="">
+            <img class="report-intro__zenni report-intro__zenni--work" data-step="1" src="img/zenni/zenni-tablet-hq.webp" width="418" height="640" alt="">
+            <img class="report-intro__zenni report-intro__zenni--work" data-step="2" src="img/zenni/zenni-think.webp" width="409" height="640" alt="">
+            <img class="report-intro__zenni report-intro__zenni--work" data-step="3" src="img/zenni/zenni-present.webp" width="446" height="640" alt="">
+            <img class="report-intro__zenni report-intro__zenni--done" src="img/zenni/zenni-report.webp" width="389" height="640" alt="">
             <canvas class="report-intro__fx report-intro__fx--front" id="report-intro-fx-front"></canvas>
         </div>
         <p class="report-intro__status" id="report-intro-status">正在盤點任務工時</p>
@@ -318,6 +322,6 @@
     </div>
 
     <script src="js/workflow-data.js?v=3.5.0"></script>
-    <script src="js/app.js?v=5.40.1"></script>
+    <script src="js/app.js?v=5.46.0"></script>
 </body>
 </html>

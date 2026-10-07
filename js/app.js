@@ -13,7 +13,73 @@ const SCI_CONFIG = Object.freeze({
 });
 
 const COST_PERIOD_HOURS = Object.freeze({ hour: 1, week: 40, month: 160 });
-const TOKEN_CONFIG = Object.freeze({ costPerTokenTwd: 0.00016, tokensPerTwd: 6250, label: '1 Token = NT$0.00016' });
+// Cloud token cost that running the same tasks on a local device avoids. Parameters match docs/雲端Token費用試算_全地端.xlsx.
+//  - usage: for each agent class and load, [input tokens per round, output tokens per round, rounds per run]. Estimates, not measurements.
+//  - tiers: average API list price of the three vendors' models in that tier, US$ per million input / output tokens (October 2026):
+//      light: Claude Haiku 4.5, Gemini Flash, GPT-5 nano; main: Claude Sonnet 5.5, Gemini 3.1 Pro, GPT-5.5; flagship: Claude Opus 5.5, GPT-6 Astra, Gemini 3.1 Pro.
+//  - scenarios: which cloud tier the local models of each HQ scenario stand in for, the device's power draw under load and its output speed.
+// Monthly cloud cost = (input x input price + output x output price) / 1,000,000 x exchange rate x retry factor x runs per month.
+// Monthly saving = cloud cost - local electricity. Buying the device is not included.
+const CLOUD_TOKEN_CONFIG = Object.freeze({
+    usdToTwd: 32, retryFactor: 1.2, electricityTwdPerKwh: 4, inputSpeedup: 10, range: [0.75, 1.25],
+    usage: {
+        productivity: { small: [3000, 600, 2], standard: [6000, 1000, 3], large: [12000, 1800, 4] },
+        content: { small: [4000, 1500, 3], standard: [8000, 3000, 4], large: [16000, 6000, 6] },
+        data: { small: [6000, 1000, 4], standard: [15000, 2000, 6], large: [40000, 4000, 10] },
+        retrieval: { small: [8000, 800, 2], standard: [20000, 1500, 3], large: [50000, 3000, 5] },
+        dev: { small: [10000, 2000, 6], standard: [30000, 4000, 12], large: [80000, 8000, 25] },
+        engineering: { small: [12000, 2000, 5], standard: [30000, 4000, 10], large: [70000, 8000, 20] },
+        education: { small: [4000, 1200, 3], standard: [8000, 2500, 4], large: [16000, 5000, 6] }
+    },
+    tiers: { light: [0.6, 3.05], main: [3, 17.33], flagship: [5.33, 27.33] },
+    scenarios: {
+        personal: { tier: 'light', watts: 120, tokensPerSecond: 30 },
+        development: { tier: 'main', watts: 350, tokensPerSecond: 35 },
+        homelab: { tier: 'main', watts: 240, tokensPerSecond: 20 },
+        workstation: { tier: 'main', watts: 600, tokensPerSecond: 45 },
+        premium: { tier: 'flagship', watts: 1200, tokensPerSecond: 60 },
+        scale: { tier: 'flagship', watts: 3000, tokensPerSecond: 150 }
+    },
+    // Below this monthly saving (NT$) the figure is too small to be worth showing, so the whole metric is left out of the report.
+    minimumDisplayTwd: 1000
+});
+
+// Whether the cloud token metric is shown, for one person (factor 1) or a team.
+function showsCloudTokens(result, factor = 1) {
+    return result.tokens.savedMonthlyTwd * factor >= CLOUD_TOKEN_CONFIG.minimumDisplayTwd;
+}
+
+// For one person: the tokens these tasks would use on a cloud model each month, what that costs, and what is left after local electricity.
+function estimateCloudTokens(taskResults, scenarioId) {
+    const config = CLOUD_TOKEN_CONFIG;
+    const scenario = config.scenarios[scenarioId] || config.scenarios.personal;
+    const [inputPrice, outputPrice] = config.tiers[scenario.tier];
+    let inputTokens = 0, outputTokens = 0;
+    taskResults.forEach(task => {
+        const usage = config.usage[getAgentClass(task.recipeId)] || config.usage.productivity;
+        const [input, output, rounds] = usage[task.scale] || usage.standard;
+        const runs = task.monthlyFrequency * config.retryFactor;
+        inputTokens += input * rounds * runs;
+        outputTokens += output * rounds * runs;
+    });
+    const cloudMonthlyTwd = (inputTokens * inputPrice + outputTokens * outputPrice) / 1e6 * config.usdToTwd;
+    const localHours = (outputTokens / scenario.tokensPerSecond + inputTokens / (scenario.tokensPerSecond * config.inputSpeedup)) / 3600;
+    const electricityMonthlyTwd = localHours * scenario.watts / 1000 * config.electricityTwdPerKwh;
+    const savedMonthlyTwd = Math.max(0, cloudMonthlyTwd - electricityMonthlyTwd);
+    return {
+        status: 'estimated',
+        savedMonthly: inputTokens + outputTokens,
+        inputMonthly: inputTokens,
+        outputMonthly: outputTokens,
+        cloudTier: scenario.tier,
+        cloudMonthlyTwd,
+        localHoursMonthly: localHours,
+        electricityMonthlyTwd,
+        savedMonthlyTwd,
+        savedMonthlyTwdLow: savedMonthlyTwd * config.range[0],
+        savedMonthlyTwdHigh: savedMonthlyTwd * config.range[1]
+    };
+}
 const USD_TWD_RATE = 31.92;
 const DATA_COLLECTION_CONFIG = Object.freeze({
     endpoint: 'https://script.google.com/macros/s/AKfycbz1FH2xnWpIOnC2vqWhYEDDT-CIIIV0EwygB1X6ZES3BJazoTiZ0uijJvoIRnFN0Eib/exec',
@@ -1529,13 +1595,7 @@ function calculateAssessment(snapshot) {
             monthlyTwd: totalSavedMonthlyTwd,
             annualTwd: totalSavedMonthlyTwd * 12
         },
-        tokens: {
-            status: 'converted',
-            savedMonthly: totalSavedMonthlyTwd * TOKEN_CONFIG.tokensPerTwd,
-            tokensPerTwd: TOKEN_CONFIG.tokensPerTwd,
-            costPerTokenTwd: TOKEN_CONFIG.costPerTokenTwd,
-            note: `依 ${TOKEN_CONFIG.label} 換算。`
-        },
+        tokens: estimateCloudTokens(taskResults, recommendation.scenarioId),
         cloud: {
             usage: snapshot.cloudUsage,
             selectedPlans: snapshot.cloudPlans,
@@ -1673,10 +1733,13 @@ function renderResult() {
 // 2. A few seconds later it rises in the bottom-right corner, says two lines, and stays there.
 // 3. Poking it makes it giggle, and the spot that was pressed dents inward and springs back; a moment later it says its two lines again.
 // 4. While it is being poked, and when a required field is left empty (red frame), it switches to its shy face for a moment.
+// 5. After a minute with no activity it lies down and sleeps until the visitor does something; sharing or downloading the report makes it dance.
 const ZENNI_WELCOME = ['和 Zenni 一起打造你的千軍萬馬吧！', '測完記得看看推薦設備喔！'];
 const ZENNI_TICKLES = ['哈哈哈好癢～', '住手啦～', '不要再戳了><'];
 let zenniStarted = false;
-let showZenniShy = () => {};
+let showZenniFace = () => {};
+const showZenniShy = (duration = 1800) => showZenniFace('shy', duration);
+const ZENNI_IDLE_MS = 60000;
 
 function startZenniSequence() {
     const edge = document.getElementById('zenni-edge');
@@ -1712,21 +1775,47 @@ function startZenniSequence() {
     const dent = createZenniDent(document.getElementById('zenni-canvas'), document.getElementById('zenni-image'));
     if (dent) corner.classList.add('has-webgl');
     body.zenniDent = dent;
-    // The shy face has the same framing as the regular one, so the two pictures are simply swapped.
+    // Every other face is drawn in the same frame as the regular one, so the pictures are simply swapped. "pose" marks the full-body ones.
     const image = document.getElementById('zenni-image');
-    const faces = { normal: image.getAttribute('src'), shy: 'img/zenni/zenni-shy.webp?v=2' };
-    const shyImage = new Image();
-    shyImage.src = faces.shy;
-    let shyTimer = 0;
-    const setFace = shy => {
-        if (dent) { if (!shy || shyImage.complete && shyImage.naturalWidth) dent.setImage(shy ? shyImage : image); }
-        else image.src = shy ? faces.shy : faces.normal;
+    const normalSource = image.getAttribute('src');
+    const faces = {
+        shy: { source: 'img/zenni/zenni-shy.webp?v=2' },
+        sleep: { source: 'img/zenni/zenni-corner-sleep.webp', pose: true },
+        party: { source: 'img/zenni/zenni-corner-party.webp', pose: true }
     };
-    showZenniShy = (duration = 1800) => {
-        setFace(true);
-        clearTimeout(shyTimer);
-        shyTimer = setTimeout(() => setFace(false), duration);
+    Object.values(faces).forEach(face => { face.image = new Image(); face.image.src = face.source; });
+    let faceTimer = 0, currentFace = null;
+    const setFace = name => {
+        const face = faces[name];
+        if (face && !(face.image.complete && face.image.naturalWidth)) return;
+        currentFace = face ? name : null;
+        if (dent) dent.setImage(face ? face.image : image);
+        else image.src = face ? face.source : normalSource;
+        corner.classList.toggle('is-pose', Boolean(face?.pose));
     };
+    // Shows a face for "duration" ms, or until something else replaces it when no duration is given.
+    showZenniFace = (name, duration) => {
+        setFace(name);
+        clearTimeout(faceTimer);
+        if (duration) faceTimer = setTimeout(() => setFace(null), duration);
+    };
+    // Asleep after a minute without any activity; any activity wakes it up again.
+    let idleTimer = 0, lastActivity = 0;
+    const fallAsleep = () => {
+        if (document.hidden || !document.getElementById('report-intro').hidden) return;
+        showZenniFace('sleep');
+        say('Zzz…', 4000);
+    };
+    const noteActivity = () => {
+        const now = Date.now();
+        if (now - lastActivity < 500 && currentFace !== 'sleep') return;
+        lastActivity = now;
+        if (currentFace === 'sleep') showZenniFace(null);
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(fallAsleep, ZENNI_IDLE_MS);
+    };
+    ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'].forEach(type => window.addEventListener(type, noteActivity, { passive: true, capture: true }));
+    noteActivity();
     let tickleIndex = -1;
     body.addEventListener('pointerdown', event => {
         showZenniShy();
@@ -2003,9 +2092,9 @@ function placeReportHandout(deck) {
         const cardWidth = card.offsetWidth;
         const anchorX = area.left + card.offsetLeft + cardWidth, anchorY = area.top + card.offsetTop + card.offsetHeight / 2;
         const move = (x, y, scale) => [x - anchorX + cardWidth * scale / 2, y - anchorY];
-        // In Zenni's raised hand: three small cards fanned out just above it.
+        // Zenni holds a glowing panel above its head when the report is done: three small cards fan out from that panel.
         const handScale = core.width * 0.36 / cardWidth;
-        const hand = move(core.left + core.width * (0.27 + fan[pos].x), core.top + core.width * (0.2 + fan[pos].y), handScale);
+        const hand = move(core.left + core.width * (0.43 + fan[pos].x), core.top + core.width * (0.31 + fan[pos].y), handScale);
         // Side by side across the screen, then gathered at the centre.
         const row = move(area.left + area.width * [0.18, 0.5, 0.82][pos], area.top + area.height / 2, 0.29);
         const gather = move(area.left + area.width / 2 + pos * 14, area.top + area.height / 2, 0.4);
@@ -2032,8 +2121,9 @@ function playReportIntro() {
     document.body.classList.remove('report-staging');
     void intro.offsetWidth;
     intro.classList.add('is-active');
-    REPORT_INTRO_STEPS.forEach((text, index) => later(index * 650, () => { status.textContent = text; }));
-    // Desktop: when the report is done the three report cards appear, small, in Zenni's raised hand. The deck is raised above the intro screen
+    intro.dataset.step = '0';
+    REPORT_INTRO_STEPS.forEach((text, index) => later(index * 650, () => { status.textContent = text; intro.dataset.step = String(index); }));
+    // Desktop: when the report is done the three report cards appear, small, at the panel Zenni holds up. The deck is raised above the intro screen
     // so the real cards can fly out of it, line up side by side and then stack, while Zenni and the rings fade away behind them.
     const staged = matchMedia('(min-width: 801px)').matches;
     const done = 2600;
@@ -2162,10 +2252,10 @@ function renderMetricHighlights(result) {
             <span class="impact-hero__icon">${iconSvg('receipt')}</span>
             <div><span>${team ? '團隊工時價值' : '工時價值'}</span><strong>${formatCurrency(result.cost.laborSavedMonthlyTwd * factor)}</strong></div>
         </article>
-        <article class="impact-hero">
+${showsCloudTokens(result, factor) ? `<article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('zap')}</span>
-            <div><span>約等同於</span><strong>${formatTokens(result.tokens.savedMonthly * factor)}</strong><span class="impact-hero__unit">雲端 Token 費用</span></div>
-        </article>
+            <div><span>${team ? '團隊每月少用雲端' : '每月少用雲端'}</span><strong>${formatTokens(result.tokens.savedMonthly * factor)}</strong><span class="impact-hero__unit">Token，約省 ${formatCurrency(result.tokens.savedMonthlyTwd * factor)}</span></div>
+        </article>` : ''}
         ${team ? `<p class="impact-team-note">以 ${teamView.size} 人、每人工作量與你相近推估，實際效益依各自工作內容而定。</p>` : ''}`;
 }
 
@@ -3062,6 +3152,7 @@ function blobToBase64(blob) {
 async function previewReport(trigger) {
     const result = assessmentState.result;
     if (!result || result.unavailable) return;
+    showZenniFace('party', 4000);
     trigger.disabled = true;
     const originalText = trigger.textContent;
     trigger.textContent = '正在產生報告…';
@@ -3085,6 +3176,7 @@ async function previewReport(trigger) {
             event.currentTarget.setAttribute('aria-pressed', String(original));
             event.currentTarget.textContent = original ? '適應視窗寬度' : '查看原始尺寸';
         });
+        document.getElementById('report-download-link').addEventListener('click', () => showZenniFace('party', 4000));
         document.getElementById('report-download-link').addEventListener('click', () => trackEvent('report_downloaded', { tier: result.recommendation.tier }));
         openModal(trigger);
     } catch (error) {
@@ -3293,13 +3385,13 @@ async function createReportBlobV2(result) {
     const metrics = [
         ['釋放工時', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
         ['工時價值', formatCurrency(result.cost.laborSavedMonthlyTwd)],
-        ['等值約節省', formatTokens(result.tokens.savedMonthly)]
-    ];
+        ['每月少用雲端', formatTokens(result.tokens.savedMonthly)]
+    ].filter((metric, index) => index < 2 || showsCloudTokens(result));
     metrics.forEach((metric, index) => {
         const x = metricStart + index * 164;
         label(metric[0], x, y + 44);
         wrapCanvasText(ctx, metric[1], x, y + 84, 146, 29, 2, `800 25px ${font}`, colors.text);
-        if (index === 2) canvasText(ctx, '雲端 Token 費用', x, y + 139, `600 10px ${font}`, colors.muted);
+        if (index === 2) canvasText(ctx, `Token，約省 ${formatCurrency(result.tokens.savedMonthlyTwd)}`, x, y + 139, `600 10px ${font}`, colors.muted);
     });
 
     y += 220;
@@ -3435,8 +3527,8 @@ async function createReportBlob(result) {
     const reportMetrics = [
         ['釋放工時', `${formatHours(result.time.savedHoursMonthly)} ${getTimeUnit()}`],
         ['工時價值', formatCurrency(result.cost.laborSavedMonthlyTwd)],
-        ['約等同於', formatTokens(result.tokens.savedMonthly), '雲端 Token 費用']
-    ];
+        ['每月少用雲端', formatTokens(result.tokens.savedMonthly), `Token，約省 ${formatCurrency(result.tokens.savedMonthlyTwd)}`]
+    ].filter((metric, index) => index < 2 || showsCloudTokens(result));
     reportMetrics.forEach((metric, index) => {
         const x = metricX + index * 168;
         canvasText(ctx, metric[0], x, y + 48, `600 11px ${font}`, '#7F8CA3');
@@ -3517,7 +3609,7 @@ async function createReportBlob(result) {
         y += hardwareCardHeight + hardwareCardGap;
     });
 
-    wrapCanvasText(ctx, `SCI（Shadow-Clone Index）採 100 分制，代表相對於全人工基準，可由影分身協助承接的人工工作比例。影分身戰力採 A、A+、S、S+、SS 五級，代表推薦設備的相對地端運算餘裕，不等同 SCI。Token 依 ${TOKEN_CONFIG.label} 換算。`, left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
+    wrapCanvasText(ctx, `SCI（Shadow-Clone Index）採 100 分制，代表相對於全人工基準，可由影分身協助承接的人工工作比例。影分身戰力採 A、A+、S、S+、SS 五級，代表推薦設備的相對地端運算餘裕，不等同 SCI。`, left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
     canvasText(ctx, `${result.scoringVersion} · ${result.workflowCatalogVersion} · ${result.recipeCatalogVersion} · ${result.hardwareCatalogVersion}`, left, height - 38, `500 9px ${font}`, '#4F5C70');
     canvasText(ctx, 'ASUS AGENTIC AI', width - left, height - 38, `700 11px ${font}`, '#20C9EB', 'right');
 
