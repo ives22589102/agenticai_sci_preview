@@ -1129,7 +1129,7 @@ function clearTaskErrors(recipeId) {
 
 function renderSharedOptions() {
     const parallelOptions = [
-        ['1', '多半依序'], ['2', '約 2 項同時'], ['3-4', '3 至 4 項同時'], ['5+', '5 項以上'], ['unknown', '不確定']
+        ['1', '一次做一件'], ['2', '常常兩件一起'], ['3-4', '三、四件同時'], ['5+', '五件以上同時'], ['unknown', '不確定']
     ];
     const cloudBrands = [
         ['chatgpt', 'ChatGPT'],
@@ -1415,7 +1415,7 @@ function validateStep3() {
     }
     elements.sharedSettings.querySelectorAll('.field-error').forEach(element => element.classList.remove('field-error'));
     if (firstIncomplete) return showError(`請補完「${getRecipeDisplayTitle(firstIncompleteRecipe)}」的紅框欄位。`, firstIncomplete);
-    if (!assessmentState.executionNeeds.parallelBand) return showSharedError('請選擇平常會同時執行幾個任務。', elements.parallelOptions, elements.parallelOptions.querySelector('input'));
+    if (!assessmentState.executionNeeds.parallelBand) return showSharedError('請選擇平常會同時進行幾件工作。', elements.parallelOptions, elements.parallelOptions.querySelector('input'));
     if (!assessmentState.executionNeeds.sharedUsers) return showSharedError('請選擇這台設備會有幾個人一起使用。', elements.sharedUsersOptions, elements.sharedUsersOptions.querySelector('input'));
     syncCostSettings();
     const cost = Number(assessmentState.costAmountTwd);
