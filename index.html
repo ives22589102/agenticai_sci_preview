@@ -29,7 +29,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=6.47.0">
+    <link rel="stylesheet" href="css/styles.css?v=6.48.0">
 </head>
 <body class="landing-active">
     <h1 class="visually-hidden">SCI 影分身戰力解析｜ASUS Agent Computer</h1>
@@ -117,9 +117,9 @@
                 <section class="shared-settings" aria-labelledby="shared-settings-title" hidden>
                     <h3 id="shared-settings-title" class="visually-hidden">你的使用情境</h3>
                     <section class="settings-group settings-group--cost" aria-labelledby="value-settings-title">
-                        <header><span>01</span><div><h4 id="value-settings-title">每月成本或收入</h4></div></header>
+                        <header><span>01</span><div><h4 id="value-settings-title">每月執行成本</h4></div></header>
                         <div class="field-block">
-                            <p class="field-question" id="cost-band-label">您<b>每月</b>執行這些任務的成本，或您的職業收入大約是？ <span>必填・新台幣</span></p>
+                            <p class="field-question" id="cost-band-label">您<b>每月</b>執行這些任務的成本大約是？ <span>必填・新台幣</span></p>
                             <div class="segmented cost-band-options" id="cost-band-options" role="radiogroup" aria-labelledby="cost-band-label"></div>
                             <div class="cost-input-row" id="cost-custom-row" hidden>
                                 <div class="input-prefix"><span>NT$</span><input id="hourly-cost" type="number" min="1" max="10000000" step="1" inputmode="numeric" placeholder="例如 45000" aria-label="每月金額"><span>／月</span></div>
@@ -275,6 +275,10 @@
         </div>
     </main>
 
+    <footer class="site-footer">
+        <p>本測驗的 SCI 分數、可省下的時間與費用及設備建議，皆依您填寫的內容以模型推估，僅供參考，不代表實際效能或節省成果的保證；實際結果會因電腦配置、使用的 AI 模型與軟體、工作情境而有所不同。</p>
+    </footer>
+
 
     <div class="zenni-edge" id="zenni-edge" aria-hidden="true">
         <span class="zenni-edge__body"><span class="zenni-edge__wobble"><img src="img/zenni/zenni-peek.webp" width="260" height="252" alt=""></span></span>
@@ -313,6 +317,6 @@
     </div>
 
     <script src="js/workflow-data.js?v=3.5.0"></script>
-    <script src="js/app.js?v=5.54.0"></script>
+    <script src="js/app.js?v=5.55.0"></script>
 </body>
 </html>

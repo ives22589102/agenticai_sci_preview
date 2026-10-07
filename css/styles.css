@@ -1432,6 +1432,11 @@ body.landing-active .zenni-edge, body.landing-active .zenni-corner { display: no
     .report-card .metric-highlights { gap: 8px; margin-top: 10px; }
 }
 
+/* The disclaimer at the very bottom of the site. On desktop the assessment fills the window, so this sits just below it. */
+.site-footer { width: min(1240px, calc(100% - 64px)); margin: 0 auto; padding: 10px 150px 22px 0; color: #6b7a96; font-size: 12px; line-height: 1.7; }
+.site-footer p { margin: 0; }
+@media (max-width: 800px) { .site-footer { width: calc(100% - 32px); padding: 4px 0 28px; } }
+
 @media (min-width: 1500px) { .landing-title--primary { top: 15%; } .landing-title--secondary { top: 49%; } }
 @media (max-width: 1150px) {
     .brand-header__inner, .page-shell { width: calc(100% - 64px); }

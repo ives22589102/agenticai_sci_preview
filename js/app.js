@@ -1421,7 +1421,7 @@ function validateStep3() {
     const cost = Number(assessmentState.costAmountTwd);
     if (!Number.isFinite(cost) || cost <= 0 || cost > 10000000) return assessmentState.costBand === 'other'
         ? showSharedError('請填寫每月金額。', elements.hourlyCost)
-        : showSharedError('請選擇成本或收入的範圍。', elements.costBandOptions, elements.costBandOptions.querySelector('input'));
+        : showSharedError('請選擇每月執行成本的範圍。', elements.costBandOptions, elements.costBandOptions.querySelector('input'));
     syncCloudSettings();
     if (!assessmentState.cloudUsage) return showSharedError('請選擇目前是否使用雲端 AI。', elements.cloudUsageOptions, elements.cloudUsageOptions.querySelector('input'));
     if (assessmentState.cloudUsage === 'paid' && !assessmentState.cloudPlans.length && !(Number(assessmentState.cloudOtherCostTwd) > 0)) {
@@ -2242,10 +2242,9 @@ function getSciNarrative(score, variant) {
 
 const TEAM_RANGES = Object.freeze({ '2-5': [2, 5], '6+': [6, null], '6-25': [6, 25], '26-50': [26, 50], '50+': [50, null] });
 
-// Saved time as whole 8-hour working days ("約 170 個工作天"); under one day it is shown in hours instead.
-function formatWorkDays(hours) {
-    const days = hours / 8;
-    return days >= 1 ? `約 ${new Intl.NumberFormat('zh-TW').format(Math.round(days))} 個工作天` : `約 ${formatHours(hours)} ${getTimeUnit()}`;
+// Saved time in whole hours ("約 87 小時"); under one hour it keeps one decimal.
+function formatSavedHours(hours) {
+    return `約 ${hours >= 1 ? new Intl.NumberFormat('zh-TW').format(Math.round(hours)) : formatHours(hours)} ${getTimeUnit()}`;
 }
 
 function renderMetricHighlights(result) {
@@ -2255,11 +2254,11 @@ function renderMetricHighlights(result) {
     return `
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('clock')}</span>
-            <div><span>${team ? '每月替團隊省下' : '每月替你省下'}</span><strong>${formatWorkDays(savedHours)}</strong></div>
+            <div><span>${team ? '每月替團隊省下' : '每月替你省下'}</span><strong>${formatSavedHours(savedHours)}</strong></div>
         </article>
         <article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('receipt')}</span>
-            <div><span>省下的工作天價值等同</span><strong>${formatCurrency(result.cost.laborSavedMonthlyTwd * factor)}</strong></div>
+            <div><span>省下的時間價值等同</span><strong>${formatCurrency(result.cost.laborSavedMonthlyTwd * factor)}</strong></div>
         </article>
         ${showsCloudTokens(result, factor) ? `<article class="impact-hero">
             <span class="impact-hero__icon">${iconSvg('zap')}</span>
@@ -3394,8 +3393,8 @@ async function createReportBlobV2(result) {
 
     const metricStart = left + 450;
     const metrics = [
-        ['每月替你省下', formatWorkDays(result.time.savedHoursMonthly)],
-        ['省下的工作天價值等同', formatCurrency(result.cost.laborSavedMonthlyTwd)],
+        ['每月替你省下', formatSavedHours(result.time.savedHoursMonthly)],
+        ['省下的時間價值等同', formatCurrency(result.cost.laborSavedMonthlyTwd)],
         ['改用地端，每月省下', formatCurrency(result.tokens.savedMonthlyTwd)]
     ].filter((metric, index) => index < 2 || showsCloudTokens(result));
     metrics.forEach((metric, index) => {
@@ -3535,8 +3534,8 @@ async function createReportBlob(result) {
     canvasText(ctx, `提升 ${Math.round(result.sci.gap)} 點`, left + 244, y + 154, `700 14px ${font}`, '#55D6A6');
     const metricX = left + 448;
     const reportMetrics = [
-        ['每月替你省下', formatWorkDays(result.time.savedHoursMonthly)],
-        ['省下的工作天價值等同', formatCurrency(result.cost.laborSavedMonthlyTwd)],
+        ['每月替你省下', formatSavedHours(result.time.savedHoursMonthly)],
+        ['省下的時間價值等同', formatCurrency(result.cost.laborSavedMonthlyTwd)],
         ['改用地端，每月省下', formatCurrency(result.tokens.savedMonthlyTwd)]
     ].filter((metric, index) => index < 2 || showsCloudTokens(result));
     reportMetrics.forEach((metric, index) => {
