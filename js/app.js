@@ -487,6 +487,7 @@ function initialize() {
     }));
 
     elements.startAssessment?.addEventListener('click', enterAssessment);
+    scheduleAutoEnter();
     const landingStage = document.getElementById('landing-stage');
     if (landingStage && matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
         elements.landingHero.addEventListener('pointermove', event => {
@@ -539,8 +540,25 @@ function initialize() {
     updateStepUI(false);
 }
 
-function enterAssessment() {
-    trackEvent('assessment_started', { entry: 'landing_banner' });
+const AUTO_ENTER_MS = 6000;
+let autoEnterTimer = 0;
+
+function scheduleAutoEnter() {
+    if (!elements.landingHero || elements.landingHero.hidden) return;
+    const start = () => {
+        if (autoEnterTimer || elements.landingHero.hidden) return;
+        elements.landingHero.style.setProperty('--auto-enter', `${AUTO_ENTER_MS}ms`);
+        elements.landingHero.classList.add('is-counting');
+        autoEnterTimer = window.setTimeout(() => enterAssessment(), AUTO_ENTER_MS);
+    };
+    if (document.hidden) document.addEventListener('visibilitychange', () => { if (!document.hidden) start(); }, { once: true });
+    else start();
+}
+
+function enterAssessment(event) {
+    window.clearTimeout(autoEnterTimer);
+    if (!document.body.classList.contains('landing-active')) return;
+    trackEvent('assessment_started', { entry: event ? 'landing_banner' : 'auto' });
     document.body.classList.remove('landing-active');
     if (elements.landingHero) elements.landingHero.hidden = true;
     startZenniSequence();
