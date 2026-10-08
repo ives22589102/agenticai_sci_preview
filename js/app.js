@@ -975,6 +975,10 @@ function goToStep3Panel(targetIndex) {
     applyStep3Panel();
     const step = document.getElementById('step-3');
     step.scrollTop = 0;
+    if (document.scrollingElement.scrollHeight > window.innerHeight + 1) {
+        const top = (step.querySelector('.task-progress') || step).getBoundingClientRect().top + window.scrollY - 16;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+    }
     const panel = step.querySelector('.task-setting:not([hidden])') || (elements.sharedSettings.hidden ? null : elements.sharedSettings);
     if (panel) {
         panel.classList.remove('is-entering-next', 'is-entering-prev');
