@@ -23,13 +23,10 @@ var SHEET_HEADERS = [
   '目前每月工時', '導入後每月工時', '每月釋放工時', '每月節省費用', '等值 Token',
   '影分身戰力', '設備級距', '推薦整機', '任務結果 JSON', '影分身 JSON', '設備推薦 JSON',
   '報表圖片', '完整資料 JSON', '來源頁面', '資料格式版本', '報告產生時間',
-  // 2026-10 新增欄位：一律加在最後面，既有資料列的欄位位置才不會跑掉。
   '工作領域', '成本或收入範圍', '共用人數', '建議情境', '運算需求等級', '負載等級',
-  // 以下兩欄是公式，依「評估 ID」即時統計「SCI 互動紀錄」分頁的內容。
   '互動次數', '點擊的外部連結'
 ];
 
-// Formulas for the two interaction columns. INDIRECT("C"&ROW()) reads this row's 評估 ID, so the same text works on every row.
 var INTERACTION_COUNT_FORMULA = '=COUNTIF(\'SCI 互動紀錄\'!D:D,INDIRECT("C"&ROW()))';
 var INTERACTION_LINKS_FORMULA = '=IFERROR(TEXTJOIN(CHAR(10),TRUE,UNIQUE(FILTER(\'SCI 互動紀錄\'!F:F,\'SCI 互動紀錄\'!D:D=INDIRECT("C"&ROW()),\'SCI 互動紀錄\'!E:E="外部連結"))),"")';
 
@@ -114,8 +111,6 @@ function doPost(e) {
   }
 }
 
-// Interaction events (clicks and views) arrive in small batches after the visitor has reached the report.
-// They are written to their own sheet; join them to the assessment rows by 評估 ID or 匿名 ID.
 function handleEvents(data) {
   if (data.consent !== true) return jsonResponse({ ok: false, reason: '未取得匿名資料蒐集同意。' });
   if (!/^SCI-U-[A-Z0-9-]{20,}$/i.test(cleanText(data.anonymousId))) {
@@ -170,8 +165,6 @@ function getEventSheet() {
   return sheet;
 }
 
-// 「互動查詢」分頁：在 B1 選一個評估 ID，下方就列出那一次測驗的基本資料與所有互動紀錄。
-// 分頁只建立一次；建立時也會替主分頁既有的資料列補上兩個互動欄位的公式。
 function ensureLookupSheet(spreadsheet, latestAssessmentId) {
   if (spreadsheet.getSheetByName(LOOKUP_SHEET_NAME)) return;
   var main = spreadsheet.getSheetByName(SHEET_NAME);
@@ -231,7 +224,6 @@ function columnLetter(index) {
   return letters;
 }
 
-// 手動重建「互動查詢」分頁：在編輯器選這個函式按執行。會先刪掉舊的查詢分頁，不會動到資料。
 function rebuildLookupSheet() {
   var spreadsheet = getSheet().getParent();
   var old = spreadsheet.getSheetByName(LOOKUP_SHEET_NAME);

@@ -13,13 +13,6 @@ const SCI_CONFIG = Object.freeze({
 });
 
 const COST_PERIOD_HOURS = Object.freeze({ hour: 1, week: 40, month: 160 });
-// Cloud token cost that running the same tasks on a local device avoids. Parameters match docs/雲端Token費用試算_全地端.xlsx.
-//  - usage: for each agent class and load, [input tokens per round, output tokens per round, rounds per run]. Estimates, not measurements.
-//  - tiers: average API list price of the three vendors' models in that tier, US$ per million input / output tokens (October 2026):
-//      light: Claude Haiku 4.5, Gemini Flash, GPT-5 nano; main: Claude Sonnet 5.5, Gemini 3.1 Pro, GPT-5.5; flagship: Claude Opus 5.5, GPT-6 Astra, Gemini 3.1 Pro.
-//  - scenarios: which cloud tier the local models of each HQ scenario stand in for, the device's power draw under load and its output speed.
-// Monthly cloud cost = (input x input price + output x output price) / 1,000,000 x exchange rate x retry factor x runs per month.
-// Monthly saving = cloud cost - local electricity. Buying the device is not included.
 const CLOUD_TOKEN_CONFIG = Object.freeze({
     usdToTwd: 32, retryFactor: 1.2, electricityTwdPerKwh: 4, inputSpeedup: 10, range: [0.75, 1.25],
     usage: {
@@ -40,16 +33,13 @@ const CLOUD_TOKEN_CONFIG = Object.freeze({
         premium: { tier: 'flagship', watts: 1200, tokensPerSecond: 60 },
         scale: { tier: 'flagship', watts: 3000, tokensPerSecond: 150 }
     },
-    // Below this monthly saving (NT$) the figure is too small to be worth showing, so the whole metric is left out of the report.
     minimumDisplayTwd: 1000
 });
 
-// Whether the cloud token metric is shown, for one person (factor 1) or a team.
 function showsCloudTokens(result, factor = 1) {
     return result.tokens.savedMonthlyTwd * factor >= CLOUD_TOKEN_CONFIG.minimumDisplayTwd;
 }
 
-// For one person: the tokens these tasks would use on a cloud model each month, what that costs, and what is left after local electricity.
 function estimateCloudTokens(taskResults, scenarioId) {
     const config = CLOUD_TOKEN_CONFIG;
     const scenario = config.scenarios[scenarioId] || config.scenarios.personal;
@@ -204,7 +194,6 @@ function makeRecipe(id, persona, title, workUnit, assist, review, manual, _legac
     });
 }
 
-// 僅保留原 24 個任務的資產識別；內容、單位及參考工時均讀 canonical catalog。
 const baseRecipeCatalog = Object.freeze(globalThis.SCIWorkflowV2.workflowIds.filter(id=>globalThis.SCIWorkflowV2.getWorkflow(id).hasExistingAvatar).map(id=>({id})));
 function normalizeSciPersona(persona) { return persona === 'education' ? 'edu' : persona; }
 
@@ -219,7 +208,6 @@ const recipeCatalog = Object.freeze(globalThis.SCIWorkflowV2.workflowIds.map(id 
     return Object.freeze({...recipe, computeClass:task.computeClass, scales:task.referenceScales, description:task.description, boundary:task.boundary, evidenceStatus:'expert-model-estimate', recipeVersion:'3.0'});
 }));
 
-// 分類只負責導覽與題目排序；計分仍以使用者填寫的任務工作流為準。
 const functionCatalog = Object.freeze(Object.fromEntries(['soho','edu','smb'].map(persona => {
  const roles=globalThis.SCIWorkflowV2.getRolesForPersona(persona==='edu'?'education':persona);
  const names=[...new Set(roles.map(role=>role.functionName))];
@@ -232,8 +220,16 @@ const hardwareCatalog = Object.freeze({
         label: 'A 級影身術戰力',
         strength: Object.freeze({ grade: 'A', meter: 20, label: '初階協作', capacity: '適合日常內容、文件與單一工作流', description: '從地端文件整理、內容生成與一般資料工作開始建立影身術流程。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'Agent Pioneer-A', mb: 'AMD B850', cpu: 'AMD Ryzen 7 9700X', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '64GB（32GB×2）DDR5 6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 850W 金牌' }),
-            Object.freeze({ name: 'Agent Pioneer-I', mb: 'Intel B860', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '64GB（32GB×2）DDR5 6000MHz', ssd: '2TB PCIe 4.0 NVMe M.2', case: 'TUF GAMING GT502 Horizon', cooling: 'TUF Gaming LC III 360 ARGB', psu: 'TUF GAMING 850W 金牌' })
+            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 5・32GB', store: '順發', gpu: 'ASUS Dual GeForce RTX 5060 Ti 16GB', cpu: 'Intel Core Ultra 5 225', mb: 'TUF GAMING B860M-PLUS', ram: '32GB（16GB×2）', ssd: '1TB PCIe 5.0', case: 'ASUS Prime AP202', cooling: 'ASUS LC 240 水冷', psu: 'TUF GAMING 750W 金牌', image: 'asus-prime-ap202', link: 'https://www.isunfar.com.tw/product/comboitem.aspx?prodseq=300S21&action_no=AD07041064' }),
+            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 7・32GB', store: 'PChome', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 7 270K Plus', mb: 'ASUS B860M-A CSM', ram: '32GB', ssd: '2TB PCIe 4.0', case: 'ASUS Prime AP202', psu: 'TUF GAMING 650W 銅牌', image: 'asus-prime-ap202', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900JV4HD' }),
+            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 7・32GB', store: 'momo', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 7 270K Plus', mb: 'ASUS B860M-K CSM', ram: '32GB', ssd: '1TB PCIe 5.0', case: 'ASUS Prime AP202', psu: 'TUF GAMING 750W 銅牌', image: 'asus-prime-ap202', link: 'https://www.momoshop.com.tw/product/15424503' }),
+            Object.freeze({ name: 'Agent Pioneer', note: 'AMD Ryzen 7・32GB', store: 'momo', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'ASUS B650M-F CSM', ram: '32GB', ssd: '1TB PCIe 4.0', case: 'ASUS A21 PLUS', psu: 'TUF GAMING 650W 銅牌', image: 'asus-a21-plus', link: 'https://www.momoshop.com.tw/product/15623653' }),
+            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 5・32GB', store: 'PChome', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M-K CSM', ram: '32GB（16GB×2）', ssd: '1TB PCIe 4.0', case: 'ASUS Prime AP202', psu: 'TUF GAMING 650W 銅牌', image: 'asus-prime-ap202', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900JV4FY' }),
+            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core i5・32GB', store: 'PChome', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core i5-14400F', mb: 'ASUS B760M-F D4 CSM', ram: '32GB（16GB×2）', ssd: '1TB PCIe 4.0', case: 'ASUS A21 PLUS', psu: 'TUF GAMING 650W 銅牌', image: 'asus-a21-plus', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900JQ56V' }),
+            Object.freeze({ name: 'Agent Pioneer', note: 'AMD Ryzen 5・32GB', store: 'momo', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'AMD Ryzen 5 7500F', mb: 'ASUS B650M-F CSM', ram: '32GB', ssd: '500GB PCIe 4.0', case: 'ASUS A21 PLUS', psu: 'TUF GAMING 650W 銅牌', image: 'asus-a21-plus', link: 'https://www.momoshop.com.tw/product/15623493' }),
+            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 5・32GB', store: 'momo', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 5 225F', mb: 'ASUS B860M-K CSM', ram: '32GB', ssd: '1TB PCIe 4.0', psu: 'TUF GAMING 650W 銅牌', link: 'https://www.momoshop.com.tw/product/15238030' }),
+            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 7・16GB', store: '平宇', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 7 270K Plus', mb: 'ASUS Z890 MAX GAMING', ram: '16GB', ssd: '1TB PCIe 5.0', psu: 'TUF GAMING 750W 銅牌', link: 'https://www.autobuy.tw/3c/prod_415204_17665' }),
+            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 5・16GB', store: '平宇', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 5 245K', mb: 'ASUS Z890 MAX GAMING', ram: '16GB', ssd: '1TB PCIe 5.0', psu: 'TUF GAMING 750W 銅牌', link: 'https://www.autobuy.tw/3c/prod_415201_17665' })
         ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 7 9000 系列', intel: 'Intel Core Ultra 7 桌上型處理器（系列 2）' },
@@ -245,27 +241,49 @@ const hardwareCatalog = Object.freeze({
         label: 'A+ 級影身術戰力',
         strength: Object.freeze({ grade: 'A+', meter: 40, label: '進階協作', capacity: '適合多項內容與資料工作流', description: '提供更多顯示記憶體、系統記憶體與多工具並行空間。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'Agent Professional-A', mb: 'AMD X870', cpu: 'AMD Ryzen 9 9900X', gpu: 'AMD Radeon AI PRO R9700 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'ROG Strix Helios II', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
-            Object.freeze({ name: 'Agent Professional-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 7 265K', gpu: 'NVIDIA GeForce RTX 5070 12GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 4.0 NVMe M.2', case: 'ROG Strix Helios II', cooling: 'ROG STRIX LC III 360 ARGB', psu: 'ROG STRIX 1000W 金牌' }),
-            Object.freeze({ name: 'ASUS／ROG NUC', mb: '整合式系統', cpu: 'Intel Core Ultra 9', gpu: 'NVIDIA GeForce RTX 5070 Laptop GPU 12GB GDDR7', ram: '16GB DDR5-6400 CSO-DIMM×2', ssd: '1TB M.2 2280 NVMe PCIe 4.0 SSD', case: '整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '整合式系統' })
+            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・64GB', store: 'PChome', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'ASUS B850M WIFI', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ASUS A21 PLUS', cooling: 'ASUS LC 360 ARGB', psu: 'TUF GAMING 850W 金牌', image: 'asus-a21-plus', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJO2Q?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・64GB', store: 'PChome', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'ASUS B850M WIFI', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ASUS A21 PLUS', cooling: 'ASUS LC 360 ARGB', psu: 'TUF GAMING 850W 金牌', image: 'asus-a21-plus', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJO0U?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 7・64GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5070 Ti 16GB', cpu: 'Intel Core Ultra 7 265K', mb: 'PRIME Z890-P WIFI-CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'AYW GAMING LC 360 ARGB', psu: 'ROG STRIX 850P GAMING', image: 'rog-strix-helios-ii', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNG1?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 7・64GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5070 Ti 16GB', cpu: 'Intel Core Ultra 7 265K', mb: 'PRIME Z890-P WIFI-CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'AYW GAMING LC 360 ARGB', psu: 'ROG STRIX 850P GAMING', image: 'rog-strix-helios-ii', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNEV?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・64GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5070 Ti 16GB', cpu: 'AMD Ryzen 7 9700X', mb: 'ASUS B850M AYW GAMING WIFI', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'TUF Gaming GT501', cooling: 'AYW GAMING LC 360 ARGB', psu: 'ROG STRIX 850W', image: 'tuf-gt501', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNDA?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 5・64GB', store: 'PChome', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M', ram: '64GB（32GB×2）', ssd: '2TB PCIe 4.0', case: 'ASUS Prime AP202', cooling: 'ASUS LC 360 ARGB', psu: 'TUF GAMING 850W 金牌', image: 'asus-prime-ap202', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJOK5?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 5・64GB', store: 'PChome', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M', ram: '64GB（32GB×2）', ssd: '2TB PCIe 4.0', case: 'ASUS Prime AP202', cooling: 'ASUS LC 360 ARGB', psu: 'TUF GAMING 850W 金牌', image: 'asus-prime-ap202', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJOGT?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 5・64GB', store: 'PChome', gpu: 'ASUS GeForce RTX 5060 Ti 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M', ram: '64GB（32GB×2）', ssd: '2TB PCIe 4.0', case: 'ASUS Prime AP202', cooling: 'ASUS LC 360 ARGB', psu: 'TUF GAMING 750W 金牌', image: 'asus-prime-ap202', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJOY3?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・32GB', store: '順發', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'TUF GAMING X870-PLUS', ram: '32GB（16GB×2）', ssd: '2TB PCIe 5.0', case: 'ASUS A31 PLUS', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', image: 'asus-a31-plus', link: 'https://www.isunfar.com.tw/product/comboitem.aspx?prodseq=300S22&action_no=AD07041065' }),
+            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・64GB', store: 'PChome', gpu: 'ASUS Radeon RX 9060 XT 16GB', cpu: 'AMD Ryzen 7 7800X3D', mb: 'ASUS B650M-F CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJGU3' }),
+            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・64GB', store: 'PChome', gpu: 'ASUS Radeon RX 9060 XT 16GB', cpu: 'AMD Ryzen 7 7800X3D', mb: 'ASUS B650M-F CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJGUQ' }),
+            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 5・64GB', store: 'PChome', gpu: 'ASUS Radeon RX 9060 XT 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M-K CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJH2I' }),
+            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 5・64GB', store: 'PChome', gpu: 'ASUS Radeon RX 9060 XT 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M-K CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJH3N' }),
+            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・32GB', store: 'momo', gpu: 'ASUS PRIME Radeon RX 9070 XT OC 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'PRIME X870-P WIFI', ram: '32GB（16GB×2）', ssd: '1TB PCIe 5.0', cooling: 'Prime LC 360 ARGB', psu: 'PRIME 850W 金牌', link: 'https://www.momoshop.com.tw/product/14048260' }),
+            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 7・32GB', store: '順發', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'Intel Core Ultra 7 270', mb: 'PRIME Z890-P', ram: '32GB（16GB×2）', ssd: '2TB PCIe 5.0', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', link: 'https://www.isunfar.com.tw/product/comboitem.aspx?prodseq=300S23&action_no=AD07041066' }),
+            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・32GB', store: 'momo', gpu: 'ASUS PRIME Radeon RX 9070 XT OC 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'PRIME X870-P WIFI', ram: '32GB（16GB×2）', ssd: '1TB PCIe 4.0', psu: 'PRIME 850W 金牌', link: 'https://www.momoshop.com.tw/product/14048259' }),
+            Object.freeze({ name: 'ROG NUC', note: 'GeForce RTX 5080・迷你主機', store: 'momo', gpu: 'NVIDIA GeForce RTX 5080', cpu: 'Intel Core Ultra 9 275HX', mb: '整合式系統', ram: '64GB（32GB×2）', ssd: '3TB', case: '整合式機身', cooling: '整合式散熱', integratedChassis: true, psu: '整合式系統', image: 'rog-nuc-16', link: 'https://www.momoshop.com.tw/product/14409925?Area=search&mdiv=403&oid=1_9&cid=index&kw=ROG+NUC&ecTagNos=' })
         ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 9 9900X 系列', intel: 'Intel Core Ultra 7／Ultra 9 系列' },
-            mb: { amd: 'ASUS ROG Strix B850／X870 系列', intel: 'ASUS ROG Strix Z890 系列' },
-            gpu: { all: 'ASUS GeForce RTX 5060 Ti／RTX 5070 系列或 AI Pro R9700' }
+            mb: { amd: 'ASUS B850／X870 系列', intel: 'ASUS Z890 系列' },
+            gpu: { all: 'ASUS GeForce RTX 5070／RTX 5070 Ti 系列或 AI Pro R9700' }
         })
     }),
     s: Object.freeze({
         label: 'S 級影身術戰力',
-        strength: Object.freeze({ grade: 'S', meter: 60, label: '高效協作', capacity: '適合高負載創作與多流程持續運行', description: '以 RTX 5090 級顯示卡與高階桌上型平台承接高負載地端模型及創作流程。' }),
+        strength: Object.freeze({ grade: 'S', meter: 60, label: '高效協作', capacity: '適合高負載創作與多流程持續運行', description: '以 RTX 5080 級以上顯示卡與高階桌上型平台承接高負載地端模型及創作流程。' }),
         models: Object.freeze([
-            Object.freeze({ name: 'Agent Master-A', mb: 'AMD X870E', cpu: 'AMD Ryzen 9 9950X', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'ProArt LC 420', psu: 'ROG THOR III 1200W' }),
-            Object.freeze({ name: 'Agent Master-I', mb: 'Intel Z890', cpu: 'Intel Core Ultra 9 285K', gpu: 'NVIDIA GeForce RTX 5090 32GB', ram: '128GB（32GB×4）DDR5 6000MHz', ssd: '4TB PCIe 5.0', case: 'ROG Cronox ARGB', cooling: 'ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III 1200W' })
+            Object.freeze({ name: 'Agent Master', note: 'Intel Core Ultra 9・128GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5080 16GB', cpu: 'Intel Core Ultra 9 285K', mb: 'ROG MAXIMUS Z890 HERO', ram: '128GB（64GB×2）', ssd: '4TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III 1200W', image: 'rog-strix-helios-ii', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNRJ' }),
+            Object.freeze({ name: 'Agent Master', note: 'AMD Ryzen 9・128GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5080 16GB', cpu: 'AMD Ryzen 9 9950X', mb: 'ROG STRIX X870E-E GAMING', ram: '128GB（64GB×2）', ssd: '4TB PCIe 5.0', case: 'ROG Hyperion GR701', cooling: 'AYW GAMING LC 360', psu: 'TUF 1200G ATX3.0 1200W 金牌', image: 'rog-hyperion-gr701', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNHQ?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Master', note: 'AMD Ryzen 9・64GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5080 16GB', cpu: 'AMD Ryzen 9 9950X', mb: 'ROG STRIX X870E-E GAMING', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'AYW GAMING LC 360 ARGB', psu: 'TUF 1200G ATX3.0 1200W', image: 'rog-strix-helios-ii', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNGV?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Master', note: 'Intel Core Ultra 7・64GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5080 16GB', cpu: 'Intel Core Ultra 7 270K Plus', mb: 'ROG MAXIMUS Z890 HERO', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'ROG RYUJIN III 360 ARGB', psu: 'TUF 1200G ATX3.0 1200W', image: 'rog-strix-helios-ii', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNOB?fq=/S/DSAUZ9' }),
+            Object.freeze({ name: 'Agent Master', note: 'Intel Core Ultra 7・64GB', store: 'momo', gpu: 'ASUS PRIME GeForce RTX 5080 16GB', cpu: 'Intel Core Ultra 7 270K Plus', mb: 'ROG MAXIMUS Z890 HERO', ram: '64GB（32GB×2）', ssd: '2TB PCIe 4.0', case: 'ROG Strix Helios II', cooling: 'ROG RYUJIN III 360 ARGB EXTREME', psu: 'TUF GAMING 1200W 金牌', image: 'rog-strix-helios-ii', link: 'https://www.momoshop.com.tw/product/15772646' }),
+            Object.freeze({ name: 'Agent Master', note: 'Intel Core Ultra 9・RTX 5090・32GB', store: '原價屋', gpu: 'ROG Astral GeForce RTX 5090 32GB', cpu: 'Intel Core Ultra 9 285K', mb: 'ROG MAXIMUS Z890 HERO', ram: '32GB（16GB×2）', ssd: '1TB PCIe 5.0', case: 'ROG Cronox ARGB GR801', cooling: 'ROG RYUO IV 360 ARGB', psu: 'ROG STRIX 1200W', image: 'rog-cronox-argb', link: 'https://www.coolpc.com.tw/evaluate.php' }),
+            Object.freeze({ name: 'Agent Master', note: 'Intel Core Ultra 9・RTX 5090・64GB', store: '原價屋', gpu: 'ROG Astral GeForce RTX 5090 32GB', cpu: 'Intel Core Ultra 9 285K', mb: 'ROG MAXIMUS Z890 HERO', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Cronox ARGB GR801', cooling: 'ROG RYUO IV 360 ARGB', psu: 'ROG STRIX 1200W', image: 'rog-cronox-argb', link: 'https://www.coolpc.com.tw/evaluate.php' }),
+            Object.freeze({ name: 'Agent Master', note: 'AMD Ryzen 9・RTX 5090・32GB', store: '原價屋', gpu: 'ROG Astral GeForce RTX 5090 32GB', cpu: 'AMD Ryzen 9 9950X', mb: 'ROG CROSSHAIR X870E APEX', ram: '32GB（16GB×2）', ssd: '1TB PCIe 5.0', case: 'ROG Cronox ARGB GR801', cooling: 'ROG RYUO IV 360 ARGB', psu: 'ROG STRIX 1200W', image: 'rog-cronox-argb', link: 'https://www.coolpc.com.tw/evaluate.php' }),
+            Object.freeze({ name: 'Agent Master', note: 'AMD Ryzen 9・RTX 5090・64GB', store: '原價屋', gpu: 'ROG Astral GeForce RTX 5090 32GB', cpu: 'AMD Ryzen 9 9950X', mb: 'ROG CROSSHAIR X870E APEX', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Cronox ARGB GR801', cooling: 'ROG RYUO IV 360 ARGB', psu: 'ROG STRIX 1200W', image: 'rog-cronox-argb', link: 'https://www.coolpc.com.tw/evaluate.php' }),
+            Object.freeze({ name: 'ROG NUC', note: 'GeForce RTX 5090・迷你主機', store: 'momo', gpu: 'NVIDIA GeForce RTX 5090', cpu: 'Intel Core Ultra 9 290HX', mb: '整合式系統', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: '整合式機身', cooling: '整合式散熱', integratedChassis: true, psu: '整合式系統', image: 'rog-nuc-16', link: 'https://www.momoshop.com.tw/product/15467401?Area=search&mdiv=403&oid=1_2&cid=index&kw=ROG+NUC&ecTagNos=' })
         ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 9 9950X 系列', intel: 'Intel Core Ultra 9 285K 系列' },
             mb: { amd: 'ASUS ROG Crosshair X870E 系列', intel: 'ASUS ROG Maximus Z890 系列' },
-            gpu: { all: 'ASUS ROG Astral GeForce RTX 5090 系列' }
+            gpu: { all: 'ASUS GeForce RTX 5080／RTX 5090 系列' }
         })
     }),
     splus: Object.freeze({
@@ -299,9 +317,7 @@ const campaignConfig = Object.freeze({
     tutorials: [], promotions: [],
     productLinks: {
         systems: { a: '', aplus: '', s: '', splus: '', ss: '' },
-        // Product pages for individual builds; a build without an entry falls back to its tier link above.
         systemModels: {
-            'ASUS／ROG NUC': 'https://rog.asus.com/tw/desktops/mini-pc/rog-nuc-16/',
             'ET700I W7': 'https://www.asus.com/tw/displays-desktops/workstations/advanced/expertcenter-pro-et700i-w7/',
             'RTX DGX／Spark': 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/',
             'ET900N G3': 'https://www.asus.com/tw/displays-desktops/workstations/performance/expertcenter-pro-et900n-g3/'
@@ -319,22 +335,21 @@ const campaignConfig = Object.freeze({
             },
             premium: { mb: 'https://www.asus.com/tw/motherboards-components/motherboards/workstation/', gpu: '' }
         },
-        // Official product pages. A string is one link for the whole card; { amd, intel } gives one link per platform column.
         components: {
             a: {
                 cpu: { amd: 'https://www.amd.com/zh-tw/products/processors/desktops/ryzen/9000-series/amd-ryzen-7-9700x.html', intel: 'https://www.intel.com.tw/content/www/tw/zh/products/sku/241063/intel-core-ultra-7-processor-265k-30m-cache-up-to-5-50-ghz/specifications.html' },
-                mb: 'https://www.asus.com/tw/motherboards-components/motherboards/tuf-gaming/',
-                gpu: 'https://www.asus.com/tw/motherboards-components/graphics-cards/all-series/'
+                mb: [['AMD 平台', { PChome: 'https://24h.pchome.com.tw/search/ASUS%20B850', momo: 'https://www.momoshop.com.tw/search/ASUS%20B850?_isFuzzy=0&searchType=1&brand=ASUS+%E8%8F%AF%E7%A2%A9&brandNo=20160808155621011&curPage=1' }], ['Intel 平台', { PChome: 'https://24h.pchome.com.tw/search/ASUS%20B860?brands=1_391%2C1_394066249020397633', momo: 'https://www.momoshop.com.tw/search/ASUS%20B860?_isFuzzy=0&searchType=1&brand=ASUS+%E8%8F%AF%E7%A2%A9&brandNo=20160808155621011&curPage=1&brandSeriesStr=TUF%23%2320220802000283' }]],
+                gpu: [['RTX 5060 Ti', { PChome: 'https://24h.pchome.com.tw/search/asus%205060TI?attrs=G10I18909%2CG10I18910', momo: 'https://www.momoshop.com.tw/categories/2144100218?brandName=ASUS+%E8%8F%AF%E7%A2%A9&brandNoList=20160808155621011&has3P=y' }], ['RTX 5070', { PChome: 'https://24h.pchome.com.tw/search/ASUS%205070?brands=1_391%2C1_394066249020397633&attrs=G43I22727', momo: 'https://www.momoshop.com.tw/categories/2144100217?brandName=ASUS+%E8%8F%AF%E7%A2%A9&brandNoList=20160808155621011&has3P=y' }]]
             },
             aplus: {
                 cpu: { amd: 'https://www.amd.com/zh-tw/products/processors/desktops/ryzen/9000-series/amd-ryzen-9-9900x.html', intel: 'https://www.intel.com.tw/content/www/tw/zh/products/sku/241063/intel-core-ultra-7-processor-265k-30m-cache-up-to-5-50-ghz/specifications.html' },
-                mb: 'https://rog.asus.com/tw/motherboards/rog-strix-series/',
-                gpu: 'https://www.asus.com/tw/motherboards-components/graphics-cards/all-series/'
+                mb: [['AMD 平台', { PChome: 'https://24h.pchome.com.tw/search/ASUS%20X870?brands=1_391', momo: 'https://www.momoshop.com.tw/search/ASUS%20X870?_isFuzzy=0&searchType=1&brand=ASUS+%E8%8F%AF%E7%A2%A9&brandNo=20160808155621011&curPage=1' }], ['Intel 平台', { PChome: 'https://24h.pchome.com.tw/search/ASUS%20Z890?brands=1_391%2C1_394066249020397633&attrs=G43I22759', momo: 'https://www.momoshop.com.tw/search/ASUS%20Z890?_isFuzzy=0&searchType=1&brand=ASUS+%E8%8F%AF%E7%A2%A9&brandNo=20160808155621011&curPage=1' }]],
+                gpu: [['RTX 5070', { PChome: 'https://24h.pchome.com.tw/search/ASUS%205070?brands=1_391%2C1_394066249020397633&attrs=G43I22727', momo: 'https://www.momoshop.com.tw/categories/2144100217?brandName=ASUS+%E8%8F%AF%E7%A2%A9&brandNoList=20160808155621011&has3P=y' }], ['RTX 5070 Ti', { PChome: 'https://24h.pchome.com.tw/search/asus%205070TI?brands=1_391%2C1_394066249020397633&attrs=G43I22728' }]]
             },
             s: {
                 cpu: { amd: 'https://www.amd.com/zh-tw/products/processors/desktops/ryzen/9000-series/amd-ryzen-9-9950x.html', intel: 'https://www.intel.com.tw/content/www/tw/zh/products/sku/241060/intel-core-ultra-9-processor-285k-36m-cache-up-to-5-70-ghz/specifications.html' },
-                mb: { amd: 'https://rog.asus.com/tw/motherboards/rog-crosshair-series/', intel: 'https://rog.asus.com/tw/motherboards/rog-maximus-series/' },
-                gpu: 'https://rog.asus.com/tw/graphics-cards/graphics-cards/rog-astral-series/'
+                mb: [['AMD 平台', { PChome: 'https://24h.pchome.com.tw/search/ASUS%20X870?brands=1_391', momo: 'https://www.momoshop.com.tw/search/ASUS%20X870?_isFuzzy=0&searchType=1&brand=ASUS+%E8%8F%AF%E7%A2%A9&brandNo=20160808155621011&curPage=1' }], ['Intel 平台', { PChome: 'https://24h.pchome.com.tw/search/ASUS%20Z890?brands=1_391%2C1_394066249020397633&attrs=G43I22759', momo: 'https://www.momoshop.com.tw/search/ASUS%20Z890?_isFuzzy=0&searchType=1&brand=ASUS+%E8%8F%AF%E7%A2%A9&brandNo=20160808155621011&curPage=1' }]],
+                gpu: [['RTX 5080', { PChome: 'https://24h.pchome.com.tw/search/asus%205080%20%E9%A1%AF%E7%A4%BA%E5%8D%A1?brands=1_391' }], ['RTX 5090', { PChome: 'https://24h.pchome.com.tw/prod/DRADKY-A900JPJTV', momo: 'https://www.momoshop.com.tw/product/14956590?Area=search&mdiv=403&oid=1_6&cid=index&kw=ASUS+5090&ecTagNos=' }]]
             },
             splus: {
                 cpu: { amd: 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/', intel: 'https://www.intel.com.tw/content/www/tw/zh/ark/products/series/125035/intel-xeon-w-processor.html' },
@@ -432,11 +447,9 @@ function initialize() {
         sharedSettings: document.querySelector('.shared-settings')
     });
 
-    // A shared-settings field stops being flagged as soon as the user touches it.
     elements.sharedSettings?.addEventListener('input', event => event.target.closest('.field-error')?.classList.remove('field-error'));
     elements.sharedSettings?.addEventListener('change', event => event.target.closest('.field-error')?.classList.remove('field-error'));
     ['input', 'change'].forEach(type => document.getElementById('step-3').addEventListener(type, clearError));
-    // Step 3 has its own buttons under the panel: back / next walk through the panels, 查看結果 appears once everything is filled in.
     elements.step3Prev.addEventListener('click', previousStep3Panel);
     elements.step3Next.addEventListener('click', () => {
         if (step3PanelIndex < getStep3PanelCount() - 1) nextStep3Panel();
@@ -447,13 +460,11 @@ function initialize() {
     initReportDeck();
     initPointerEffects();
     initInteractionLog();
-    // Once the assessment has started, closing or reloading the page asks for confirmation so answers are not lost by accident.
     window.addEventListener('beforeunload', event => {
         if (!assessmentState.persona && assessmentState.currentStep <= 1) return;
         event.preventDefault();
         event.returnValue = '';
     });
-    // Use tags appear both on the report card and inside the scenario modal.
     document.addEventListener('click', event => {
         const tag = event.target.closest('[data-usecase]');
         if (tag) toggleUseCase(tag);
@@ -469,7 +480,6 @@ function initialize() {
         const trigger = event.target.closest('[data-clone-toggle]');
         if (trigger) toggleClonePlanDetail(trigger);
     });
-    // Any edit in Step 3 can change completion, so refresh the progress strip and the report button together.
     ['input', 'change'].forEach(type => document.getElementById('step-3').addEventListener(type, () => {
         if (assessmentState.currentStep !== 3) return;
         renderTaskProgress();
@@ -477,7 +487,6 @@ function initialize() {
     }));
 
     elements.startAssessment?.addEventListener('click', enterAssessment);
-    // Banner layers drift slightly with the pointer; each layer's --depth sets how far.
     const landingStage = document.getElementById('landing-stage');
     if (landingStage && matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
         elements.landingHero.addEventListener('pointermove', event => {
@@ -517,6 +526,8 @@ function initialize() {
     document.getElementById('workflow-result-table').addEventListener('click', event => {
         const trigger = event.target.closest('[data-task-toggle]');
         if (trigger) toggleTaskDetail(Number(trigger.dataset.taskToggle));
+        const ratio = event.target.closest('[data-ratio-edit]');
+        if (ratio) openRatioModal(ratio.dataset.ratioEdit, ratio);
     });
     document.getElementById('hardware-section').addEventListener('click', handleHardwareInteraction);
     document.getElementById('hardware-section').addEventListener('keydown', handleHardwareKeydown);
@@ -537,9 +548,6 @@ function enterAssessment() {
     requestAnimationFrame(() => document.getElementById('step-1-title')?.focus({ preventScroll: true }));
 }
 
-// Line drawings for the three work contexts (no people, so no one is pictured as "the" freelancer, teacher or office worker).
-// Each drawing has a gradient-filled copy of its closed shapes (.persona-art__fill) behind a mask made of two quarter-circles,
-// one in the top-right corner and one in the bottom-left. On hover both grow until they cover the drawing, so colour sweeps in from two opposite corners.
 const personaGradient = (id, from, to) => `<defs>
         <linearGradient id="${id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient>
         <mask id="${id}-mask" maskUnits="userSpaceOnUse" x="-40" y="-40" width="200" height="200"><circle class="persona-art__blob" cx="112" cy="14" r="26" fill="#fff"/><circle class="persona-art__blob" cx="8" cy="110" r="26" fill="#fff"/></mask>
@@ -675,7 +683,6 @@ function renderFunctionSelection() {
     if (!elements.functionOptions) return;
     const functions = getPersonaFunctions();
     const selected = functions.find(item => item.id === assessmentState.functionId);
-    // Domains sit in one horizontal row; the optional role filter for the chosen domain follows on its own row.
     elements.functionOptions.innerHTML = functions.map(item => `
         <div class="function-option-shell ${assessmentState.functionId === item.id ? 'is-selected' : ''}">
             <label class="function-option ${assessmentState.functionId === item.id ? 'is-selected' : ''}">
@@ -752,7 +759,6 @@ function renderRecipeSelection() {
             </article>
         `;
     }).join('');
-    // Only one task detail stays open: opening another one, or ticking another task, closes the rest.
     const closeOtherDetails = keepId => {
         [...openRecipeDetails].forEach(id => { if (id !== keepId) openRecipeDetails.delete(id); });
         elements.recipeGrid.querySelectorAll('[data-recipe-detail][open]').forEach(detail => { if (detail.dataset.recipeDetail !== keepId) detail.open = false; });
@@ -763,7 +769,6 @@ function renderRecipeSelection() {
             toggleRecipe(input.value, input.checked, input);
         });
     });
-    // Remember which task detail is open so re-rendering after a selection does not collapse it.
     elements.recipeGrid.querySelectorAll('[data-recipe-detail]').forEach(detail => detail.addEventListener('toggle', () => {
         if (detail.open) {
             openRecipeDetails.add(detail.dataset.recipeDetail);
@@ -863,13 +868,10 @@ function renderTaskSettings() {
     applyStep3Panel();
 }
 
-// Step 3 shows one panel at a time: each selected task, then the shared usage settings.
 function getStep3PanelCount() {
     return assessmentState.selectedRecipeIds.length + 1;
 }
 
-// Who shares the device decides between the personal and the shared / enterprise scenarios.
-// Students are always a single user, so the question is not shown to them.
 function isStudentFunction(functionId = assessmentState.functionId) {
     return functionId === 'edu.學生';
 }
@@ -941,7 +943,6 @@ function renderTaskProgress() {
     elements.taskProgress.querySelectorAll('[data-step3-panel]').forEach(button => button.addEventListener('click', () => goToStep3Panel(Number(button.dataset.step3Panel))));
 }
 
-// Moving forward (arrow or progress tab) requires the current task to be complete; moving back never does.
 function goToStep3Panel(targetIndex) {
     clearError();
     if (targetIndex === step3PanelIndex) return;
@@ -976,12 +977,10 @@ function renderDonut(percent) {
 }
 
 let revealObserver = null;
-// Report blocks fade up and their charts draw in the first time they scroll into view.
 function observeReveals(root = document.getElementById('step-4')) {
     const targets = root.querySelectorAll('.scenario-card, .framework-card, .impact-hero, .saving-summary, .time-comparison-row, .workflow-impact-card, .hardware-model-card, .component-series-card, .shadow-strength-card, .local-value-comparisons article');
     targets.forEach(target => target.classList.add('reveal'));
     if (!revealObserver) {
-        // Position checks on scroll rather than IntersectionObserver, so blocks can never stay hidden if no callback fires.
         revealObserver = true;
         document.getElementById('step-4').addEventListener('scroll', checkReveals, { passive: true });
         window.addEventListener('scroll', checkReveals, { passive: true });
@@ -1171,7 +1170,6 @@ function clearCloudPaidSelection() {
     updateCloudProviderSummaries();
 }
 
-// One plan per brand: each select shows the plan in cloudPlans that belongs to it.
 function updateCloudProviderSummaries() {
     elements.cloudPlanOptions.querySelectorAll('[data-cloud-brand]').forEach(select => {
         const selected = assessmentState.cloudPlans.map(id => CLOUD_PLAN_CATALOG.find(plan => plan.id === id)).find(plan => plan?.brandId === select.dataset.cloudBrand);
@@ -1194,7 +1192,6 @@ function restoreSharedOptions() {
     updateCostConversion();
 }
 
-// The cost question offers monthly ranges; a range is counted at its midpoint, and 其他 lets the user type a monthly amount.
 const COST_BANDS = Object.freeze([
     ['10000-40000', '1–4 萬', 25000], ['50000-90000', '5–9 萬', 70000], ['100000-150000', '10–15 萬', 125000],
     ['160000-190000', '16–19 萬', 175000], ['200000+', '20 萬以上', 200000], ['other', '其他', null]
@@ -1299,7 +1296,6 @@ function nextStep() {
         return;
     }
     if (assessmentState.currentStep === 3) {
-        // Until every panel is filled in, the button walks through the panels one at a time.
         if (!isStep3Complete() && step3PanelIndex < getStep3PanelCount() - 1) return nextStep3Panel();
         if (!validateStep3()) return;
         refreshAssessmentResult();
@@ -1347,7 +1343,6 @@ function goToStep(step) {
     assessmentState.currentStep = step;
     updateStepUI(true);
     if (previousStep !== step) logInteraction('進入步驟', `步驟 ${step}`);
-    // The report always opens at the top of every card. This runs after the step is shown: scroll positions cannot be set while it is hidden.
     if (step === 4) document.querySelectorAll('[data-report-card]').forEach(card => { card.scrollTop = 0; });
 }
 
@@ -1470,7 +1465,7 @@ function calculateAssessment(snapshot) {
         const baseline = scale.manualMinutes;
         const current = Number(answer.currentHumanMinutes);
         const effectiveBaseline = answer.baselineHumanMinutes !== '' && answer.baselineHumanMinutes != null ? Number(answer.baselineHumanMinutes) : answer.currentMode === 'manual' ? current : baseline;
-        const workflowMetrics = calculateWorkflowMetrics(recipeId);
+        const workflowMetrics = calculateWorkflowMetrics(recipeId, answer.stageAssist);
         const taxonomy = getRecipeTaxonomy(recipeId);
         const workflowTargetMinutes = effectiveBaseline * workflowMetrics.retainedHumanRatio;
         const target = answer.targetHumanMinutes !== '' && answer.targetHumanMinutes != null ? Number(answer.targetHumanMinutes) : workflowTargetMinutes;
@@ -1485,6 +1480,7 @@ function calculateAssessment(snapshot) {
             functionIds: taxonomy.functions,
             workUnit: recipe.workUnit,
             scale: answer.scale,
+            customRatio: Array.isArray(answer.stageAssist),
             scaleLabel: getLoadingMeta(answer.scale).label,
             frequency: Number(answer.frequency),
             period: answer.period,
@@ -1602,7 +1598,6 @@ function calculateAssessment(snapshot) {
             currentMonthlyTwd: cloudMonthlyTwd,
             reducibleMonthlyTwd: cloudMonthlyTwd
         },
-        // Largest monthly saving first: the first task is the one flagged as the priority to hand over.
         taskResults: taskResults.sort((a, b) => b.savedMonthlyMinutes - a.savedMonthlyMinutes || b.currentMonthlyMinutes - a.currentMonthlyMinutes || a.selectionIndex - b.selectionIndex),
         clones: [...cloneMap.values()],
         recommendation,
@@ -1610,12 +1605,6 @@ function calculateAssessment(snapshot) {
     });
 }
 
-// Hardware routing follows the HQ scenarios.
-// 1. Demand level (1-4): the heaviest selected task (its compute class, nudged by the chosen load).
-// 2. Load level (1-3): how many tasks run at once, monthly hours and how many tasks are at heavy load.
-// 3. One user: the demand x load table picks the personal scenario and grade.
-//    Shared: head count picks the scenario (2-5 Homelab, 6-25 Workstations, 26-50 Premium, 50+ Scale).
-// 4. Caps: freelancers never get an enterprise scenario; students never go past a single desktop (S).
 const ROUTE_OUTCOMES = Object.freeze({
     a: { scenarioId: 'personal', tier: 'a' },
     aplus: { scenarioId: 'personal', tier: 'aplus' },
@@ -1633,7 +1622,6 @@ const INDIVIDUAL_ROUTE = Object.freeze({
 });
 const DEMAND_LABELS = ['輕量', '中等', '高', '模型開發'];
 const LOAD_LABELS = ['低', '中', '高'];
-// Component upgrade lists for the scenarios that split the S+ tier.
 const SCENARIO_COMPONENTS = Object.freeze({
     homelab: { cpu: { all: 'NVIDIA GB10 Grace Blackwell Superchip' }, mb: { all: 'NVIDIA DGX Spark 整合平台' }, gpu: { all: 'NVIDIA Blackwell（整合式）' } },
     workstation: { cpu: { all: 'Intel Xeon W-3400 系列' }, mb: { all: 'Intel W790 工作站平台' }, gpu: { all: 'NVIDIA RTX 6000 Ada 工作站系列' } },
@@ -1676,9 +1664,12 @@ function routeHardware(snapshot, taskResults) {
         reasons.push(demandReason, loadReason);
     } else {
         const headcount = users === '6+' ? '6 人以上' : users.replace('-', '–').replace('+', ' 人以上').replace(/(\d)$/, '$1 人');
-        outcome = { '2-5': 'homelab', '6+': 'homelab', '6-25': 'workstation', '26-50': 'premium', '50+': 'scale' }[users] || outcome;
+        if (users === '2-5') outcome = { a: 'aplus', aplus: 's', s: 's' }[outcome] || outcome;
+        else outcome = { '6+': 'homelab', '6-25': 'workstation', '26-50': 'scale', '50+': 'scale' }[users] || outcome;
         reasons.push(`單一工作情境的運算需求為「${DEMAND_LABELS[demandLevel - 1]}」、負載為「${LOAD_LABELS[loadLevel - 1]}」。`);
-        reasons.push(`所選的使用情境為 ${headcount}共用，多人同時使用需要更大的記憶體與同時服務能力。`);
+        reasons.push(users === '2-5'
+            ? `所選的使用情境為 ${headcount}共用，多人同時使用需要更多記憶體與並行空間，因此在單人建議之上再提高一級。`
+            : `所選的使用情境為 ${headcount}共用，多人同時使用需要更大的記憶體與同時服務能力。`);
         if (users === '6+') reasons.push('個人工作者方案以可共用的 AI 節點為上限；更大規模請洽企業方案。');
     }
     if (isFreelancer && ['workstation', 'premium', 'scale'].includes(outcome)) outcome = 'homelab';
@@ -1692,6 +1683,7 @@ function routeHardware(snapshot, taskResults) {
         grade: tier.strength.grade,
         tierLabel: tier.label,
         validationStatus: 'pending',
+        desktopAlternative: ['1', '2-5'].includes(users),
         needsReview: parallel === '5+' || parallel === 'unknown',
         demandLevel,
         loadLevel,
@@ -1710,13 +1702,13 @@ function renderResult() {
     const workHourReleaseRate = result.time.currentHoursMonthly > 0
         ? clamp((result.time.currentHoursMonthly - result.time.targetHoursMonthly) / result.time.currentHoursMonthly * 100, 0, 100)
         : 0;
-    const targetScore = Math.round(result.sci.target);
-    const targetDescription = `<span class="sci-line">${getSciNarrative(result.sci.target, 'target')}</span><span class="sci-line">導入後可承接約 <strong>${targetScore}% 的全人工工作量</strong>。</span><span class="sci-line">相較目前，預估可省下約 <strong>${formatPercent(workHourReleaseRate)}% 的現行人工工時</strong>。</span>`;
-    document.getElementById('sci-gap').textContent = `+${Math.round(result.sci.gap)} 點`;
-    // The line under the two scores ties the target SCI to the grade of device it takes, and jumps to the device card.
-    document.getElementById('device-bridge-text').innerHTML = `要達到 SCI <b>${Math.round(result.sci.target)}</b>，你需要 <b>${result.recommendation.grade} 級戰力</b>的 Agent Computer`;
+    const shownTarget = Math.max(result.sci.target, result.sci.current);
+    const targetScore = Math.round(shownTarget);
+    const targetDescription = `<span class="sci-line">${getSciNarrative(shownTarget, 'target')}</span><span class="sci-line">導入後可承接約 <strong>${targetScore}% 的全人工工作量</strong>。</span><span class="sci-line">相較目前，預估可省下約 <strong>${formatPercent(workHourReleaseRate)}% 的現行人工工時</strong>。</span>`;
+    document.getElementById('sci-gap').textContent = `+${Math.round((shownTarget - result.sci.current))} 點`;
+    document.getElementById('device-bridge-text').innerHTML = `要達到 SCI <b>${Math.round(shownTarget)}</b>，你需要 <b>${result.recommendation.grade} 級戰力</b>的 Agent Computer`;
     document.getElementById('current-sci-card').innerHTML = renderSciCard('目前 SCI', result.sci.current, getSciLevel(result.sci.current), getSciNarrative(result.sci.current, 'current'), 'current', 0);
-    document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', result.sci.target, '建立本次影身術流程後', targetDescription, 'target', result.sci.current);
+    document.getElementById('target-sci-card').innerHTML = renderSciCard('導入後 SCI', shownTarget, '建立本次影身術流程後', targetDescription, 'target', result.sci.current);
     resetTeamView(result);
     document.getElementById('metric-highlights').innerHTML = renderMetricHighlights(result);
     document.getElementById('team-view-label').textContent = '';
@@ -1730,12 +1722,6 @@ function renderResult() {
     requestAnimationFrame(animateSciJourney);
 }
 
-// ---- Zenni ----
-// 1. A second after the assessment opens, Zenni peeks in from the right edge and says hello, then leaves.
-// 2. A few seconds later it rises in the bottom-right corner, says two lines, and stays there.
-// 3. Poking it makes it giggle, and the spot that was pressed dents inward and springs back; a moment later it says its two lines again.
-// 4. While it is being poked, and when a required field is left empty (red frame), it switches to its shy face for a moment.
-// 5. After a minute with no activity it lies down and sleeps until the visitor does something; sharing or downloading the report makes it dance.
 const ZENNI_WELCOME = ['和 Zenni 一起打造你的千軍萬馬吧！', '測完記得看看推薦設備喔！'];
 const ZENNI_TICKLES = ['哈哈哈好癢～', '住手啦～', '不要再戳了><'];
 let zenniStarted = false;
@@ -1756,7 +1742,6 @@ function startZenniSequence() {
         clearTimeout(say.timer);
         say.timer = setTimeout(() => bubble.classList.remove('is-talking'), duration);
     };
-    // The two regular lines, one after the other; replayed a moment after Zenni has been poked.
     let lineTimers = [];
     const sayLines = delay => {
         lineTimers.forEach(clearTimeout);
@@ -1777,7 +1762,6 @@ function startZenniSequence() {
     const dent = createZenniDent(document.getElementById('zenni-canvas'), document.getElementById('zenni-image'));
     if (dent) corner.classList.add('has-webgl');
     body.zenniDent = dent;
-    // Every other face is drawn in the same frame as the regular one, so the pictures are simply swapped. "pose" marks the full-body ones.
     const image = document.getElementById('zenni-image');
     const normalSource = image.getAttribute('src');
     const faces = {
@@ -1795,13 +1779,11 @@ function startZenniSequence() {
         else image.src = face ? face.source : normalSource;
         corner.classList.toggle('is-pose', Boolean(face?.pose));
     };
-    // Shows a face for "duration" ms, or until something else replaces it when no duration is given.
     showZenniFace = (name, duration) => {
         setFace(name);
         clearTimeout(faceTimer);
         if (duration) faceTimer = setTimeout(() => setFace(null), duration);
     };
-    // Asleep after a minute without any activity; any activity wakes it up again.
     let idleTimer = 0, lastActivity = 0;
     const fallAsleep = () => {
         if (document.hidden || !document.getElementById('report-intro').hidden) return;
@@ -1833,8 +1815,6 @@ function startZenniSequence() {
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => body.addEventListener(type, () => dent?.release()));
 }
 
-// Draws Zenni's picture through a small WebGL shader. While pressed, the texture around the pressed point is pulled inward and shaded
-// like a hollow with a lit rim; on release the depth springs back past zero and settles. Returns null when WebGL is unavailable.
 function createZenniDent(canvas, image) {
     const gl = canvas.getContext('webgl', { premultipliedAlpha: true, alpha: true });
     if (!gl) return null;
@@ -1905,7 +1885,6 @@ function createZenniDent(canvas, image) {
     };
     if (image.complete && image.naturalWidth) upload(); else image.addEventListener('load', upload, { once: true });
 
-    // Spring: pressed in quickly, released with a little overshoot (the surface bulges out slightly before settling).
     const step = () => {
         const stiffness = state.target ? 0.42 : 0.16, damping = state.target ? 0.55 : 0.78;
         state.velocity = (state.velocity + (state.target - state.depth) * stiffness) * damping;
@@ -1924,19 +1903,10 @@ function createZenniDent(canvas, image) {
     };
 }
 
-// Shown between pressing 查看結果 and the report: a short "calculating" screen with Zenni, then the report cards rise into place like a projection.
-// The report itself is rendered underneath straight away; this only covers it and replays the entrance animations when it lifts.
-const REPORT_INTRO_STEPS = ['正在盤點任務工時', '正在計算 SCI 影身術指數', '正在比對六大情境', '正在配置影身術軍團'];
+const REPORT_INTRO_STEPS = ['正在盤點任務工時', '正在計算 SCI 影身術指數', '正在比對五大情境', '正在配置影身術軍團'];
 let reportIntroTimers = [];
 let introFx = null;
 
-// The effect around Zenni on the intro screen, in the style of a game "skill" effect:
-//  - six ribbons of light spiral upward round the body in three layers: thin fast ones close in, broad slow ones far out;
-//  - each ribbon twists as it goes, so its width keeps changing, and its colour runs through a gradient from a pale head to nothing at the tail;
-//  - a circle on the floor under the feet, with rotating dashed rings and pulses that spread outward;
-//  - small motes of light drifting upward.
-// Everything is placed in 3D and projected by hand. Whatever is behind Zenni goes on the back canvas and whatever is nearer goes on the
-// front canvas, which is what makes the ribbons pass round the body. Positions depend only on the time, so any frame can be drawn on its own.
 function createIntroFx(backCanvas, frontCanvas) {
     const back = backCanvas.getContext('2d'), front = frontCanvas.getContext('2d');
     if (!back || !front) return null;
@@ -1944,7 +1914,6 @@ function createIntroFx(backCanvas, frontCanvas) {
     const fract = value => ((value % 1) + 1) % 1;
     const CYAN = [64, 196, 255], BLUE = [59, 107, 255], VIOLET = [130, 102, 255], PALE = [110, 212, 255], LILAC = [164, 142, 255];
     let size = 0, unit = 0, center = 0, frame = 0, started = 0;
-    // radius and swell are in units of Zenni's box; width is the widest half-width in px at a 300px box; colours run head, middle, tail.
     const ribbons = [
         { radius: 0.19, swell: 0.13, width: 3.6, speed: 7.2, period: 1.9, span: 0.62, strength: 1, phase: 0, offset: 0, colors: [PALE, CYAN, BLUE] },
         { radius: 0.19, swell: 0.13, width: 3.2, speed: 6.6, period: 2.1, span: 0.62, strength: 1, phase: 3.3, offset: 0.5, colors: [LILAC, VIOLET, BLUE] },
@@ -1955,14 +1924,11 @@ function createIntroFx(backCanvas, frontCanvas) {
     ];
     const motes = Array.from({ length: 48 }, () => ({ angle: Math.random() * TAU, radius: 0.16 + Math.random() * 0.62, life: 1.6 + Math.random() * 2.2, seed: Math.random(), size: 0.8 + Math.random() * 2, violet: Math.random() < 0.4 }));
 
-    // 3D to screen: x right, y down, z toward the viewer. The view looks slightly down, so nearer points sit a little lower and larger.
     const project = (x, y, z) => {
         const scale = 1 + z / (unit * 2.6);
         return { x: center + x * scale, y: center + (y + z * 0.3) * scale, z, scale };
     };
     const mix = (from, to, amount) => from.map((value, index) => Math.round(value + (to[index] - value) * amount));
-    // One sample of a ribbon, "along" (0 head, 1 tail) of the way down its trail. The ribbon climbs from the feet to above the head while
-    // circling, and its radius swells round the middle of the body. It also twists, which shows as the width narrowing and widening.
     const ribbonSample = (ribbon, time, along) => {
         const when = time - along * ribbon.span;
         const height = fract(when / ribbon.period + ribbon.offset), angle = ribbon.phase + ribbon.speed * when;
@@ -1975,9 +1941,6 @@ function createIntroFx(backCanvas, frontCanvas) {
         sample.color = along < 0.4 ? mix(ribbon.colors[0], ribbon.colors[1], along / 0.4) : mix(ribbon.colors[1], ribbon.colors[2], (along - 0.4) / 0.6);
         return sample;
     };
-    // One stretch of ribbon that stays on one side of Zenni, drawn as a single shape so there are no joints along it. Within such a stretch
-    // the ribbon travels steadily across the screen, so a left-to-right gradient can carry its colour and fade from sample to sample.
-    // It is filled several times, wider and fainter each time, which gives soft edges instead of a hard outline.
     const drawStretch = (context, samples, dim) => {
         const first = samples[0], last = samples[samples.length - 1], width = last.x - first.x;
         if (samples.length < 2 || Math.abs(width) < 0.5) return;
@@ -2003,7 +1966,6 @@ function createIntroFx(backCanvas, frontCanvas) {
         const flush = () => { if (stretch.length > 1) drawStretch(nearer ? front : back, stretch, nearer ? 1 : 0.6); };
         for (let index = 0; index <= steps; index++) {
             const sample = ribbonSample(ribbon, time, index / steps);
-            // Going down the trail the ribbon gets lower; if it is suddenly higher it has wrapped from the feet to the top, so start afresh.
             const wrapped = previous && sample.height > previous.height;
             const side = sample.z > 0;
             if (wrapped) { flush(); stretch = []; }
@@ -2012,7 +1974,6 @@ function createIntroFx(backCanvas, frontCanvas) {
             nearer = side; previous = sample;
         }
         flush();
-        // The head: a small bright ball with a halo in the ribbon's colour.
         const head = ribbonSample(ribbon, time, 0), context = head.z > 0 ? front : back;
         const strength = head.alpha * (head.z > 0 ? 1 : 0.5), radius = (6 + ribbon.width * 1.1) * head.scale * unit / 300;
         const halo = context.createRadialGradient(head.x, head.y, 0, head.x, head.y, radius);
@@ -2066,7 +2027,6 @@ function createIntroFx(backCanvas, frontCanvas) {
         drawMotes(time);
         ribbons.forEach(ribbon => drawRibbon(ribbon, time));
     };
-    // Both canvases are SCALE times the width of Zenni's box and centred on it.
     const resize = () => {
         const ratio = Math.min(window.devicePixelRatio || 1, 2);
         size = backCanvas.clientWidth; unit = size / SCALE; center = size / 2;
@@ -2083,8 +2043,6 @@ function createIntroFx(backCanvas, frontCanvas) {
     };
 }
 
-// Works out, for each report card, where it has to move to during the hand-out animation and stores the result as CSS variables.
-// Cards scale from the middle of their right edge, so a card of width W at scale s has its centre W * s / 2 to the left of that point.
 function placeReportHandout(deck) {
     const core = document.querySelector('.report-intro__core').getBoundingClientRect();
     const area = deck.getBoundingClientRect();
@@ -2094,10 +2052,8 @@ function placeReportHandout(deck) {
         const cardWidth = card.offsetWidth;
         const anchorX = area.left + card.offsetLeft + cardWidth, anchorY = area.top + card.offsetTop + card.offsetHeight / 2;
         const move = (x, y, scale) => [x - anchorX + cardWidth * scale / 2, y - anchorY];
-        // Zenni holds a glowing panel above its head when the report is done: three small cards fan out from that panel.
         const handScale = core.width * 0.36 / cardWidth;
         const hand = move(core.left + core.width * (0.43 + fan[pos].x), core.top + core.width * (0.31 + fan[pos].y), handScale);
-        // Side by side across the screen, then gathered at the centre.
         const row = move(area.left + area.width * [0.18, 0.5, 0.82][pos], area.top + area.height / 2, 0.29);
         const gather = move(area.left + area.width / 2 + pos * 14, area.top + area.height / 2, 0.4);
         const set = (name, value) => card.style.setProperty(name, value);
@@ -2125,11 +2081,8 @@ function playReportIntro() {
     intro.classList.add('is-active');
     intro.dataset.step = '0';
     REPORT_INTRO_STEPS.forEach((text, index) => later(index * 650, () => { status.textContent = text; intro.dataset.step = String(index); }));
-    // Desktop: when the report is done the three report cards appear, small, at the panel Zenni holds up. The deck is raised above the intro screen
-    // so the real cards can fly out of it, line up side by side and then stack, while Zenni and the rings fade away behind them.
     const staged = matchMedia('(min-width: 801px)').matches;
     const done = 2600;
-    // Show every card's content, not only the front one, well before the cards start moving so nothing repaints mid-flight.
     if (staged) later(600, () => document.querySelectorAll('#step-4 .reveal').forEach(element => element.classList.add('is-inview')));
     const replayReport = () => {
         animateSciJourney();
@@ -2151,7 +2104,6 @@ function playReportIntro() {
     });
     if (staged) {
         later(done + 850, () => intro.classList.add('is-stage'));
-        // Zenni and the effect have faded out by now, so stop drawing it while the cards are moving.
         later(done + 1400, () => introFx?.stop());
         later(done + 2500, () => intro.classList.add('is-leaving'));
         later(done + 3300, replayReport);
@@ -2184,8 +2136,6 @@ function renderSciCard(label, score, status, description, variant, fromValue) {
     return `<div class="sci-card__top"><span class="sci-card__label"><strong>${label}</strong>${infoButton}</span><span>${status}</span></div><div class="sci-card__score"><strong data-sci-number data-from="${Math.round(fromValue)}" data-value="${rounded}">${numberMarkup}</strong><span>／${SCI_CONFIG.scaleMax}</span></div><div class="sci-card__bar" aria-hidden="true"><i data-sci-bar style="--score:${barPercent}%"></i></div><p>${description}</p>`;
 }
 
-// Hollow target number. The viewBox is in font units (digits are 100 units tall in type size, about 72 in cap height, baseline at y=78),
-// so the liquid level maps the SCI score onto the real height of the digits.
 function renderSciFillNumber(startValue, endValue, fromScore, toScore) {
     const width = String(endValue).length * 62 + 12;
     const levelY = score => (78 - clamp(score / SCI_CONFIG.scaleMax, 0, 1) * 72).toFixed(1);
@@ -2242,7 +2192,6 @@ function getSciNarrative(score, variant) {
 
 const TEAM_RANGES = Object.freeze({ '2-5': [2, 5], '6+': [6, null], '6-25': [6, 25], '26-50': [26, 50], '50+': [50, null] });
 
-// Saved time in whole hours ("約 87 小時"); under one hour it keeps one decimal.
 function formatSavedHours(hours) {
     return `約 ${hours >= 1 ? new Intl.NumberFormat('zh-TW').format(Math.round(hours)) : formatHours(hours)} ${getTimeUnit()}`;
 }
@@ -2268,7 +2217,6 @@ function renderMetricHighlights(result) {
     `;
 }
 
-// A switch on the first card flips both report cards between the personal figures and a team estimate (personal figures times a head count the viewer can adjust).
 const teamView = { active: false, size: 1 };
 
 function getTeamBounds(result = assessmentState.result) {
@@ -2338,6 +2286,7 @@ function renderWorkflowImpactCard(task, index) {
             <div class="share-chart" role="img" aria-label="影身術協助 ${formatPercent(shadowShare)}%，人工處理 ${formatPercent(humanShare)}%">
                 <div class="share-donut">${renderDonut(shadowShare)}<strong>${formatPercent(shadowShare)}<small>%</small></strong></div>
                 <ul><li class="is-shadow"><i></i>影身術協助 <b>${formatPercent(shadowShare)}%</b></li><li><i></i>人工處理 <b>${formatPercent(humanShare)}%</b></li></ul>
+                <button type="button" class="ratio-open" data-ratio-edit="${task.recipeId}" aria-haspopup="dialog">${task.customRatio ? '<em>已自訂</em>' : ''}這個比例怎麼來的？</button>
             </div>
         </div>
         <div class="workflow-impact-grid">
@@ -2347,6 +2296,65 @@ function renderWorkflowImpactCard(task, index) {
             <div class="saved-highlight"><span>每月可省下</span><strong>${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}</strong><small>${task.savedCostMonthlyTwd > 0 ? `工時價值 ${formatCurrency(task.savedCostMonthlyTwd)}` : '未填人力時間價值'}</small></div>
         </div>
     </article>`;
+}
+
+function openRatioModal(recipeId, trigger) {
+    const workflow = globalThis.SCIWorkflowV2.getWorkflow(recipeId);
+    const answer = assessmentState.taskAnswers[recipeId];
+    const task = assessmentState.result?.taskResults.find(item => item.recipeId === recipeId);
+    if (!workflow || !answer || !task) return;
+    const stages = workflow.stages;
+    const defaults = stages.map(stage => Math.round(stage.aiAssistShare * 100));
+    const current = stages.map((stage, index) => Array.isArray(answer.stageAssist) && Number.isFinite(answer.stageAssist[index]) ? Math.round(answer.stageAssist[index] * 100) : defaults[index]);
+    const assistOf = values => 100 * (1 - stages.reduce((sum, stage, index) => sum + getStageRetained(stage, values[index] / 100), 0));
+    const defaultAssist = assistOf(defaults);
+    elements.modalContent.innerHTML = `<div class="ratio-modal">
+        <header><span class="step-kicker">人機協作比例</span><h2 id="modal-title">${task.title}</h2>
+            <p>這項任務拆成 ${stages.length} 個階段，每個階段預設有一部分交給 Agentic AI。交出去之後，人還是要花一點時間檢查成果、處理 Agentic AI 做不來的狀況，這些都算在「仍需人工」裡。SCI 就是依這些比例算出來的。如果和你的實際情況不同，可以拉動下方的比例再確認修改。</p></header>
+        <div class="ratio-summary" aria-live="polite">
+            <div><small>Agentic AI 協助</small><strong id="ratio-assist"></strong></div>
+            <div class="ratio-summary__bar" aria-hidden="true"><i id="ratio-bar"></i></div>
+            <div><small>仍需人工</small><strong id="ratio-human"></strong></div>
+            <p>預設為 Agentic AI 協助 ${formatPercent(defaultAssist)}%</p>
+        </div>
+        <ol class="ratio-stages">${stages.map((stage, index) => `<li>
+            <div class="ratio-stage__head"><b>${String(index + 1).padStart(2, '0')}</b><strong>${stage.name}</strong><span>占這項任務 ${Math.round(stage.stageWorkShare * 100)}%</span></div>
+            <p><em>Agentic AI</em>${stage.ai}</p><p><em>人工</em>${stage.human}</p>
+            <label class="ratio-stage__slider"><span>交給 Agentic AI</span><input type="range" min="0" max="100" step="1" value="${current[index]}" data-ratio-stage="${index}" aria-label="${stage.name}：交給 Agentic AI 的比例"><output>${current[index]}%</output><small>預設 ${defaults[index]}%</small></label>
+        </li>`).join('')}</ol>
+        <footer><button class="button button--quiet" type="button" data-ratio-reset>恢復預設</button><span></span><button class="button button--quiet" type="button" data-close-modal>取消</button><button class="button button--accent" type="button" data-ratio-apply>確認修改</button></footer>
+    </div>`;
+    const sliders = [...elements.modalContent.querySelectorAll('[data-ratio-stage]')];
+    const values = () => sliders.map(slider => Number(slider.value));
+    const update = () => {
+        const assist = clamp(assistOf(values()), 0, 100);
+        document.getElementById('ratio-assist').textContent = `${formatPercent(assist)}%`;
+        document.getElementById('ratio-human').textContent = `${formatPercent(100 - assist)}%`;
+        document.getElementById('ratio-bar').style.width = `${assist}%`;
+        sliders.forEach(slider => { slider.parentElement.querySelector('output').textContent = `${slider.value}%`; slider.style.setProperty('--fill', `${slider.value}%`); });
+    };
+    sliders.forEach(slider => slider.addEventListener('input', update));
+    elements.modalContent.querySelector('[data-ratio-reset]').addEventListener('click', () => { sliders.forEach((slider, index) => { slider.value = defaults[index]; }); update(); });
+    elements.modalContent.querySelector('[data-close-modal]').addEventListener('click', closeModal);
+    elements.modalContent.querySelector('[data-ratio-apply]').addEventListener('click', () => {
+        const chosen = values();
+        if (chosen.every((value, index) => value === defaults[index])) delete answer.stageAssist;
+        else answer.stageAssist = chosen.map(value => value / 100);
+        logInteraction('調整協作比例', task.title, answer.stageAssist ? `Agentic AI 協助 ${formatPercent(assistOf(chosen))}%` : '恢復預設');
+        closeModal();
+        applyRatioChange(recipeId);
+    });
+    update();
+    openModal(trigger);
+}
+
+function applyRatioChange(recipeId) {
+    if (!refreshAssessmentResult()) return;
+    const card = reportCardIndex;
+    renderResult();
+    setReportCard(card);
+    const index = getDisplayedTaskResults(assessmentState.result).findIndex(task => task.recipeId === recipeId);
+    if (index > 0) toggleTaskDetail(index);
 }
 
 function renderWorkloadOverview(result) {
@@ -2448,7 +2456,6 @@ function renderCloneCard(clone, index) {
 
 function renderReportClonePlan(clones) {
     const names = clones.map(clone => clone.name.replace(/分身$/u, ''));
-    // Names only, side by side; a clone's capability opens below when its chip is pressed.
     return `<p class="clone-plan-line">本次規劃 ${clones.length} 項影身術，點選名稱查看可協助的內容</p>
         <div class="clone-plan-list">${clones.map((clone, index) => `<button type="button" class="clone-plan-item" data-clone-toggle="${index}" aria-expanded="false" aria-controls="clone-plan-detail">
             <span class="clone-plan-avatar"><img src="${getCloneAvatarPath(clone.recipeId)}" alt=""></span>
@@ -2466,7 +2473,6 @@ function toggleClonePlanDetail(button) {
     detail.hidden = !willOpen;
 }
 
-// The report is a deck of three cards: arrows, dots, arrow keys or a horizontal drag move between them.
 function setReportCard(index) {
     const cards = [...document.querySelectorAll('[data-report-card]')];
     const previousCard = reportCardIndex;
@@ -2481,7 +2487,6 @@ function setReportCard(index) {
     document.getElementById('deck-prev').disabled = reportCardIndex === 0;
     document.getElementById('deck-next').disabled = reportCardIndex === cards.length - 1;
     document.querySelectorAll('[data-deck-dot]').forEach(dot => dot.setAttribute('aria-selected', String(Number(dot.dataset.deckDot) === reportCardIndex)));
-    // Phones show one card as a long page, so the bottom bar carries the card switcher.
     const mobileNames = ['SCI 與效益', '任務分工', '設備建議'];
     document.getElementById('deck-mobile-prev').disabled = reportCardIndex === 0;
     document.getElementById('deck-mobile-next').disabled = reportCardIndex === cards.length - 1;
@@ -2508,13 +2513,11 @@ function initReportDeck() {
         if (event.key === 'ArrowRight') setReportCard(reportCardIndex + 1);
         if (event.key === 'ArrowLeft') setReportCard(reportCardIndex - 1);
     });
-    // Drag: the front card follows the pointer; the card that would come next sharpens as the drag nears the commit point.
     const cards = () => [...deck.querySelectorAll('[data-report-card]')];
     const clearDragStyles = () => cards().forEach(card => { card.style.transform = ''; card.style.opacity = ''; [...card.children].forEach(child => { child.style.opacity = ''; }); });
     let drag = null;
     deck.addEventListener('pointerdown', event => {
         if (event.button > 0 || event.target.closest('button, a, summary, input, select, label, .deck-arrow')) return;
-        // With a mouse the card is only grabbed by its left and right edges; everywhere else behaves normally.
         if (event.pointerType !== 'touch' && !isDeckEdge(event)) return;
         drag = { x: event.clientX, y: event.clientY, id: event.pointerId, active: false, dx: 0 };
     });
@@ -2561,7 +2564,6 @@ function initReportDeck() {
         if (!finished.active) return;
         deck.classList.remove('is-dragging');
         clearDragStyles();
-        // swallow the click that follows a drag so nothing under the pointer activates
         const swallowClick = clickEvent => { clickEvent.stopPropagation(); clickEvent.preventDefault(); };
         deck.addEventListener('click', swallowClick, { capture: true, once: true });
         setTimeout(() => deck.removeEventListener('click', swallowClick, { capture: true }), 80);
@@ -2569,7 +2571,6 @@ function initReportDeck() {
     };
     deck.addEventListener('pointerup', endDrag);
     deck.addEventListener('pointercancel', endDrag);
-    // Wheel: scrolling past the end of a card carries on to the next one, and past the top goes back.
     let wheelTravel = 0, wheelLock = 0, wheelTimer = 0;
     deck.addEventListener('wheel', event => {
         if (matchMedia('(max-width: 800px)').matches || Math.abs(event.deltaY) < Math.abs(event.deltaX)) return;
@@ -2592,8 +2593,6 @@ function initReportDeck() {
     setReportCard(0);
 }
 
-// Custom pointer (dot + trailing ring + click ripple) and the glow that follows it across the frame.
-// The strips along the left and right edge of the front report card act as its drag handles.
 function isDeckEdge(event) {
     const card = document.querySelector('.report-card.is-active');
     if (!card) return false;
@@ -2603,11 +2602,9 @@ function isDeckEdge(event) {
     return (event.clientX >= rect.left && event.clientX <= rect.left + edge) || (event.clientX <= rect.right && event.clientX >= rect.right - edge);
 }
 
-// Text a reader could select: an element that directly holds text and is not part of a control.
 function isSelectableText(target, x, y) {
     if (!(target instanceof Element) || target.closest('button, a, summary, label, select, input')) return false;
     if (!target.matches('p, h2, h3, h4, li, span, strong, small, b, em, dt, dd')) return false;
-    // Only the glyphs themselves count: a paragraph box is wider than its text.
     const range = document.createRange();
     return [...target.childNodes].some(node => {
         if (node.nodeType !== 3 || !node.textContent.trim()) return false;
@@ -2625,8 +2622,6 @@ function initPointerEffects() {
     root.classList.add('has-cursor');
     const instant = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const pointer = { x: -100, y: -100 }, trail = { x: -100, y: -100 };
-    // The glow chases the pointer much more slowly than the reticle, and fades in and out instead of switching.
-    // The glow is a soft body on a loose spring: it lags, overshoots, wobbles to rest, and stretches along its direction of travel.
     const glow = { x: 0, y: 0, vx: 0, vy: 0, level: 0, card: null, targetX: 0, targetY: 0, targetLevel: 0 };
     let frame = 0;
     const interactive = 'button, a, label, summary, select, [role="tab"], [data-task-toggle], input[type="radio"], input[type="checkbox"]';
@@ -2703,7 +2698,6 @@ function previousStep3Panel() {
     goToStep3Panel(step3PanelIndex - 1);
 }
 
-// Clone avatars come from the seven agent classes in the task data, one picture per class.
 const AGENT_CLASSES = Object.freeze({
     data: '數據分析代理人', productivity: '生產力與自動化代理人', content: '內容創作代理人', dev: '技術開發代理人',
     retrieval: '檢索與資安代理人', engineering: '工程設計與驗證代理人', education: '教育與人才發展代理人'
@@ -2725,14 +2719,24 @@ function renderHardware(recommendation, result) {
         ram: ['記憶體', 'RAM', 'memory'], ssd: ['儲存裝置', 'SSD', 'database'], case: ['機殼', 'CASE', 'case'],
         cooling: ['散熱系統', 'COOLING', 'fan'], psu: ['電源供應器', 'PSU', 'zap']
     };
-    document.getElementById('platform-grid').innerHTML = !recommendation.models.length
+    const grid = document.getElementById('platform-grid');
+    modelFilter.cpu = null; modelFilter.gpu = null; modelFilter.chassisIndex = 0;
+    const ownTable = recommendation.models.length > 3;
+    const alternative = !ownTable && recommendation.tier === 'splus' && recommendation.desktopAlternative;
+    modelFilter.recommendation = ownTable ? recommendation : alternative ? { tier: 's', grade: hardwareCatalog.s.strength.grade, scenarioId: 'development', models: hardwareCatalog.s.models, alternative: true } : null;
+    grid.classList.add('platform-grid--table');
+    if (modelFilter.recommendation) renderModelTable(); else grid.innerHTML = '';
+    const cards = document.getElementById('platform-cards');
+    cards.hidden = ownTable;
+    cards.classList.toggle('platform-cards--alone', !ownTable && !alternative);
+    cards.innerHTML = ownTable ? '' : `${alternative ? `<h5 class="platform-cards__heading">本次建議情境的設備：${HQ_SCENARIOS.find(item => item.id === recommendation.scenarioId).zh}</h5>` : ''}<div class="platform-grid">${!recommendation.models.length
         ? '<p class="platform-empty">這個情境需要雙顯示卡工作站，目前沒有對應的現成機型，請參考上方的基本配置。</p>'
         : recommendation.models.map((model, index) => `<article class="hardware-model-card">
         <header><div><span class="hardware-scenario-tag">${HQ_SCENARIOS.find(item => item.id === getModelScenarioId(recommendation.tier, model)).zh}</span><h4>${model.name}</h4><p>${getModelFit(model, index)}</p></div><div class="device-visual" data-grade="${recommendation.grade}" role="img" aria-label="影身術戰力 ${recommendation.grade} 級"><span class="device-visual__grade" aria-hidden="true">${recommendation.grade}</span>${renderDeviceIllustration(model)}</div></header>
         <div class="hardware-quick-specs"><span><small>GPU／VRAM</small><strong>${model.gpu}</strong></span><span><small>記憶體</small><strong>${model.ram}</strong></span><span><small>儲存</small><strong>${model.ssd}</strong></span></div>
-        <details class="hardware-full-specs" open><summary>完整配置</summary><div class="hardware-model-specs">${Object.entries(modelSpecLabels).filter(([key]) => !['gpu', 'ram', 'ssd'].includes(key) && !(key === 'case' && model.integratedChassis)).map(([key, [zh, en, icon]]) => `<div class="hardware-model-spec"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${model[key]}</p></div>`).join('')}</div></details>
-        <div class="hardware-model-card__action">${renderPurchaseLink('了解更多', campaignConfig.productLinks.systemModels[model.name] || campaignConfig.productLinks.systems[recommendation.tier], `system-${index}`)}</div>
-    </article>`).join('');
+        <details class="hardware-full-specs" open><summary>完整配置</summary><div class="hardware-model-specs">${Object.entries(modelSpecLabels).filter(([key]) => !['gpu', 'ram', 'ssd'].includes(key) && model[key] && !(key === 'case' && model.integratedChassis)).map(([key, [zh, en, icon]]) => `<div class="hardware-model-spec"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${model[key]}</p></div>`).join('')}</div></details>
+        <div class="hardware-model-card__action">${renderPurchaseLink('了解更多', model.link || campaignConfig.productLinks.systemModels[model.name] || campaignConfig.productLinks.systems[recommendation.tier], `system-${index}`)}</div>
+    </article>`).join('')}</div>`;
     const scenarioSection = document.getElementById('scenario-section');
     if (scenarioSection) scenarioSection.innerHTML = renderScenarioSection(recommendation);
     const frameworkSection = document.getElementById('framework-section');
@@ -2757,15 +2761,14 @@ function renderHardware(recommendation, result) {
     selectHardwareTab('system');
 }
 
-// The six local-AI scenarios from the HQ Agent Computer page are the primary classification; our A–SS builds are sorted into them.
 const HQ_SCENARIOS = Object.freeze([
-    { id: 'personal', group: '個人／專業玩家／中小企業', name: 'Personal AI', zh: '個人 AI', tagline: '日常 AI 與寫程式',
+    { id: 'personal', hideHq: true, group: '個人／專業玩家／中小企業', name: 'Personal AI', zh: '個人 AI', tagline: '日常 AI 與寫程式',
         description: '在自己的設備上對話、搜尋個人文件並取得寫程式協助，資料不外流、離線也能用。',
-        capability: '7B–32B Q4 量化模型・個人 RAG', bestFor: ['對話', '文件問答', '個人 RAG', '個人 AI Agent', '地端程式助理', '創作流程'],
+        capability: '7B–14B Q4 量化模型・個人 RAG', bestFor: ['對話', '文件問答', '個人 RAG', '個人 AI Agent', '地端程式助理', '創作流程'],
         hq: [['主機板', 'AMD：ROG STRIX B850／TUF Gaming X870 系列；Intel：ROG STRIX B860／TUF Gaming Z890 系列'], ['顯示卡', 'GeForce RTX 5060 Ti 16GB 或 ASUS TURBO Radeon AI PRO R9700 32GB'], ['記憶體', '32–64GB'], ['整合式平台', 'NVIDIA RTX Spark：ProArt GR1X、ProArt P16（H7607）、ProArt P14（H7407）']] },
-    { id: 'development', group: '個人／專業玩家／中小企業', name: 'AI Development', zh: 'AI 開發', tagline: '開發與微調模型',
+    { id: 'development', hideHq: true, group: '個人／專業玩家／中小企業', name: 'AI Development', zh: 'AI 開發', tagline: '開發與微調模型',
         description: '在桌邊完成模型的原型製作、微調與測試，準備好再擴大規模，程式碼與資料都留在地端。',
-        capability: '32B Q4 量化模型・模型開發', bestFor: ['AI 程式開發', 'RAG 開發', 'Agent 開發', '模型微調', '大型模型原型', '多 Agent 協作開發'],
+        capability: '14B–20B Q4 量化模型・模型開發', bestFor: ['AI 程式開發', 'RAG 開發', 'Agent 開發', '模型微調', '大型模型原型', '多 Agent 協作開發'],
         hq: [['主機板', 'AMD：ROG STRIX X870E／ProArt X870E 系列；Intel：ROG STRIX Z890／ProArt Z890 系列'], ['顯示卡', 'GeForce RTX 5090 32GB'], ['記憶體', '128GB'], ['整合式平台', 'NVIDIA RTX Spark：ProArt P16（H7607）、ProArt P14（H7407）；NVIDIA DGX Spark：ASUS Ascent GX10']] },
     { id: 'homelab', group: '個人／專業玩家／中小企業', name: 'Homelab / AI Nodes', zh: '家用實驗室／AI 節點', tagline: '全天候 Agent 與共用 AI',
         description: '讓 AI 為家庭或小型團隊全天候運作，提供 24 小時 Agent、私有 RAG 與共用 AI 服務。',
@@ -2775,7 +2778,7 @@ const HQ_SCENARIOS = Object.freeze([
         description: '以單一工作站執行 70B 等級全精度模型，資料留在自己的場域。', users: '最多 25 位使用者・專屬工作負載',
         capability: '70B 以上全精度模型', bestFor: ['工廠邊緣 AI', '視覺語言模型分析', '工程 Copilot', '文件分析', '專業推理'],
         hq: [['主機板', 'AMD：Pro WS WRX90E-SAGE SE；Intel：Pro WS W890E-SAGE SE'], ['顯示卡', '1 × RTX PRO 6000（96GB）'], ['記憶體', '2TB R-DIMM']] },
-    { id: 'premium', group: '企業', name: 'Enterprise Workstations Premium', zh: '企業工作站進階版', tagline: '同時服務多位使用者',
+    { id: 'premium', hidden: true, group: '企業', name: 'Enterprise Workstations Premium', zh: '企業工作站進階版', tagline: '同時服務多位使用者',
         description: '一台雙顯示卡工作站即可成為整個部門的 AI 服務，多個模型同時運作。', users: '最多 50 位使用者・共用 AI 服務',
         capability: '全精度模型・122B 單一模型或 27B 多人共用服務', bestFor: ['共用 AI 助理', '工作流程自動化', '部門知識 AI'],
         hq: [['主機板', 'AMD：Pro WS WRX90E-SAGE SE；Intel：Pro WS W890E-SAGE SE'], ['顯示卡', '2 × RTX PRO 6000（每張 96GB）'], ['記憶體', '2TB R-DIMM']] },
@@ -2792,14 +2795,12 @@ function getModelScenarioId(tierKey, model) {
     return 'scale';
 }
 
-// Our own builds that fall under one HQ scenario, each with its strength grade.
 function getScenarioBuilds(scenarioId) {
     return Object.entries(hardwareCatalog).flatMap(([tierKey, tier]) => tier.models
         .filter(model => getModelScenarioId(tierKey, model) === scenarioId)
         .map(model => ({ grade: tier.strength.grade, model })));
 }
 
-// Jargon on the scenario card gets a small "?" that opens a plain-language explanation.
 const GLOSSARY = Object.freeze({
     size: { match: null, term: '模型大小（幾 B）', text: 'B 代表 Billion（十億），指模型的參數量。例如 7B 是 70 億個參數、32B 是 320 億、70B 是 700 億、120B 是 1,200 億。數字越大，模型通常越聰明，但需要的顯示記憶體也越多。' },
     rag: { match: 'RAG', term: 'RAG（檢索增強生成）', text: 'Retrieval-Augmented Generation。AI 回答前，先從你指定的文件或資料庫找出相關內容，再依據這些內容作答，因此能回答公司內部或個人資料的問題，也比較不容易憑空編造。' },
@@ -2811,7 +2812,6 @@ function renderTermHelp(id) {
     return `<button type="button" class="term-help" data-term="${id}" aria-label="${GLOSSARY[id].term} 是什麼？">?</button>`;
 }
 
-// Turns the first glossary term found in each text into an underlined link; `used` keeps one link per term per card.
 function withGlossary(text, used) {
     let html = text;
     for (const [id, entry] of Object.entries(GLOSSARY)) {
@@ -2829,7 +2829,6 @@ function openGlossaryModal(trigger) {
     openModal(trigger);
 }
 
-// How each "best for" use actually helps in day-to-day work; shown under the tags when one is pressed.
 const USE_CASES = Object.freeze({
     '對話': '像跟同事討論一樣直接發問，請它整理想法、改寫信件或解釋不懂的內容。模型在自己的電腦上執行，對話內容不會傳到外部。',
     '文件問答': '把合約、報告或手冊交給 AI，直接問「第三章的重點是什麼」「違約金怎麼算」，它會從文件找出答案，省下逐頁翻找的時間。',
@@ -2866,7 +2865,6 @@ function renderScenarioTags(scenario) {
     return `<div class="scenario-usecases"><ul class="scenario-tags">${scenario.bestFor.map(tag => `<li><button type="button" class="scenario-tag" data-usecase="${tag}" aria-expanded="false">${tag}</button></li>`).join('')}</ul><p class="scenario-tag-note" aria-live="polite" hidden></p></div>`;
 }
 
-// Pressing a use tag shows how it helps, right under the tags; pressing it again hides the note.
 function toggleUseCase(button) {
     const group = button.closest('.scenario-usecases');
     const note = group.querySelector('.scenario-tag-note');
@@ -2883,7 +2881,7 @@ function renderScenarioHqSpec(scenario) {
 }
 
 function renderScenarioBuilds(builds) {
-    return `<div class="scenario-table-wrap"><table class="scenario-table scenario-table--builds"><thead><tr><th scope="col">戰力</th><th scope="col">機型</th><th scope="col">顯示卡</th><th scope="col">處理器</th><th scope="col">記憶體</th></tr></thead><tbody>${builds.map(({ grade, model }) => `<tr><td><b>${grade}</b></td><th scope="row">${model.name}</th><td>${model.gpu}</td><td>${model.cpu}</td><td>${model.ram}</td></tr>`).join('')}</tbody></table></div>`;
+    return `<div class="scenario-table-wrap"><table class="scenario-table scenario-table--builds"><thead><tr><th scope="col">戰力</th><th scope="col">機型</th><th scope="col">顯示卡</th><th scope="col">處理器</th><th scope="col">記憶體</th></tr></thead><tbody>${builds.map(({ grade, model }) => `<tr><td><b>${grade}</b></td><th scope="row">${model.name}${model.note ? `<small>${model.note}</small>` : ''}</th><td>${model.gpu}</td><td>${model.cpu}</td><td>${model.ram}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
 function renderScenarioSection(recommendation) {
@@ -2892,7 +2890,7 @@ function renderScenarioSection(recommendation) {
     const used = new Set();
     return `<header class="section-pill-heading"><h4 class="section-pill">本次建議情境</h4></header>
         <div class="scenario-list"><article class="scenario-card">
-            <button type="button" class="scenario-card__grade" data-grade="${recommendation.grade}" data-strength-scale="${recommendation.grade}" data-scenario="${recommendation.scenarioId}" aria-label="影身術戰力 ${recommendation.grade} 級，${strength.label}。查看六大情境與影身術戰力解析"><small>影身術戰力</small><strong>${recommendation.grade}</strong><em>${strength.label}</em><span class="scenario-card__hint" aria-hidden="true">六大情境與戰力解析 →</span></button>
+            <button type="button" class="scenario-card__grade" data-grade="${recommendation.grade}" data-strength-scale="${recommendation.grade}" data-scenario="${recommendation.scenarioId}" aria-label="影身術戰力 ${recommendation.grade} 級，${strength.label}。查看五大情境與影身術戰力解析"><small>影身術戰力</small><strong>${recommendation.grade}</strong><em>${strength.label}</em><span class="scenario-card__hint" aria-hidden="true">五大情境與戰力解析 →</span></button>
             <div class="scenario-card__body">
                 <h4>${scenario.zh}<small>${scenario.name}</small></h4>
                 <p><b>${scenario.tagline}。</b>${scenario.description}</p>
@@ -2901,13 +2899,12 @@ function renderScenarioSection(recommendation) {
                 ${renderScenarioTags(scenario)}
                 <div class="scenario-more">
                     <details class="scenario-hq"><summary>為什麼是這個建議</summary><ul class="scenario-reasons">${recommendation.reasons.map(reason => `<li>${reason}</li>`).join('')}</ul></details>
-                    <details class="scenario-hq" ${recommendation.models.length ? '' : 'open'}><summary>基本配置</summary>${renderScenarioHqSpec(scenario)}</details>
+                    ${scenario.hideHq ? '' : `<details class="scenario-hq" ${recommendation.models.length ? '' : 'open'}><summary>基本配置</summary>${renderScenarioHqSpec(scenario)}</details>`}
                 </div>
             </div>
         </article></div>`;
 }
 
-// Agent frameworks from the HQ Agent Computer page.
 const AGENT_FRAMEWORKS = Object.freeze([
     { id: 'zenni', url: 'https://www.asus.com/tw/content/asus-zenni-claw/', vendor: 'ASUS', name: 'ASUS Zenni Claw', description: 'ASUS 自行設計的 Agentic AI 助理。透過引導式設定，以及可直接使用的工作、旅遊與生活技能，讓 Agent 更容易上手；並能依裝置與任務，在地端與雲端之間彈性切換。' },
     { id: 'rocm', url: 'https://www.amd.com/en/products/software/rocm/rocm-ai.html', vendor: 'AMD', name: 'ROCm.AI', description: '結合 AMD Skills、ROCm CLI 與 AMD Hyperloom，把 AMD 的專業知識、更簡單的工作流程與 Agent 最佳化，帶進開發者慣用的工具。' },
@@ -2924,25 +2921,63 @@ function renderFrameworkSection() {
         </article>`).join('')}</div>`;
 }
 
+const MODEL_FILTERS = Object.freeze({ gpu: '顯示卡', cpu: '處理器與主機板平台' });
+const modelFilter = { cpu: null, gpu: null, recommendation: null };
+
+function getModelPlatform(model, part) {
+    const cpuPlatform = /AMD/i.test(model.cpu) ? 'AMD' : 'Intel';
+    if (part === 'gpu') return /Radeon/i.test(model.gpu) ? 'AMD' : 'NVIDIA';
+    if (part === 'mb') return /B650|B850|X870/i.test(model.mb) ? 'AMD' : /B760|B860|Z890/i.test(model.mb) ? 'Intel' : cpuPlatform;
+    return cpuPlatform;
+}
+
+function renderModelTable() {
+    const recommendation = modelFilter.recommendation;
+    if (!recommendation) return;
+    const models = recommendation.models;
+    const series = models.find(model => !model.integratedChassis)?.name || models[0].name;
+    const scenario = HQ_SCENARIOS.find(item => item.id === recommendation.scenarioId);
+    const active = Object.keys(MODEL_FILTERS).filter(part => modelFilter[part]);
+    const rows = models.filter(model => active.every(part => getModelPlatform(model, part) === modelFilter[part]));
+    const columns = [['gpu', '顯示卡'], ['cpu', '處理器'], ['mb', '主機板'], ['ram', '記憶體'], ['ssd', '儲存'], ['case', '機殼'], ['cooling', '散熱'], ['psu', '電源']];
+    const brandButtons = (part, brands) => {
+        const offered = brands.filter(name => models.some(model => getModelPlatform(model, part) === name));
+        return offered.length < 2 ? '' : `<span class="hardware-table__filter" role="group" aria-label="依${MODEL_FILTERS[part]}篩選">${offered.map(name => `<button type="button" data-filter-part="${part}" data-filter-value="${name}" aria-pressed="${modelFilter[part] === name}">${name}</button>`).join('')}</span>`;
+    };
+    const usage = new Map();
+    models.filter(model => model.image).forEach(model => usage.set(model.image, (usage.get(model.image) || 0) + 1));
+    const chassis = [...usage.entries()].sort((a, b) => b[1] - a[1]).map(([image]) => image);
+    modelFilter.chassisIndex = (modelFilter.chassisIndex || 0) % Math.max(1, chassis.length);
+    document.getElementById('platform-grid').innerHTML = `<article class="hardware-table-card">
+        <header><div><span class="hardware-scenario-tag">${scenario.zh}</span><h4>${series} 推薦配置</h4><p>${active.length ? `顯示 ${rows.length}／${models.length} 款<button type="button" class="hardware-table__clear" data-filter-clear>清除篩選</button>` : `${recommendation.alternative ? '桌上型配置選擇・' : ''}共 ${models.length} 款`}</p></div><div class="device-visual" data-grade="${recommendation.grade}" role="img" aria-label="影身術戰力 ${recommendation.grade} 級">${chassis.length ? `<span class="hardware-table-card__chassis" aria-hidden="true">${chassis.map((image, index) => `<img src="img/devices/${image}.webp" alt=""${index === modelFilter.chassisIndex ? ' class="is-current"' : ''}>`).join('')}</span>` : ''}<span class="device-visual__grade" aria-hidden="true">${recommendation.grade}</span></div></header>
+        <div class="hardware-table-wrap"><table class="hardware-table"><thead><tr>${columns.map(([, label]) => `<th scope="col">${label}</th>`).join('')}<th scope="col">哪裡購買</th></tr><tr class="hardware-table__filters"><td>${brandButtons('gpu', ['NVIDIA', 'AMD'])}</td><td colspan="2">${brandButtons('cpu', ['Intel', 'AMD'])}</td><td colspan="${columns.length - 2}"></td></tr></thead>
+        <tbody>${rows.length ? rows.map(model => `<tr>${columns.map(([key], index) => `<td>${index === 0 && model.name !== series ? `<b class="hardware-table__tag">${model.name}</b>` : ''}${model[key] || '<span class="hardware-table__tbc">依通路</span>'}</td>`).join('')}<td><a class="button button--accent hardware-buy-link hardware-table__store" href="${model.link}" target="_blank" rel="noopener noreferrer" aria-label="前往 ${model.store}：${model.name}・${model.cpu}（另開新視窗）">${model.store}</a></td></tr>`).join('') : `<tr><td colspan="${columns.length + 1}" class="hardware-table__empty">沒有同時符合這些條件的配置</td></tr>`}</tbody></table></div>
+    </article>`;
+    if (!modelFilter.chassisTimer && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        modelFilter.chassisTimer = setInterval(() => {
+            const pictures = document.querySelectorAll('.hardware-table-card__chassis img');
+            if (pictures.length < 2 || document.hidden) return;
+            modelFilter.chassisIndex = ((modelFilter.chassisIndex || 0) + 1) % pictures.length;
+            pictures.forEach((picture, index) => picture.classList.toggle('is-current', index === modelFilter.chassisIndex));
+        }, 2800);
+    }
+}
+
 function getModelFit(model, index) {
+    if (model.note) return model.note;
     if (index === 0) return '符合本次任務的運算強度與並行需求';
     if (model.integratedChassis) return '適合重視體積、整合部署或特定平台的使用情境';
-    if (/-I$/.test(model.name)) return 'Intel 平台配置，適合既有 Intel 工作環境';
     return '可依軟體相容性與擴充需求選擇的平台配置';
 }
 
-// Official product shots of each build's chassis; builds without a confirmed image show none.
 const DEVICE_IMAGES = Object.freeze([
-    [/Pioneer/, 'tuf-gt502-horizon', 'TUF Gaming GT502 Horizon 機殼'],
-    [/Professional|Master-A/, 'rog-strix-helios-ii', 'ROG Strix Helios II 機殼'],
-    [/NUC/, 'rog-nuc-16', 'ROG NUC 16'],
-    [/Master/, 'rog-cronox-argb', 'ROG Cronox ARGB 機殼'],
     [/ET700I/, 'expertcenter-pro-et700i-w7', 'ExpertCenter Pro ET700I W7'],
     [/ET900N/, 'expertcenter-pro-et900n-g3', 'ExpertCenter Pro ET900N G3'],
     [/Spark/, 'asus-ascent-gx10', 'ASUS Ascent GX10']
 ]);
 
 function renderDeviceIllustration(model) {
+    if (model.link) return model.image ? `<img class="device-photo" src="img/devices/${model.image}.webp" alt="${model.integratedChassis ? model.name : `${model.case} 機殼`}">` : '';
     const match = DEVICE_IMAGES.find(([pattern]) => pattern.test(model.name));
     return match ? `<img class="device-photo" src="img/devices/${match[1]}.webp" alt="${match[2]}">` : '';
 }
@@ -2984,6 +3019,7 @@ function renderComponentLinks(label, link, series) {
     if (!link) return '';
     const anchor = (href, text) => `<a class="button button--accent hardware-buy-link" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="${text}（另開新視窗）">${text}</a>`;
     if (typeof link === 'string') return `<div class="component-links">${anchor(link, label)}</div>`;
+    if (Array.isArray(link)) return `<div class="component-links">${link.map(([text, stores]) => `<button class="button button--accent hardware-buy-link" type="button" data-store-choice="${encodeURIComponent(JSON.stringify(stores))}" data-store-label="${text}" aria-haspopup="dialog">${text}</button>`).join('')}</div>`;
     return `<div class="component-links">${anchor(link.amd, series.leftLabel || 'AMD 平台')}${anchor(link.intel, series.rightLabel || 'Intel 平台')}</div>`;
 }
 
@@ -2998,8 +3034,32 @@ function handleHardwareInteraction(event) {
         selectHardwareTab(tab.dataset.hardwareTab);
         return;
     }
+    const filterButton = event.target.closest('[data-filter-part]');
+    if (filterButton || event.target.closest('[data-filter-clear]')) {
+        if (filterButton) {
+            const { filterPart, filterValue } = filterButton.dataset;
+            modelFilter[filterPart] = modelFilter[filterPart] === filterValue ? null : filterValue;
+        } else Object.keys(MODEL_FILTERS).forEach(part => { modelFilter[part] = null; });
+        renderModelTable();
+        if (filterButton) document.querySelector(`[data-filter-part="${filterButton.dataset.filterPart}"][data-filter-value="${filterButton.dataset.filterValue}"]`)?.focus();
+        return;
+    }
+    const storeChoice = event.target.closest('[data-store-choice]');
+    if (storeChoice) {
+        showStoreChoice(storeChoice);
+        return;
+    }
     const buyLink = event.target.closest('[data-buy-link]');
     if (buyLink?.getAttribute('aria-disabled') === 'true') event.preventDefault();
+}
+
+function showStoreChoice(trigger) {
+    const stores = JSON.parse(decodeURIComponent(trigger.dataset.storeChoice));
+    const label = trigger.dataset.storeLabel;
+    const series = trigger.closest('.component-series-card')?.querySelector('.component-series-card__heading strong')?.textContent.trim() || '';
+    elements.modalContent.innerHTML = `<div class="store-choice"><span class="step-kicker">${series}</span><h2 id="modal-title">選擇購買通路</h2><p>${label}</p><div class="store-choice__list">${Object.entries(stores).map(([store, href]) => `<a class="button button--accent hardware-buy-link" href="${href}" target="_blank" rel="noopener noreferrer" data-store-link="${store}" aria-label="前往 ${store}：${label}（另開新視窗）">${store}<span aria-hidden="true">→</span></a>`).join('')}</div><button class="button button--quiet" type="button" data-close-modal>取消</button></div>`;
+    elements.modalContent.querySelector('[data-close-modal]').addEventListener('click', closeModal);
+    openModal(trigger);
 }
 
 function handleHardwareKeydown(event) {
@@ -3168,7 +3228,6 @@ async function previewReport(trigger) {
     trigger.textContent = '正在產生報告…';
     try {
         await document.fonts.ready;
-        // The download mirrors the on-screen report; the hand-drawn canvas version is only a fallback.
         let blob;
         try {
             blob = await createReportSnapshotBlob();
@@ -3236,8 +3295,6 @@ async function fetchAsDataUrl(url) {
     return blobToDataUrl(await response.blob());
 }
 
-// Manrope carries the report's numerals; embed its Latin subset so the image matches the screen.
-// CJK text falls back to the system font inside the image, because embedding Noto Sans TC would be far too large.
 async function getReportFontCss() {
     try {
         const link = document.querySelector('link[href*="fonts.googleapis.com/css2"]');
@@ -3260,14 +3317,12 @@ async function createReportSnapshotBlob() {
     clone.hidden = false;
     clone.querySelectorAll('.reveal').forEach(node => node.classList.add('is-inview'));
     clone.querySelectorAll('.sci-overview').forEach(node => node.classList.add('is-animated'));
-    // Ids referenced by SVG paint and clip urls must survive, or the gradients and the number's liquid clip are lost in the image.
     clone.querySelectorAll('[id]').forEach(node => { if (!['donut-grad', 'sci-liquid', 'sci-clip'].includes(node.id)) node.removeAttribute('id'); });
     clone.id = 'step-4';
 
     const stylesheetHref = document.querySelector('link[rel="stylesheet"][href*="styles.css"]').href;
     const [pageCss, fontCss] = await Promise.all([fetch(stylesheetHref).then(response => response.text()), getReportFontCss()]);
     const style = document.createElement('style');
-    // Relative url() references cannot load inside an image, and none of them are part of the report body.
     style.textContent = `${fontCss}\n${pageCss.replace(/url\((?!["']?(?:data:|#))[^)]*\)/g, 'none')}\n${REPORT_SNAPSHOT_CSS}`;
 
     const root = document.createElement('div');
@@ -3284,7 +3339,6 @@ async function createReportSnapshotBlob() {
         }
     }));
 
-    // Lay the report out in a hidden frame of the export width so its height matches what the image will render.
     const frame = document.createElement('iframe');
     frame.setAttribute('aria-hidden', 'true');
     frame.tabIndex = -1;
@@ -3299,7 +3353,6 @@ async function createReportSnapshotBlob() {
         frameDocument.head.appendChild(frameDocument.importNode(style, true));
         const framedRoot = frameDocument.importNode(root, true);
         frameDocument.body.appendChild(framedRoot);
-        // A timer rather than requestAnimationFrame: frames do not fire while the tab is in the background.
         await new Promise(resolve => setTimeout(resolve, 120));
         height = Math.ceil(framedRoot.getBoundingClientRect().height);
     } finally {
@@ -3337,7 +3390,7 @@ async function createReportBlobV2(result) {
     const hardwareHeight = 250;
     const cloneRows = Math.max(1, Math.ceil(result.clones.length / 3));
     const height = 780 + cloneRows * 92 + result.taskResults.length * taskHeight
-        + result.recommendation.models.length * (hardwareHeight + 18) + 120;
+        + Math.min(3, result.recommendation.models.length) * (hardwareHeight + 18) + 120;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -3449,7 +3502,7 @@ async function createReportBlobV2(result) {
         mb: '主機板 MB', cpu: '處理器 CPU', gpu: '顯示卡 VGA', ram: '記憶體 RAM',
         ssd: '儲存裝置 SSD', case: '機殼 CASE', cooling: '散熱系統', psu: '電源供應器 PSU'
     };
-    result.recommendation.models.forEach(hardware => {
+    result.recommendation.models.slice(0, 3).forEach(hardware => {
         card(left, y, contentWidth, hardwareHeight);
         canvasText(ctx, hardware.name, left + 24, y + 36, `900 19px ${font}`, colors.text);
         canvasText(ctx, `${result.recommendation.strength.grade} 級影身術戰力`, width - left - 24, y + 36, `800 13px ${font}`, colors.blue, 'right');
@@ -3488,7 +3541,7 @@ async function createReportBlob(result) {
     const taskRowHeight = 146;
     const hardwareCardHeight = 326;
     const hardwareCardGap = 18;
-    const additionalHardwareHeight = Math.max(0, result.recommendation.models.length - 1) * (hardwareCardHeight + hardwareCardGap);
+    const additionalHardwareHeight = Math.max(0, Math.min(3, result.recommendation.models.length) - 1) * (hardwareCardHeight + hardwareCardGap);
     const cloneRows = Math.ceil(result.clones.length / 3);
     const cloneAvatarImages = new Map(await Promise.all(result.clones.map(async clone => [clone.recipeId, await loadImageAsset(getCloneAvatarPath(clone.recipeId))])));
     const height = 1566 + result.taskResults.length * taskRowHeight + additionalHardwareHeight + cloneRows * 38;
@@ -3602,12 +3655,12 @@ async function createReportBlob(result) {
     y += cloneRows * 78 + 34;
 
     const hardwareLabels = { mb: '主機板 MB', cpu: '處理器 CPU', gpu: '顯示卡 VGA', ram: '記憶體 RAM', ssd: '儲存裝置 SSD', case: '機殼 CASE', cooling: '散熱系統', psu: '電源供應器 PSU' };
-    result.recommendation.models.forEach((hardware, hardwareIndex) => {
+    result.recommendation.models.slice(0, 3).forEach((hardware, hardwareIndex) => {
         roundedRect(ctx, left, y, contentWidth, hardwareCardHeight, 18, 'rgba(20,121,232,.13)', 'rgba(32,201,235,.28)');
         canvasText(ctx, hardware.name, left + 24, y + 36, `800 18px ${font}`, '#20C9EB');
-        canvasText(ctx, `推薦機台 ${hardwareIndex + 1}／${result.recommendation.models.length} · 整機配置`, left + 24, y + 58, `600 11px ${font}`, '#8391A7');
+        canvasText(ctx, `推薦機台 ${hardwareIndex + 1}／${Math.min(3, result.recommendation.models.length)} · 整機配置`, left + 24, y + 58, `600 11px ${font}`, '#8391A7');
         drawHardwareGradeStamp(ctx, result.recommendation.strength.grade, width - left - 48, y + 44, font);
-        Object.entries(hardwareLabels).filter(([key]) => !(key === 'case' && hardware.integratedChassis)).forEach(([key, label], index) => {
+        Object.entries(hardwareLabels).filter(([key]) => hardware[key] && !(key === 'case' && hardware.integratedChassis)).forEach(([key, label], index) => {
             const column = index % 4;
             const row = Math.floor(index / 4);
             const x = left + 24 + column * 232;
@@ -3631,22 +3684,21 @@ function openStrengthScaleModal(trigger) {
         <div class="strength-scale-modal">
             <header>
                 <span class="step-kicker">情境與戰力分級</span>
-                <h2 id="modal-title">六大情境與 A 至 SS 影身術戰力</h2>
-                <p>情境分類依 ASUS Agent Computer 的地端 AI 六大情境；每個情境列出基本配置，以及我們歸入該情境的建議配置與戰力等級。分級代表運算餘裕，不代表固定速度倍數，也不等同 SCI。</p>
+                <h2 id="modal-title">五大情境與 A 至 SS 影身術戰力</h2>
+                <p>情境分類依 ASUS Agent Computer 的地端 AI 五大情境；每個情境列出我們歸入該情境的建議配置與戰力等級。分級代表運算餘裕，不代表固定速度倍數，也不等同 SCI。</p>
             </header>
-            <div class="strength-scale-list">${HQ_SCENARIOS.map((scenario, index) => {
+            <div class="strength-scale-list">${HQ_SCENARIOS.filter(item => !item.hidden).map((scenario, index, shown) => {
                 const builds = getScenarioBuilds(scenario.id);
                 const grades = builds.length ? [...new Set(builds.map(build => build.grade))] : [hardwareCatalog[ROUTE_OUTCOMES[scenario.id].tier].strength.grade];
                 const isCurrent = scenario.id === currentScenario;
-                const groupTitle = index === 0 || HQ_SCENARIOS[index - 1].group !== scenario.group ? `<h3 class="strength-scale-group">${scenario.group}</h3>` : '';
+                const groupTitle = index === 0 || shown[index - 1].group !== scenario.group ? `<h3 class="strength-scale-group">${scenario.group}</h3>` : '';
                 return `${groupTitle}<article class="${isCurrent ? 'is-current' : ''}">
                     <div class="strength-scale-grade"><small>戰力</small><strong>${grades.join('<i>–</i>')}</strong>${isCurrent ? '<em>本次建議</em>' : ''}</div>
                     <div class="strength-scale-copy">
                         <h3>${scenario.zh}<small>${scenario.name}</small><em>${scenario.tagline}</em></h3>
                         <p class="strength-scale-capability">${scenario.capability}${scenario.users ? `・${scenario.users}` : ''}</p>
                         ${renderScenarioTags(scenario)}
-                        <h4>基本配置</h4>
-                        ${renderScenarioHqSpec(scenario)}
+                        ${scenario.hideHq ? '' : `<h4>基本配置</h4>${renderScenarioHqSpec(scenario)}`}
                         ${builds.length ? `<h4>我們的建議配置</h4>${renderScenarioBuilds(builds)}` : ''}
                     </div>
                 </article>`;
@@ -3798,7 +3850,17 @@ function getReferenceMinutes(recipe, scale, mode) {
     return scaleData.manualMinutes * modeData.baselineWeight + workflowTarget * modeData.agentWeight;
 }
 
-function calculateWorkflowMetrics(recipeId) { return globalThis.SCIWorkflowV2.metrics(recipeId); }
+function getStageRetained(stage, assistShare) {
+    return stage.stageWorkShare * ((1 - assistShare) + assistShare * stage.reviewAttention + assistShare * stage.exceptionRate * stage.exceptionEffort);
+}
+
+function calculateWorkflowMetrics(recipeId, stageAssist) {
+    const metrics = globalThis.SCIWorkflowV2.metrics(recipeId);
+    if (!Array.isArray(stageAssist)) return metrics;
+    const stages = globalThis.SCIWorkflowV2.getWorkflow(recipeId).stages;
+    const retainedHumanRatio = stages.reduce((sum, stage, index) => sum + getStageRetained(stage, Number.isFinite(stageAssist[index]) ? clamp(stageAssist[index], 0, 1) : stage.aiAssistShare), 0);
+    return { ...metrics, retainedHumanRatio };
+}
 
 function isAnswerComplete(answer) {
     if (!answer) return false;
@@ -3940,7 +4002,6 @@ function showSharedError(message, field, focusTarget = field) {
     return showError(message, focusTarget);
 }
 
-// A short shake on the flagged fields and on the button that was pressed, so a missed field is hard to overlook.
 function shakeInvalid() {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const targets = [...document.querySelectorAll('.step:not([hidden]) .field-error')].filter(element => element.offsetParent);
@@ -4197,9 +4258,6 @@ function escapeHtml(value) {
         .replace(/'/g, '&#039;');
 }
 
-// ---- Interaction log ----
-// Clicks and views are kept in memory and only sent once the visitor has pressed 查看結果 (the point where anonymous collection is disclosed).
-// They go to the same Apps Script endpoint as a separate "events" payload and land in their own sheet, keyed by the anonymous and assessment ids.
 const interactionLog = { queue: [], consented: false, timer: 0, lastAssessmentId: '' };
 
 function logInteraction(name, target = '', detail = '') {
@@ -4230,7 +4288,6 @@ function flushInteractions(leaving) {
         sourcePage: `${location.origin}${location.pathname}`,
         events
     });
-    // When the page is closing only sendBeacon is reliable; otherwise a normal request is used.
     if (leaving && navigator.sendBeacon) {
         navigator.sendBeacon(DATA_COLLECTION_CONFIG.endpoint, new Blob([body], { type: 'text/plain;charset=utf-8' }));
         return;
@@ -4243,18 +4300,24 @@ function describeClick(target) {
     const pick = selector => target.closest(selector);
     let el;
     if ((el = pick('a[href^="http"]'))) {
-        const card = el.closest('.framework-card, .hardware-model-card, .component-series-card');
-        const group = el.closest('.framework-card') ? 'Agent 框架' : el.closest('.hardware-model-card') ? '整機' : el.closest('.component-series-card') ? '零組件' : '其他';
+        const card = el.closest('.framework-card, .hardware-model-card, .hardware-table-card, .component-series-card');
+        const group = el.closest('.framework-card') ? 'Agent 框架' : el.closest('.hardware-model-card, .hardware-table-card') ? '整機' : el.closest('.component-series-card') ? '零組件' : '其他';
         const label = card?.querySelector('h5, h4, .component-series-card__heading strong')?.textContent.trim() || '';
         return ['外部連結', `${group}｜${label}｜${el.textContent.trim()}`, el.href];
     }
+    if ((el = pick('[data-filter-part]'))) return ['機型篩選', `${MODEL_FILTERS[el.dataset.filterPart]}：${el.dataset.filterValue}`];
+    if ((el = pick('[data-filter-clear]'))) return ['機型篩選', '清除篩選'];
+    if ((el = pick('.hardware-table__store'))) return ['前往賣場（整機）', `${el.textContent.trim()}：${el.closest('tr')?.children[0]?.textContent.trim() || ''}・${el.closest('tr')?.children[1]?.textContent.trim() || ''}`];
+    if ((el = pick('[data-store-link]'))) return ['前往賣場', `${el.dataset.storeLink}：${document.querySelector('.store-choice p')?.textContent.trim() || ''}`];
+    if ((el = pick('[data-store-choice]'))) return ['選擇購買通路', el.dataset.storeLabel];
     if ((el = pick('[data-buy-link]'))) return ['了解更多（無連結）', el.closest('.hardware-model-card')?.querySelector('h4')?.textContent.trim() || ''];
     if ((el = pick('[data-usecase]'))) return ['用途標籤', el.dataset.usecase, el.closest('.modal') ? '彈窗' : '情境卡'];
     if ((el = pick('[data-term], #sci-info-trigger'))) return ['名詞解釋', el.id === 'sci-info-trigger' ? 'SCI' : el.dataset.term];
-    if ((el = pick('[data-strength-scale]'))) return ['開啟六大情境彈窗', el.dataset.scenario || ''];
+    if ((el = pick('[data-strength-scale]'))) return ['開啟五大情境彈窗', el.dataset.scenario || ''];
     if ((el = pick('[data-team-view]'))) return ['切換估算模式', el.dataset.teamView === 'team' ? '團隊估算' : '個人'];
     if ((el = pick('[data-team-step]'))) return ['調整團隊人數', String(teamView.size)];
     if ((el = pick('[data-hardware-tab]'))) return ['切換設備頁籤', el.textContent.trim()];
+    if ((el = pick('[data-ratio-edit]'))) return ['查看協作比例', el.closest('.workflow-impact-card')?.querySelector('h4')?.textContent.trim() || ''];
     if ((el = pick('[data-task-toggle]'))) return ['查看任務明細', el.querySelector('strong')?.firstChild?.textContent.trim() || ''];
     if ((el = pick('[data-clone-toggle]'))) return ['查看影身術內容', el.textContent.trim()];
     if ((el = pick('#device-bridge'))) return ['看推薦設備（第一張卡）'];
@@ -4284,7 +4347,6 @@ function trackEvent(name, detail) {
     document.dispatchEvent(new CustomEvent('sci:analytics', { detail: { name, ...detail, versions: VERSIONS } }));
 }
 
-// Imported snapshots must pass migration; no guesses when old occupations split.
 function restoreSciAssessment(saved) {
     const migration = globalThis.SCIWorkflowV2.migrate(saved);
     if (migration.status !== 'valid') {

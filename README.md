@@ -1,4 +1,4 @@
-# ASUS Agent Computer｜影身術戰力解鎖（SCI 工作效益評估）
+# ASUS Agent Computer｜影身術戰力解析（SCI 工作效益評估）
 
 開啟根目錄的 `index.html` 即為測驗網站。純靜態網頁，不需要建置。本機預覽可執行 `python -m http.server 8765` 後開啟 http://localhost:8765/ 。
 

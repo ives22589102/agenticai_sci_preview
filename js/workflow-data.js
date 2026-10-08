@@ -1,5 +1,4 @@
 'use strict';
-// 職業內容與數值均為模型估計；SCI 只按實際勾選任務工時計算。
 const SCIWorkflowV2 = (() => {
 const tasks = {
   "S01": {
