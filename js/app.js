@@ -1683,7 +1683,7 @@ function routeHardware(snapshot, taskResults) {
     } else {
         const headcount = users === '6+' ? '6 人以上' : users.replace('-', '–').replace('+', ' 人以上').replace(/(\d)$/, '$1 人');
         if (users === '2-5') outcome = { a: 'aplus', aplus: 's', s: 's' }[outcome] || outcome;
-        else outcome = { '6+': 'homelab', '6-25': 'workstation', '26-50': 'scale', '50+': 'scale' }[users] || outcome;
+        else outcome = { '6+': 'homelab', '6-25': 'workstation', '26-50': 'premium', '50+': 'scale' }[users] || outcome;
         reasons.push(`單一工作情境的運算需求為「${DEMAND_LABELS[demandLevel - 1]}」、負載為「${LOAD_LABELS[loadLevel - 1]}」。`);
         reasons.push(users === '2-5'
             ? `所選的使用情境為 ${headcount}共用，多人同時使用需要更多記憶體與並行空間，因此在單人建議之上再提高一級。`
@@ -1921,7 +1921,7 @@ function createZenniDent(canvas, image) {
     };
 }
 
-const REPORT_INTRO_STEPS = ['正在盤點任務工時', '正在計算 SCI 影身術指數', '正在比對五大情境', '正在配置影身術軍團'];
+const REPORT_INTRO_STEPS = ['正在盤點任務工時', '正在計算 SCI 影身術指數', '正在比對六大情境', '正在配置影身術軍團'];
 let reportIntroTimers = [];
 let introFx = null;
 
@@ -2536,7 +2536,7 @@ function initReportDeck() {
     let drag = null;
     deck.addEventListener('pointerdown', event => {
         if (event.button > 0 || event.target.closest('button, a, summary, input, select, label, .deck-arrow')) return;
-        if (event.pointerType !== 'touch' && !isDeckEdge(event)) return;
+        if (event.pointerType === 'touch' || !isDeckEdge(event)) return;
         drag = { x: event.clientX, y: event.clientY, id: event.pointerId, active: false, dx: 0 };
     });
     const armDrag = () => {
@@ -2748,7 +2748,7 @@ function renderHardware(recommendation, result) {
     cards.hidden = ownTable;
     cards.classList.toggle('platform-cards--alone', !ownTable && !alternative);
     cards.innerHTML = ownTable ? '' : `${alternative ? `<h5 class="platform-cards__heading">本次建議情境的設備：${HQ_SCENARIOS.find(item => item.id === recommendation.scenarioId).zh}</h5>` : ''}<div class="platform-grid">${!recommendation.models.length
-        ? '<p class="platform-empty">這個情境需要雙顯示卡工作站，目前沒有對應的現成機型，請參考上方的基本配置。</p>'
+        ? ''
         : recommendation.models.map((model, index) => `<article class="hardware-model-card">
         <header><div><span class="hardware-scenario-tag">${HQ_SCENARIOS.find(item => item.id === getModelScenarioId(recommendation.tier, model)).zh}</span><h4>${model.name}</h4><p>${getModelFit(model, index)}</p></div><div class="device-visual" data-grade="${recommendation.grade}" role="img" aria-label="影身術戰力 ${recommendation.grade} 級"><span class="device-visual__grade" aria-hidden="true">${recommendation.grade}</span>${renderDeviceIllustration(model)}</div></header>
         <div class="hardware-quick-specs"><span><small>GPU／VRAM</small><strong>${model.gpu}</strong></span><span><small>記憶體</small><strong>${model.ram}</strong></span><span><small>儲存</small><strong>${model.ssd}</strong></span></div>
@@ -2796,7 +2796,7 @@ const HQ_SCENARIOS = Object.freeze([
         description: '以單一工作站執行 70B 等級全精度模型，資料留在自己的場域。', users: '最多 25 位使用者・專屬工作負載',
         capability: '70B 以上全精度模型', bestFor: ['工廠邊緣 AI', '視覺語言模型分析', '工程 Copilot', '文件分析', '專業推理'],
         hq: [['主機板', 'AMD：Pro WS WRX90E-SAGE SE；Intel：Pro WS W890E-SAGE SE'], ['顯示卡', '1 × RTX PRO 6000（96GB）'], ['記憶體', '2TB R-DIMM']] },
-    { id: 'premium', hidden: true, group: '企業', name: 'Enterprise Workstations Premium', zh: '企業工作站進階版', tagline: '同時服務多位使用者',
+    { id: 'premium', group: '企業', name: 'Enterprise Workstations Premium', zh: '企業工作站進階版', tagline: '同時服務多位使用者',
         description: '一台雙顯示卡工作站即可成為整個部門的 AI 服務，多個模型同時運作。', users: '最多 50 位使用者・共用 AI 服務',
         capability: '全精度模型・122B 單一模型或 27B 多人共用服務', bestFor: ['共用 AI 助理', '工作流程自動化', '部門知識 AI'],
         hq: [['主機板', 'AMD：Pro WS WRX90E-SAGE SE；Intel：Pro WS W890E-SAGE SE'], ['顯示卡', '2 × RTX PRO 6000（每張 96GB）'], ['記憶體', '2TB R-DIMM']] },
@@ -2908,7 +2908,7 @@ function renderScenarioSection(recommendation) {
     const used = new Set();
     return `<header class="section-pill-heading"><h4 class="section-pill">本次建議情境</h4></header>
         <div class="scenario-list"><article class="scenario-card">
-            <button type="button" class="scenario-card__grade" data-grade="${recommendation.grade}" data-strength-scale="${recommendation.grade}" data-scenario="${recommendation.scenarioId}" aria-label="影身術戰力 ${recommendation.grade} 級，${strength.label}。查看五大情境與影身術戰力解析"><small>影身術戰力</small><strong>${recommendation.grade}</strong><em>${strength.label}</em><span class="scenario-card__hint" aria-hidden="true">五大情境與戰力解析 →</span></button>
+            <button type="button" class="scenario-card__grade" data-grade="${recommendation.grade}" data-strength-scale="${recommendation.grade}" data-scenario="${recommendation.scenarioId}" aria-label="影身術戰力 ${recommendation.grade} 級，${strength.label}。查看六大情境與影身術戰力解析"><small>影身術戰力</small><strong>${recommendation.grade}</strong><em>${strength.label}</em><span class="scenario-card__hint" aria-hidden="true">六大情境與戰力解析 →</span></button>
             <div class="scenario-card__body">
                 <h4>${scenario.zh}<small>${scenario.name}</small></h4>
                 <p><b>${scenario.tagline}。</b>${scenario.description}</p>
@@ -3702,8 +3702,8 @@ function openStrengthScaleModal(trigger) {
         <div class="strength-scale-modal">
             <header>
                 <span class="step-kicker">情境與戰力分級</span>
-                <h2 id="modal-title">五大情境與 A 至 SS 影身術戰力</h2>
-                <p>情境分類依 ASUS Agent Computer 的地端 AI 五大情境；每個情境列出我們歸入該情境的建議配置與戰力等級。分級代表運算餘裕，不代表固定速度倍數，也不等同 SCI。</p>
+                <h2 id="modal-title">六大情境與 A 至 SS 影身術戰力</h2>
+                <p>情境分類依 ASUS Agent Computer 的地端 AI 六大情境；每個情境列出我們歸入該情境的建議配置與戰力等級。分級代表運算餘裕，不代表固定速度倍數，也不等同 SCI。</p>
             </header>
             <div class="strength-scale-list">${HQ_SCENARIOS.filter(item => !item.hidden).map((scenario, index, shown) => {
                 const builds = getScenarioBuilds(scenario.id);
@@ -4331,7 +4331,7 @@ function describeClick(target) {
     if ((el = pick('[data-buy-link]'))) return ['了解更多（無連結）', el.closest('.hardware-model-card')?.querySelector('h4')?.textContent.trim() || ''];
     if ((el = pick('[data-usecase]'))) return ['用途標籤', el.dataset.usecase, el.closest('.modal') ? '彈窗' : '情境卡'];
     if ((el = pick('[data-term], #sci-info-trigger'))) return ['名詞解釋', el.id === 'sci-info-trigger' ? 'SCI' : el.dataset.term];
-    if ((el = pick('[data-strength-scale]'))) return ['開啟五大情境彈窗', el.dataset.scenario || ''];
+    if ((el = pick('[data-strength-scale]'))) return ['開啟六大情境彈窗', el.dataset.scenario || ''];
     if ((el = pick('[data-team-view]'))) return ['切換估算模式', el.dataset.teamView === 'team' ? '團隊估算' : '個人'];
     if ((el = pick('[data-team-step]'))) return ['調整團隊人數', String(teamView.size)];
     if ((el = pick('[data-hardware-tab]'))) return ['切換設備頁籤', el.textContent.trim()];
