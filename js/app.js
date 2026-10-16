@@ -14,7 +14,7 @@ const SCI_CONFIG = Object.freeze({
 
 const COST_PERIOD_HOURS = Object.freeze({ hour: 1, week: 40, month: 160 });
 const CLOUD_TOKEN_CONFIG = Object.freeze({
-    usdToTwd: 32, retryFactor: 1.2, electricityTwdPerKwh: 4, inputSpeedup: 10, range: [0.75, 1.25],
+    display: false, usdToTwd: 32, retryFactor: 1.2, electricityTwdPerKwh: 4, inputSpeedup: 10, range: [0.75, 1.25],
     usage: {
         productivity: { small: [3000, 600, 2], standard: [6000, 1000, 3], large: [12000, 1800, 4] },
         content: { small: [4000, 1500, 3], standard: [8000, 3000, 4], large: [16000, 6000, 6] },
@@ -37,7 +37,7 @@ const CLOUD_TOKEN_CONFIG = Object.freeze({
 });
 
 function showsCloudTokens(result, factor = 1) {
-    return result.tokens.savedMonthlyTwd * factor >= CLOUD_TOKEN_CONFIG.minimumDisplayTwd;
+    return CLOUD_TOKEN_CONFIG.display && result.tokens.savedMonthlyTwd * factor >= CLOUD_TOKEN_CONFIG.minimumDisplayTwd;
 }
 
 function estimateCloudTokens(taskResults, scenarioId) {
@@ -217,8 +217,6 @@ const taskTaxonomyCatalog = Object.freeze(Object.fromEntries(recipeCatalog.map(r
 
 const hardwareCatalog = Object.freeze({
     a: Object.freeze({
-        label: 'A 級影身術戰力',
-        strength: Object.freeze({ grade: 'A', meter: 20, label: '初階協作', capacity: '適合日常內容、文件與單一工作流', description: '從地端文件整理、內容生成與一般資料工作開始建立影身術流程。' }),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 7 9000 系列', intel: 'Intel Core Ultra 7 桌上型處理器（系列 2）' },
             mb: { amd: 'ASUS TUF Gaming B850 系列', intel: 'ASUS TUF Gaming B860 系列' },
@@ -226,8 +224,6 @@ const hardwareCatalog = Object.freeze({
         })
     }),
     aplus: Object.freeze({
-        label: 'A+ 級影身術戰力',
-        strength: Object.freeze({ grade: 'A+', meter: 40, label: '進階協作', capacity: '適合多項內容與資料工作流', description: '提供更多顯示記憶體、系統記憶體與多工具並行空間。' }),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 9 9900X 系列', intel: 'Intel Core Ultra 7／Ultra 9 系列' },
             mb: { amd: 'ASUS B850／X870 系列', intel: 'ASUS Z890 系列' },
@@ -235,8 +231,6 @@ const hardwareCatalog = Object.freeze({
         })
     }),
     s: Object.freeze({
-        label: 'S 級影身術戰力',
-        strength: Object.freeze({ grade: 'S', meter: 60, label: '高效協作', capacity: '適合高負載創作與多流程持續運行', description: '以 RTX 5080 級以上顯示卡與高階桌上型平台承接高負載地端模型及創作流程。' }),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 9 9950X 系列', intel: 'Intel Core Ultra 9 285K 系列' },
             mb: { amd: 'ASUS ROG Crosshair X870E 系列', intel: 'ASUS ROG Maximus Z890 系列' },
@@ -244,8 +238,6 @@ const hardwareCatalog = Object.freeze({
         })
     }),
     splus: Object.freeze({
-        label: 'S+ 級影身術戰力',
-        strength: Object.freeze({ grade: 'S+', meter: 80, label: '專業算力協作', capacity: '適合大型模型、專業資料與高併發工作', description: '面向工作站級顯示卡、大容量記憶體或整合式 Blackwell 平台。' }),
         components: Object.freeze({
             cpu: { amd: 'NVIDIA GB10 Grace Blackwell Superchip', intel: 'Intel Xeon W-3400 系列', leftLabel: 'NVIDIA 平台', rightLabel: 'Intel 工作站' },
             mb: { amd: 'NVIDIA DGX Spark 整合平台', intel: 'Intel W790 工作站平台', leftLabel: 'NVIDIA 平台', rightLabel: 'Intel 工作站' },
@@ -253,8 +245,6 @@ const hardwareCatalog = Object.freeze({
         })
     }),
     ss: Object.freeze({
-        label: 'SS 級影身術戰力',
-        strength: Object.freeze({ grade: 'SS', meter: 100, label: '極致算力協作', capacity: '適合超大型算力需求與極重工作負載', description: '為高 SCI 且需要大量影身術工作持續並行的極重度情境提供最高階地端算力。' }),
         components: Object.freeze({
             cpu: { all: 'NVIDIA Grace 72-Core Neoverse V2' },
             mb: { all: 'NVIDIA GB300 整合式運算平台' },
@@ -1573,8 +1563,8 @@ function calculateAssessment(snapshot) {
 
 const ROUTE_OUTCOMES = Object.freeze({
     a: { scenarioId: 'personal', tier: 'a' },
-    aplus: { scenarioId: 'personal', tier: 'aplus' },
-    s: { scenarioId: 'development', tier: 's' },
+    aplus: { scenarioId: 'development', tier: 'aplus' },
+    s: { scenarioId: 'homelab', tier: 's' },
     homelab: { scenarioId: 'homelab', tier: 'splus' },
     workstation: { scenarioId: 'workstation', tier: 'splus' },
     premium: { scenarioId: 'premium', tier: 'splus' },
@@ -1584,7 +1574,7 @@ const INDIVIDUAL_ROUTE = Object.freeze({
     1: ['a', 'a', 'aplus'],
     2: ['a', 'aplus', 'aplus'],
     3: ['aplus', 's', 's'],
-    4: ['s', 's', 'homelab']
+    4: ['s', 's', 's']
 });
 const DEMAND_LABELS = ['輕量', '中等', '高', '模型開發'];
 const LOAD_LABELS = ['低', '中', '高'];
@@ -1621,8 +1611,6 @@ function routeHardware(snapshot, taskResults) {
     const reasons = [];
 
     let outcome = INDIVIDUAL_ROUTE[demandLevel][loadLevel - 1];
-    if (isStudent && !['a', 'aplus', 's'].includes(outcome)) outcome = 's';
-    const soloGrade = hardwareCatalog[ROUTE_OUTCOMES[outcome].tier].strength.grade;
     const demandReason = `所選任務的運算需求為「${DEMAND_LABELS[demandLevel - 1]}」${peakTask ? `，最吃資源的是「${peakTask.title}」` : ''}。`;
     const loadReason = `同時執行與工作量的負載為「${LOAD_LABELS[loadLevel - 1]}」，每月約 ${Math.round(totalHours)} 小時。`;
 
@@ -1630,15 +1618,17 @@ function routeHardware(snapshot, taskResults) {
         reasons.push(demandReason, loadReason);
     } else {
         const headcount = users === '6+' ? '6 人以上' : users.replace('-', '–').replace('+', ' 人以上').replace(/(\d)$/, '$1 人');
+        const soloScenario = ROUTE_OUTCOMES[outcome].scenarioId;
         if (users === '2-5') outcome = { a: 'aplus', aplus: 's', s: 's' }[outcome] || outcome;
-        else outcome = { '6+': 'homelab', '6-25': 'workstation', '26-50': 'premium', '50+': 'scale' }[users] || outcome;
+        else outcome = { '6+': 'workstation', '6-25': 'workstation', '26-50': 'premium', '50+': 'scale' }[users] || outcome;
+        const raised = ROUTE_OUTCOMES[outcome].scenarioId !== soloScenario;
         reasons.push(`單一工作情境的運算需求為「${DEMAND_LABELS[demandLevel - 1]}」、負載為「${LOAD_LABELS[loadLevel - 1]}」。`);
         reasons.push(users === '2-5'
-            ? `所選的使用情境為 ${headcount}共用，多人同時使用需要更多記憶體與並行空間，因此在單人建議之上再提高一級。`
+            ? `所選的使用情境為 ${headcount}共用，多人同時使用需要更多記憶體與並行空間，${raised ? '因此在單人建議之上再提高一級。' : '建議選擇此情境中記憶體與顯示卡較高的配置。'}`
             : `所選的使用情境為 ${headcount}共用，多人同時使用需要更大的記憶體與同時服務能力。`);
-        if (users === '6+') reasons.push('個人工作者方案以可共用的 AI 節點為上限；更大規模請洽企業方案。');
+        if (users === '6+') reasons.push('個人工作者方案以企業工作站為上限；更大規模請洽企業方案。');
     }
-    if (isFreelancer && ['workstation', 'premium', 'scale'].includes(outcome)) outcome = 'homelab';
+    if (isFreelancer && ['premium', 'scale'].includes(outcome)) outcome = 'workstation';
 
     const { scenarioId, tier: tierKey } = ROUTE_OUTCOMES[outcome];
     const tier = hardwareCatalog[tierKey];
@@ -1646,8 +1636,8 @@ function routeHardware(snapshot, taskResults) {
     return {
         scenarioId,
         tier: tierKey,
-        grade: tier.strength.grade,
-        tierLabel: tier.label,
+        grade: SCENARIO_STRENGTH[scenarioId].grade,
+        tierLabel: `${SCENARIO_STRENGTH[scenarioId].grade} 級影身術戰力`,
         validationStatus: 'pending',
         desktopAlternative: ['1', '2-5'].includes(users),
         needsReview: parallel === '5+' || parallel === 'unknown',
@@ -1656,7 +1646,7 @@ function routeHardware(snapshot, taskResults) {
         sharedUsers: users,
         models,
         componentSeries: JSON.parse(JSON.stringify(SCENARIO_COMPONENTS[scenarioId] || tier.components)),
-        strength: { ...tier.strength },
+        strength: { ...SCENARIO_STRENGTH[scenarioId] },
         reasons
     };
 }
@@ -2683,6 +2673,7 @@ function renderHardware(recommendation, result) {
     cards.hidden = true;
     cards.innerHTML = '';
     document.getElementById('platform-grid').innerHTML = renderTwConfig(recommendation.scenarioId);
+    bindTwCarousels(document.getElementById('platform-grid'));
     const scenarioSection = document.getElementById('scenario-section');
     if (scenarioSection) scenarioSection.innerHTML = renderScenarioSection(recommendation);
     const frameworkSection = document.getElementById('framework-section');
@@ -2708,22 +2699,22 @@ function renderHardware(recommendation, result) {
 }
 
 const HQ_SCENARIOS = Object.freeze([
-    { id: 'personal', group: '個人／專業玩家／中小企業', name: 'Personal AI', zh: 'AI 先鋒者', tagline: '日常 AI 與寫程式',
+    { id: 'personal', group: '個人／專業玩家／中小企業', name: '', zh: 'AI 先鋒者', tagline: '日常 AI 與寫程式',
         description: '在自己的設備上對話、搜尋個人文件並取得寫程式協助，資料不外流、離線也能用。',
         capability: '7B–14B Q4 量化模型・個人 RAG', bestFor: ['對話', '文件問答', '個人 RAG', '個人 AI Agent', '地端程式助理', '創作流程'] },
-    { id: 'development', group: '個人／專業玩家／中小企業', name: 'AI Development', zh: 'AI 開拓家', tagline: '開發與微調模型',
+    { id: 'development', group: '個人／專業玩家／中小企業', name: '', zh: 'AI 開拓家', tagline: 'AI 開發與進階創作',
+        description: '在自己的電腦上開發與測試 AI 應用，同時處理影像生成與影音創作，程式碼與資料都留在地端。',
+        capability: '14B Q4 量化模型・AI 開發與創作', bestFor: ['AI 程式開發', 'RAG 開發', 'Agent 開發', '地端程式助理', '創作流程'] },
+    { id: 'homelab', group: '個人／專業玩家／中小企業', name: '', zh: 'AI 領航員', tagline: '開發與微調模型',
         description: '在桌邊完成模型的原型製作、微調與測試，準備好再擴大規模，程式碼與資料都留在地端。',
-        capability: '14B–20B Q4 量化模型・模型開發', bestFor: ['AI 程式開發', 'RAG 開發', 'Agent 開發', '模型微調', '大型模型原型', '多 Agent 協作開發'] },
-    { id: 'homelab', group: '個人／專業玩家／中小企業', name: 'Homelab / AI Nodes', zh: 'AI 領航員', tagline: '全天候 Agent 與共用 AI',
-        description: '讓 AI 為家庭或小型團隊全天候運作，提供 24 小時 Agent、私有 RAG 與共用 AI 服務。',
-        capability: '7B–120B 模型', bestFor: ['地端模型服務', '多模態流程', '全天候 Agent', '私有 RAG', '共用 AI 服務', '居家自動化'] },
-    { id: 'workstation', group: '企業', name: 'Enterprise Workstations', zh: '企業工作站', tagline: '執行更大的地端模型',
+        capability: '32B Q4 量化模型・模型開發與微調', bestFor: ['AI 程式開發', 'RAG 開發', 'Agent 開發', '模型微調', '大型模型原型', '多 Agent 協作開發'] },
+    { id: 'workstation', group: '企業', name: '', zh: '企業工作站', tagline: '執行更大的地端模型',
         description: '以單一工作站執行 70B 等級全精度模型，資料留在自己的場域。', users: '最多 25 位使用者・專屬工作負載',
         capability: '70B 以上全精度模型', bestFor: ['工廠邊緣 AI', '視覺語言模型分析', '工程 Copilot', '文件分析', '專業推理'] },
-    { id: 'premium', group: '企業', name: 'Enterprise Workstations Premium', zh: '企業工作站進階版', tagline: '同時服務多位使用者',
+    { id: 'premium', group: '企業', name: '', zh: '企業工作站進階版', tagline: '同時服務多位使用者',
         description: '一台雙顯示卡工作站即可成為整個部門的 AI 服務，多個模型同時運作。', users: '最多 50 位使用者・共用 AI 服務',
         capability: '全精度模型・122B 單一模型或 27B 多人共用服務', bestFor: ['共用 AI 助理', '工作流程自動化', '部門知識 AI'] },
-    { id: 'scale', group: '企業', name: 'Enterprise Scale', zh: '企業級規模', tagline: '擴展企業 AI',
+    { id: 'scale', group: '企業', name: '', zh: '企業級規模', tagline: '擴展企業 AI',
         description: '超越單一工作站的企業 AI 平台，支援大規模 RAG、Agent 協調與跨組織的分散式推論。', users: '50 位以上使用者・橫向擴充服務',
         capability: '超越單一工作站・企業 AI 平台', bestFor: ['企業 RAG 與 API', 'Agent 協調', '分散式推論'] }
 ]);
@@ -2733,7 +2724,7 @@ const TW_CONFIGS = Object.freeze({
         kicker: '日常 AI 助理與程式設計',
         description: '在自己的裝置上直接與 AI 對話、精準檢索個人文件並獲取即時 Coding 輔助，具備絕佳隱私保護、完全離線可用且隨時待命。從單 GPU 獨立組裝主機到具備統一記憶體架構的迷你桌機，ASUS Agent Computer 讓您以自己的方式，打造專屬的個人化 AI。',
         columns: [
-            { title: '獨立 GPU 組裝平台', sub: 'PC 零組件', bestFor: ['AI 即時對話', '文件問答檢索', '個人專屬 RAG'], rows: [
+            { title: '獨立 GPU 組裝平台', sub: 'PC 零組件', products: [{ kind: '主機板', name: 'ROG STRIX B850-F GAMING WIFI', image: 'img/parts/rog-strix-b850-f-gaming-wifi.webp', link: 'https://rog.asus.com/tw/motherboards/rog-strix/rog-strix-b850-f-gaming-wifi/', store: 'B850', specs: [['平台', 'AMD'], ['晶片組', 'AMD B850']] }, { kind: '主機板', name: 'TUF GAMING X870-PRO WIFI7 W NEO', image: 'img/parts/tuf-gaming-x870-pro-wifi7-w-neo.webp', link: 'https://www.asus.com/tw/motherboards-components/motherboards/tuf-gaming/tuf-gaming-x870-pro-wifi7-w-neo/', store: 'X870', specs: [['平台', 'AMD'], ['晶片組', 'AMD X870']] }, { kind: '主機板', name: 'ROG STRIX B860-F GAMING WIFI', image: 'img/parts/rog-strix-b860-f-gaming-wifi.webp', link: 'https://rog.asus.com/tw/motherboards/rog-strix/rog-strix-b860-f-gaming-wifi/', store: 'B860', specs: [['平台', 'Intel'], ['晶片組', 'Intel B860']] }, { kind: '主機板', name: 'TUF GAMING Z890-PRO WIFI', image: 'img/parts/tuf-gaming-z890-pro-wifi.webp', link: 'https://www.asus.com/tw/motherboards-components/motherboards/tuf-gaming/tuf-gaming-z890-pro-wifi/', store: 'Z890', specs: [['平台', 'Intel'], ['晶片組', 'Intel Z890']] }, { kind: '顯示卡', name: 'ASUS TUF Gaming GeForce RTX™ 5060 Ti 16GB GDDR7 OC 超頻版', image: 'img/parts/asus-tuf-gaming-geforce-rtx-5060-ti-16gb-gddr7-oc.webp', link: 'https://www.asus.com/tw/motherboards-components/graphics-cards/tuf-gaming/tuf-rtx5060ti-o16g-gaming/', store: 'GeForce RTX™ 5060 Ti', specs: [['GPU', 'NVIDIA GeForce RTX 5060 Ti'], ['顯示記憶體', '16GB GDDR7']] }, { kind: '顯示卡', name: 'ASUS TURBO Radeon™ AI PRO R9700', image: 'img/parts/asus-turbo-radeon-ai-pro-r9700.webp', link: 'https://www.asus.com/tw/motherboards-components/graphics-cards/turbo/turbo-ai-pro-r9700-32g/', specs: [['GPU', 'AMD Radeon AI PRO R9700'], ['顯示記憶體', '32GB']] }], bestFor: ['AI 即時對話', '文件問答檢索', '個人專屬 RAG'], rows: [
                 { label: '主機板', groups: [{ brand: 'AMD', items: ['ROG STRIX B850 系列', 'TUF Gaming X870 系列'] }, { brand: 'INTEL', items: ['ROG STRIX B860 系列', 'TUF Gaming Z890 系列'] }] },
                 { label: '顯示卡 (GPU)', groups: [{ brand: 'NVIDIA', items: [['GeForce RTX™ 5060 Ti', '16GB']] }, { brand: 'AMD', items: [['ASUS TURBO Radeon™ AI PRO R9700', '32GB']] }] },
                 { label: '記憶體 (DRAM)', groups: [{ items: ['32–64GB DRAM'] }] }
@@ -2744,29 +2735,29 @@ const TW_CONFIGS = Object.freeze({
         ]
     },
     development: {
-        kicker: '建構與微調模型',
-        description: '在您的辦公桌前直接進行模型原型設計、微調與嚴苛測試，並在準備就緒後隨時擴充升級。ASUS Agent Computer 透過配置大容量 VRAM 的顯示卡，或是搭載 NVIDIA DGX Spark 的 ASUS Ascent GX10，為開發者打造絕對私密的地端實驗室，助您以極致效率加速模型疊代，同時嚴格確保核心程式碼與數據資產安全。',
+        kicker: '地端 AI 開發與進階創作',
+        description: '以 16GB 顯示記憶體的 GeForce RTX 5070 Ti／5080，在自己的電腦上執行 14B 等級的量化模型，進行 AI 輔助程式設計、RAG 檢索應用與 AI 代理流程的開發測試，也能處理影像生成與影音創作。需要嘗試更大的模型時，可搭配具備 128GB 統一記憶體的 ASUS Ascent GX10，在桌邊完成原型驗證。',
         columns: [
-            { title: '獨立 GPU 組裝平台', sub: 'PC 零組件', bestFor: ['AI 輔助程式設計', 'RAG 檢索系統開發', 'AI 代理架構開發', '模型精準微調'], rows: [
+            { title: '獨立 GPU 組裝平台', sub: 'PC 零組件', products: [{ kind: '主機板', name: 'ROG STRIX X870E-E GAMING WIFI', image: 'img/parts/rog-strix-x870e-e-gaming-wifi.webp', link: 'https://rog.asus.com/tw/motherboards/rog-strix/rog-strix-x870e-e-gaming-wifi/', store: 'X870', specs: [['平台', 'AMD'], ['晶片組', 'AMD X870E']] }, { kind: '主機板', name: 'ProArt X870E-CREATOR WIFI', image: 'img/parts/proart-x870e-creator-wifi.webp', link: 'https://www.asus.com/tw/motherboards-components/motherboards/proart/proart-x870e-creator-wifi/', store: 'X870', specs: [['平台', 'AMD'], ['晶片組', 'AMD X870E']] }, { kind: '主機板', name: 'ROG STRIX Z890-E GAMING WIFI', image: 'img/parts/rog-strix-z890-e-gaming-wifi.webp', link: 'https://rog.asus.com/tw/motherboards/rog-strix/rog-strix-z890-e-gaming-wifi/', store: 'Z890', specs: [['平台', 'Intel'], ['晶片組', 'Intel Z890']] }, { kind: '主機板', name: 'ProArt Z890-CREATOR WIFI', image: 'img/parts/proart-z890-creator-wifi.webp', link: 'https://www.asus.com/tw/motherboards-components/motherboards/proart/proart-z890-creator-wifi/', store: 'Z890', specs: [['平台', 'Intel'], ['晶片組', 'Intel Z890']] }, { kind: '顯示卡', name: 'ROG Strix GeForce RTX™ 5070 Ti 16GB GDDR7 OC 超頻版', image: 'img/parts/rog-strix-geforce-rtx-5070-ti-16gb-gddr7-oc.webp', link: 'https://rog.asus.com/tw/graphics-cards/graphics-cards/rog-strix/rog-strix-rtx5070ti-o16g-gaming/', store: 'GeForce RTX™ 5070 Ti', specs: [['GPU', 'NVIDIA GeForce RTX 5070 Ti'], ['顯示記憶體', '16GB GDDR7']] }, { kind: '顯示卡', name: 'ROG Astral GeForce RTX™ 5080 16GB GDDR7 OC 超頻版', image: 'img/parts/rog-astral-geforce-rtx-5080-16gb-gddr7-oc.webp', link: 'https://rog.asus.com/tw/graphics-cards/graphics-cards/rog-astral/rog-astral-rtx5080-o16g-gaming/', store: 'GeForce RTX™ 5080', specs: [['GPU', 'NVIDIA GeForce RTX 5080'], ['顯示記憶體', '16GB GDDR7']] }], bestFor: ['AI 輔助程式設計', 'RAG 檢索應用開發', 'AI 代理流程測試', '影像與影音生成'], rows: [
                 { label: '主機板', groups: [{ brand: 'AMD', items: ['ROG STRIX X870E 系列', 'ProArt X870E 系列'] }, { brand: 'INTEL', items: ['ROG STRIX Z890 系列', 'ProArt Z890 系列'] }] },
                 { label: '顯示卡 (GPU)', groups: [{ brand: 'NVIDIA', items: ['GeForce RTX™ 5070 Ti', 'GeForce RTX™ 5080', 'GeForce RTX™ 5080 Ti'] }] },
                 { label: '記憶體 (DRAM)', groups: [{ items: ['128GB DRAM'] }] }
             ] },
-            { title: '統一記憶體架構', sub: '迷你桌機與 NUC', tone: 'unified', bestFor: ['超大型模型原型設計', '多代理人協作軟體開發', '地端模型深度微調'], rows: [
+            { title: '統一記憶體架構', sub: '迷你桌機與 NUC', tone: 'unified', products: [{ kind: '整機', machine: true, name: 'ASUS Ascent GX10', image: 'asus-ascent-gx10', specs: [['平台', 'NVIDIA DGX Spark'], ['GPU', 'NVIDIA Blackwell'], ['記憶體', '128GB'], ['儲存', '2TB']] }], bestFor: ['大型模型原型驗證', 'AI 代理開發測試', '地端模型微調'], rows: [
                 { label: '硬體平台', groups: [{ brand: 'NVIDIA', platform: 'NVIDIA DGX Spark', items: ['ASUS Ascent GX10'] }] }
             ] }
         ]
     },
     homelab: {
-        kicker: '全時運算 AI 代理與共享 AI 服務',
-        description: '為您的家用實驗室或小型團隊打造 24/7 全時運作的 AI 中樞，輕鬆承載不間斷運行的 AI 代理、高隱私檢索增強生成 (RAG) 以及團隊共享 AI 服務。',
+        kicker: '建構與微調模型',
+        description: '在您的辦公桌前直接進行模型原型設計、微調與嚴苛測試，並在準備就緒後隨時擴充升級。ASUS Agent Computer 透過配置大容量 VRAM 的顯示卡，或是搭載 NVIDIA DGX Spark 的 ASUS Ascent GX10，為開發者打造絕對私密的地端實驗室，助您以極致效率加速模型疊代，同時嚴格確保核心程式碼與數據資產安全。',
         columns: [
-            { title: '旗艦 GPU 組裝平台', sub: 'PC 零組件', bestFor: ['地端模型推論服務', '多模態處理流程'], rows: [
+            { title: '旗艦 GPU 組裝平台', sub: 'PC 零組件', products: [{ kind: '主機板', name: 'ROG CROSSHAIR X870E EXTREME', image: 'img/parts/rog-crosshair-x870e-extreme.webp', link: 'https://rog.asus.com/tw/motherboards/rog-crosshair/rog-crosshair-x870e-extreme/', store: 'X870', specs: [['平台', 'AMD'], ['晶片組', 'AMD X870E']] }, { kind: '主機板', name: 'ROG MAXIMUS Z890 EXTREME', image: 'img/parts/rog-maximus-z890-extreme.webp', link: 'https://rog.asus.com/tw/motherboards/rog-maximus/rog-maximus-z890-extreme/', store: 'Z890', specs: [['平台', 'Intel'], ['晶片組', 'Intel Z890']] }, { kind: '顯示卡', name: 'ROG Astral GeForce RTX™ 5090 32GB GDDR7 OC 超頻版', image: 'img/parts/rog-astral-geforce-rtx-5090-32gb-gddr7-oc.webp', link: 'https://rog.asus.com/tw/graphics-cards/graphics-cards/rog-astral/rog-astral-rtx5090-o32g-gaming/', store: 'GeForce RTX™ 5090', specs: [['GPU', 'NVIDIA GeForce RTX 5090'], ['顯示記憶體', '32GB GDDR7']] }], bestFor: ['AI 輔助程式設計', 'RAG 檢索系統開發', 'AI 代理架構開發', '模型精準微調'], rows: [
                 { label: '主機板', groups: [{ brand: 'AMD', items: ['ROG CROSSHAIR X870E 系列'] }, { brand: 'INTEL', items: ['ROG MAXIMUS Z890 系列'] }] },
                 { label: '顯示卡 (GPU)', groups: [{ brand: 'NVIDIA', items: [['GeForce RTX™ 5090', '32GB VRAM']] }] },
                 { label: '記憶體 (DRAM)', groups: [{ items: ['256GB DRAM'] }] }
             ] },
-            { title: '統一記憶體架構', sub: '迷你桌機與 NUC', tone: 'unified', bestFor: ['24/7 全時 AI 代理', '私有化 RAG 系統', '共享式 AI 服務架構', '智慧家庭自動化'], rows: [
+            { title: '統一記憶體架構', sub: '迷你桌機與 NUC', tone: 'unified', products: [{ kind: '整機', machine: true, name: 'ASUS Ascent GX10', image: 'asus-ascent-gx10', specs: [['平台', 'NVIDIA DGX Spark'], ['GPU', 'NVIDIA Blackwell'], ['記憶體', '128GB'], ['儲存', '2TB']] }], bestFor: ['超大型模型原型設計', '多代理人協作軟體開發', '地端模型深度微調'], rows: [
                 { label: '硬體平台', groups: [{ brand: 'NVIDIA', platform: 'NVIDIA DGX Spark', items: ['ASUS Ascent GX10'] }], note: '可叢集運算（Cluster），強悍駕馭 7B 至 120B 大規模模型。' }
             ] }
         ]
@@ -2775,7 +2766,7 @@ const TW_CONFIGS = Object.freeze({
         kicker: '運行超大型本機模型',
         description: '單台工作站即可全精度運行 70B 級別大型模型，輕鬆駕馭工廠邊緣 AI、視覺語言分析與工程 Copilot 等應用。ASUS Agent Computer 支援多達 25 位使用者同時處理專屬工作負載，確保企業資料全數留存在地端，安全隱私有保障。',
         columns: [
-            { title: '推薦旗艦配置', sub: '工作站等級硬體零組件', bestFor: ['智慧工廠邊緣 AI', 'VLM 視覺語言分析', '工程設計 Copilot'], rows: [
+            { title: '推薦旗艦配置', sub: '工作站等級硬體零組件', products: [{ kind: '整機', machine: true, name: 'ExpertCenter Pro ET700I W7', image: 'expertcenter-pro-et700i-w7', specs: [['處理器', 'Intel Xeon W-3400'], ['晶片組', 'Intel W790'], ['顯示卡', 'NVIDIA RTX 6000 Ada'], ['記憶體', '512GB RDIMM DDR5 4800'], ['儲存', '4TB PCIe 4.0'], ['電源', '1300W']] }, { kind: '主機板', name: 'Pro WS WRX90E-SAGE SE', image: 'img/parts/pro-ws-wrx90e-sage-se.webp', link: 'https://www.asus.com/tw/motherboards-components/motherboards/workstation/pro-ws-wrx90e-sage-se/', specs: [['平台', 'AMD'], ['晶片組', 'AMD WRX90']] }, { kind: '主機板', name: 'Pro WS W890E-SAGE SE', image: 'img/parts/pro-ws-w890e-sage-se.webp', link: 'https://www.asus.com/tw/motherboards-components/motherboards/workstation/pro-ws-w890e-sage-se/', specs: [['平台', 'Intel'], ['晶片組', 'Intel W890']] }], bestFor: ['智慧工廠邊緣 AI', 'VLM 視覺語言分析', '工程設計 Copilot'], rows: [
                 { label: '大型地端模型', chips: ['70B Dense / 122B MoE', '深度文件分析', '專業級邏輯推理'] },
                 { label: '支援人數', groups: [{ items: ['高達 25 位使用者專屬工作負載'] }] },
                 { label: '主機板', groups: [{ brand: 'AMD', items: ['Pro WS WRX90E-SAGE SE'] }, { brand: 'INTEL', items: ['Pro WS W890E-SAGE SE'] }] },
@@ -2788,7 +2779,7 @@ const TW_CONFIGS = Object.freeze({
         kicker: '支援多使用者同時線上運算',
         description: '支援多達 50 位使用者同時在線使用共享 AI 助理、自動化工作流程及部門知識庫 AI，並能並行運行多個模型。ASUS Agent Computer 將單台雙 GPU 工作站，轉化為全部門的 AI 服務樞紐。',
         columns: [
-            { title: '推薦旗艦配置', sub: '工作站等級硬體零組件', bestFor: ['共享式 AI 助理', '工作流程全自動化', '部門專屬知識庫 AI'], rows: [
+            { title: '推薦旗艦配置', sub: '工作站等級硬體零組件', products: [{ kind: '主機板', name: 'Pro WS WRX90E-SAGE SE', image: 'img/parts/pro-ws-wrx90e-sage-se.webp', link: 'https://www.asus.com/tw/motherboards-components/motherboards/workstation/pro-ws-wrx90e-sage-se/', specs: [['平台', 'AMD'], ['晶片組', 'AMD WRX90']] }, { kind: '主機板', name: 'Pro WS W890E-SAGE SE', image: 'img/parts/pro-ws-w890e-sage-se.webp', link: 'https://www.asus.com/tw/motherboards-components/motherboards/workstation/pro-ws-w890e-sage-se/', specs: [['平台', 'Intel'], ['晶片組', 'Intel W890']] }], bestFor: ['共享式 AI 助理', '工作流程全自動化', '部門專屬知識庫 AI'], rows: [
                 { label: '模型與服務範疇', chips: ['122B MoE 單一龐大模型', '27B 共享 AI 服務', '多模型並行與多使用者支援'] },
                 { label: '支援人數', groups: [{ items: ['高達 50 位使用者共享式 AI 服務架構'] }] },
                 { label: '主機板', groups: [{ brand: 'AMD', items: ['Pro WS WRX90E-SAGE SE'] }, { brand: 'INTEL', items: ['Pro WS W890E-SAGE SE'] }] },
@@ -2801,15 +2792,67 @@ const TW_CONFIGS = Object.freeze({
         kicker: '賦能企業級 AI 規模化部署',
         description: '突破單一工作站極限，藉由企業級 AI 平台在全組織內實現大規模 RAG、代理調度編排與分散式推論。以 ExpertCenter Pro ET900N G3 為代表的 ASUS Agent Computer 可輕鬆擴展至 50 位以上使用者，並將資料安全、成本效益與資安法規要求牢牢掌握在您的掌控之中。',
         columns: [
-            { title: '推薦旗艦配置', sub: '企業級頂級工作站', bestFor: ['企業級 RAG 與 API 服務', '多代理協同編排', '高負載分散式推論'], rows: [
+            { title: '推薦旗艦配置', sub: '企業級頂級工作站', products: [{ kind: '整機', machine: true, name: 'ExpertCenter Pro ET900N G3', image: 'expertcenter-pro-et900n-g3', specs: [['運算平台', 'NVIDIA GB300 Grace Blackwell Ultra'], ['處理器', 'Grace 72-Core Neoverse V2'], ['記憶體', '748GB'], ['儲存', '8TB'], ['電源', '1600W Titanium']] }], bestFor: ['企業級 RAG 與 API 服務', '多代理協同編排', '高負載分散式推論'], rows: [
                 { label: '企業級部署範疇', chips: ['超大規模模型處理流程', '極致高並行負載承載力', '多使用者企業級 AI 服務'] },
                 { label: '支援人數', groups: [{ items: ['50+ 位使用者大規模橫向擴展服務'] }] },
-                { label: '工作站主機', groups: [{ items: ['ExpertCenter Pro ET900N G3'] }] },
                 { label: '運算晶片', groups: [{ brand: 'NVIDIA', items: ['GB300'] }] }
             ] }
         ]
     }
 });
+
+const TW_LINKS = Object.freeze({
+    'ROG STRIX B850 系列': 'https://rog.asus.com/tw/motherboards/rog-strix-series/?items=1552,2095,99632',
+    'TUF Gaming X870 系列': 'https://www.asus.com/tw/motherboards-components/motherboards/tuf-gaming/filter?Category=AMD&Series=TUF-Gaming&SubSpec=328888',
+    'ROG STRIX B860 系列': 'https://rog.asus.com/tw/motherboards/rog-strix-series/?items=1552,2094,99720',
+    'TUF Gaming Z890 系列': 'https://www.asus.com/tw/motherboards-components/motherboards/tuf-gaming/filter?Category=Intel&Series=TUF-Gaming&SubSpec=344988',
+    'GeForce RTX™ 5060 Ti': 'https://www.asus.com/tw/motherboards-components/graphics-cards/rog-republic-of-gamers/filter?SubSpec=376554',
+    'ASUS TURBO Radeon™ AI PRO R9700': 'https://www.asus.com/tw/motherboards-components/graphics-cards/turbo/turbo-ai-pro-r9700-32g/',
+    'ProArt GR1X': 'https://www.asus.com/tw/displays-desktops/mini-pcs/proart-mini-pc-series/proart-gr1x-mini-pc/',
+    'ROG STRIX X870E 系列': 'https://rog.asus.com/tw/motherboards/rog-strix-series/?items=1552,2095,97814',
+    'ProArt X870E 系列': 'https://www.asus.com/tw/motherboards-components/motherboards/proart/proart-x870e-creator-wifi/',
+    'ROG STRIX Z890 系列': 'https://rog.asus.com/tw/motherboards/rog-strix-series/?items=1552,2094,98162',
+    'ProArt Z890 系列': 'https://www.asus.com/tw/motherboards-components/motherboards/proart/filter?Series=ProArt&SubSpec=344988',
+    'GeForce RTX™ 5070 Ti': 'https://www.asus.com/tw/motherboards-components/graphics-cards/rog-republic-of-gamers/filter?SubSpec=354288',
+    'GeForce RTX™ 5080': 'https://www.asus.com/tw/motherboards-components/graphics-cards/rog-republic-of-gamers/filter?SubSpec=354188',
+    'GeForce RTX™ 5090': 'https://www.asus.com/tw/motherboards-components/graphics-cards/rog-republic-of-gamers/filter?SubSpec=354088',
+    'ASUS Ascent GX10': 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/',
+    'ROG CROSSHAIR X870E 系列': 'https://rog.asus.com/tw/motherboards/rog-strix-series/?items=1551,97814',
+    'ROG MAXIMUS Z890 系列': 'https://rog.asus.com/tw/motherboards-group/allmodels/?items=1550,98162',
+    'Pro WS WRX90E-SAGE SE': 'https://www.asus.com/tw/motherboards-components/motherboards/workstation/pro-ws-wrx90e-sage-se/',
+    'Pro WS W890E-SAGE SE': 'https://www.asus.com/tw/motherboards-components/motherboards/workstation/pro-ws-w890e-sage-se/',
+    '1 × RTX PRO 6000': 'https://www.nvidia.com/zh-tw/products/workstations/professional-desktop-gpus/rtx-pro-6000/',
+    '2 × RTX PRO 6000': 'https://www.nvidia.com/zh-tw/products/workstations/professional-desktop-gpus/rtx-pro-6000/',
+    'ExpertCenter Pro ET700I W7': 'https://www.asus.com/tw/displays-desktops/workstations/advanced/expertcenter-pro-et700i-w7/',
+    'ExpertCenter Pro ET900N G3': 'https://www.asus.com/tw/displays-desktops/workstations/performance/expertcenter-pro-et900n-g3/'
+});
+
+const TW_STORE_SEARCH = Object.freeze({
+    B850: { PChome: 'https://24h.pchome.com.tw/search/ASUS%20B850', momo: 'https://www.momoshop.com.tw/search/ASUS%20B850?_isFuzzy=0&searchType=1&brand=ASUS+%E8%8F%AF%E7%A2%A9&brandNo=20160808155621011&curPage=1' },
+    B860: { PChome: 'https://24h.pchome.com.tw/search/ASUS%20B860?brands=1_391%2C1_394066249020397633', momo: 'https://www.momoshop.com.tw/search/ASUS%20B860?_isFuzzy=0&searchType=1&brand=ASUS+%E8%8F%AF%E7%A2%A9&brandNo=20160808155621011&curPage=1&brandSeriesStr=TUF%23%2320220802000283' },
+    X870: { PChome: 'https://24h.pchome.com.tw/search/ASUS%20X870?brands=1_391', momo: 'https://www.momoshop.com.tw/search/ASUS%20X870?_isFuzzy=0&searchType=1&brand=ASUS+%E8%8F%AF%E7%A2%A9&brandNo=20160808155621011&curPage=1' },
+    Z890: { PChome: 'https://24h.pchome.com.tw/search/ASUS%20Z890?brands=1_391%2C1_394066249020397633&attrs=G43I22759', momo: 'https://www.momoshop.com.tw/search/ASUS%20Z890?_isFuzzy=0&searchType=1&brand=ASUS+%E8%8F%AF%E7%A2%A9&brandNo=20160808155621011&curPage=1' }
+});
+const TW_STORES = Object.freeze({
+    'ROG STRIX B850 系列': TW_STORE_SEARCH.B850,
+    'TUF Gaming X870 系列': TW_STORE_SEARCH.X870,
+    'ROG STRIX B860 系列': TW_STORE_SEARCH.B860,
+    'TUF Gaming Z890 系列': TW_STORE_SEARCH.Z890,
+    'ROG STRIX X870E 系列': TW_STORE_SEARCH.X870,
+    'ProArt X870E 系列': TW_STORE_SEARCH.X870,
+    'ROG STRIX Z890 系列': TW_STORE_SEARCH.Z890,
+    'ProArt Z890 系列': TW_STORE_SEARCH.Z890,
+    'ROG CROSSHAIR X870E 系列': TW_STORE_SEARCH.X870,
+    'ROG MAXIMUS Z890 系列': TW_STORE_SEARCH.Z890,
+    'GeForce RTX™ 5060 Ti': { PChome: 'https://24h.pchome.com.tw/search/asus%205060TI?attrs=G10I18909%2CG10I18910', momo: 'https://www.momoshop.com.tw/categories/2144100218?brandName=ASUS+%E8%8F%AF%E7%A2%A9&brandNoList=20160808155621011&has3P=y' },
+    'GeForce RTX™ 5070 Ti': { PChome: 'https://24h.pchome.com.tw/search/asus%205070TI?brands=1_391%2C1_394066249020397633&attrs=G43I22728' },
+    'GeForce RTX™ 5080': { PChome: 'https://24h.pchome.com.tw/search/asus%205080%20%E9%A1%AF%E7%A4%BA%E5%8D%A1?brands=1_391' },
+    'GeForce RTX™ 5090': { PChome: 'https://24h.pchome.com.tw/prod/DRADKY-A900JPJTV', momo: 'https://www.momoshop.com.tw/product/14956590?Area=search&mdiv=403&oid=1_6&cid=index&kw=ASUS+5090&ecTagNos=' }
+});
+
+function renderStoreButton(name, stores, className = 'tw-config__buy') {
+    return stores ? `<button type="button" class="${className}" data-store-choice="${encodeURIComponent(JSON.stringify(stores))}" data-store-label="${name}" aria-label="選擇購買通路：${name}">購買</button>` : '';
+}
 
 function twItemText(item) {
     return Array.isArray(item) ? `${item[0]} ${item[1]}` : item;
@@ -2825,28 +2868,80 @@ function renderTwConfig(scenarioId) {
     const config = TW_CONFIGS[scenarioId];
     if (!scenario || !config) return '';
     const chips = list => `<ul class="tw-config__chips">${list.map(tag => `<li>${tag}</li>`).join('')}</ul>`;
-    const item = value => Array.isArray(value) ? `<span class="tw-config__item">${value[0]}<small>${value[1]}</small></span>` : `<span class="tw-config__item">${value}</span>`;
+    const item = value => {
+        const [name, note] = Array.isArray(value) ? value : [value, ''];
+        const inner = `${name}${note ? `<small>${note}</small>` : ''}`;
+        const pill = TW_LINKS[name]
+            ? `<a class="tw-config__item tw-config__item--link" href="${TW_LINKS[name]}" target="_blank" rel="noopener noreferrer" aria-label="${name}（另開新視窗）">${inner}<i aria-hidden="true">↗</i></a>`
+            : `<span class="tw-config__item">${inner}</span>`;
+        return pill;
+    };
     const row = entry => `<div class="tw-config__row"><dt>${entry.label}</dt><dd>${entry.chips ? chips(entry.chips) : entry.groups.map(group => `<div class="tw-config__group">${group.brand ? `<span class="tw-config__brand" data-brand="${group.brand.toLowerCase()}">${group.brand}</span>` : ''}<div class="tw-config__body">${group.platform ? `<strong class="tw-config__platform">${group.platform}</strong>` : ''}<span class="tw-config__items">${group.items.map(item).join('')}</span></div></div>`).join('')}${entry.note ? `<p class="tw-config__note">${entry.note}</p>` : ''}</dd></div>`;
     return `<article class="tw-config" aria-labelledby="tw-config-title">
         <header class="tw-config__head"><h4 id="tw-config-title">${scenario.zh}<small>（${config.kicker}）</small></h4><p>${config.description}</p></header>
         <div class="tw-config__columns${config.columns.length === 1 ? ' tw-config__columns--single' : ''}">${config.columns.map(column => `<section class="tw-config__col${column.tone ? ` tw-config__col--${column.tone}` : ''}">
             <h5>${column.title}<small>${column.sub}</small></h5>
-            <dl>${row({ label: '最佳適用', chips: column.bestFor })}${column.rows.map(row).join('')}</dl>
+            <dl>${row({ label: '最佳適用', chips: column.bestFor })}${column.rows.map(row).join('')}</dl>${renderTwProducts(column.products)}
         </section>`).join('')}</div>
     </article>`;
+}
+
+function renderTwProduct(product) {
+    const href = product.link || TW_LINKS[product.name];
+    const stores = product.store ? TW_STORE_SEARCH[product.store] || TW_STORES[product.store] : null;
+    return `<article class="tw-product"><img class="tw-product__image" src="${product.image.includes('/') ? product.image : `img/devices/${product.image}.webp`}" alt="${product.name}"><div class="tw-product__body"><small>${product.kind}</small><strong>${product.name}</strong><dl>${product.specs.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>${href || stores ? `<div class="tw-product__actions">${href ? `<a class="button button--accent tw-product__link" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="前往官網：${product.name}（另開新視窗）">前往官網</a>` : ''}${renderStoreButton(product.name, stores, 'button button--quiet tw-product__link')}</div>` : ''}</div></article>`;
+}
+
+function renderTwProducts(products) {
+    if (!products?.length) return '';
+    const many = products.length > 1;
+    return `<section class="tw-carousel" aria-label="推薦產品"${many ? ' aria-roledescription="carousel"' : ''}>
+        <header class="tw-carousel__head"><strong>推薦產品</strong>${many ? `<span class="tw-carousel__count" aria-live="polite"><b>1</b>／${products.length}</span><span class="tw-carousel__nav"><button type="button" data-carousel-step="-1" aria-label="上一款" disabled>${iconSvg('chevron-left')}</button><button type="button" data-carousel-step="1" aria-label="下一款">${iconSvg('chevron-right')}</button></span>` : ''}</header>
+        <div class="tw-carousel__track" tabindex="0">${products.map((product, index) => `<div class="tw-carousel__slide" role="group" aria-label="${index + 1}／${products.length}：${product.name}">${renderTwProduct(product)}</div>`).join('')}</div>
+    </section>`;
+}
+
+function bindTwCarousels(root) {
+    root.querySelectorAll('.tw-carousel').forEach(carousel => {
+        const track = carousel.querySelector('.tw-carousel__track');
+        const slides = track.children;
+        const update = () => {
+            const index = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+            const count = carousel.querySelector('.tw-carousel__count b');
+            if (count) count.textContent = String(Math.min(slides.length, index + 1));
+            const [prev, next] = carousel.querySelectorAll('[data-carousel-step]');
+            if (prev) prev.disabled = index <= 0;
+            if (next) next.disabled = index >= slides.length - 1;
+        };
+        track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+    });
+}
+
+function stepTwCarousel(button) {
+    const track = button.closest('.tw-carousel').querySelector('.tw-carousel__track');
+    track.scrollBy({ left: Number(button.dataset.carouselStep) * track.clientWidth, behavior: 'smooth' });
 }
 
 function renderTwConfigTable(scenarioId) {
     const config = TW_CONFIGS[scenarioId];
     if (!config) return '';
-    return `<div class="scenario-table-wrap"><table class="scenario-table"><tbody>${config.columns.flatMap(column => column.rows.map(row => `<tr><th scope="row">${config.columns.length > 1 ? `${column.title}・` : ''}${row.label}</th><td>${twRowText(row)}${row.note ? `<br>${row.note}` : ''}</td></tr>`)).join('')}</tbody></table></div>`;
+    return `<div class="scenario-table-wrap"><table class="scenario-table"><tbody>${config.columns.flatMap(column => [...column.rows.map(row => `<tr><th scope="row">${row.label}</th><td>${twRowText(row)}${row.note ? `<br>${row.note}` : ''}</td></tr>`), column.products?.length ? `<tr><th scope="row">推薦產品</th><td>${column.products.map(product => product.name).join('、')}</td></tr>` : '']).join('')}</tbody></table></div>`;
 }
 
-const SCENARIO_GRADES = Object.freeze({ personal: ['A', 'A+'], development: ['S'], homelab: ['S+'], workstation: ['S+'], premium: ['S+'], scale: ['SS'] });
+const SCENARIO_STRENGTH = Object.freeze({
+    personal: Object.freeze({ grade: 'A', meter: 17, label: '初階協作', capacity: '適合日常對話、文件問答與個人 RAG', description: '以單張顯示卡或迷你桌機，在自己的設備上建立日常的影身術流程。' }),
+    development: Object.freeze({ grade: 'A+', meter: 33, label: '開發協作', capacity: '適合 AI 程式開發、RAG 應用與影音創作', description: '以 16GB 顯示卡或 ASUS Ascent GX10，在桌邊開發與測試 AI 應用。' }),
+    homelab: Object.freeze({ grade: 'A++', meter: 50, label: '模型開發協作', capacity: '適合模型微調、AI 代理開發與大型模型原型', description: '以 GeForce RTX 5090 32GB 或 ASUS Ascent GX10，在桌邊完成模型原型、微調與測試。' }),
+    workstation: Object.freeze({ grade: 'S', meter: 67, label: '專業算力協作', capacity: '適合 70B 級全精度模型與多人專屬工作', description: '以工作站級顯示卡與大容量記憶體，服務最多 25 位使用者。' }),
+    premium: Object.freeze({ grade: 'S+', meter: 83, label: '部門算力協作', capacity: '適合部門共用 AI 服務與多模型並行', description: '以雙工作站顯示卡，讓單台工作站成為部門的 AI 服務樞紐。' }),
+    scale: Object.freeze({ grade: 'S++', meter: 100, label: '極致算力協作', capacity: '適合企業級 RAG、代理編排與分散式推論', description: '以 ExpertCenter Pro ET900N G3 為核心，擴展至 50 位以上使用者。' })
+});
 
 function getTwConfigDevices(scenarioId) {
     return (TW_CONFIGS[scenarioId]?.columns || []).map(column => {
-        const gpu = column.rows.find(row => /顯示卡|硬體平台|工作站主機/.test(row.label));
+        const machine = column.products?.find(product => product.machine);
+        if (machine) return machine.name;
+        const gpu = column.rows.find(row => /顯示卡|硬體平台/.test(row.label));
         return gpu ? `${column.title}：${twRowText(gpu)}` : column.title;
     });
 }
@@ -2934,7 +3029,7 @@ function renderScenarioSection(recommendation) {
         <div class="scenario-list"><article class="scenario-card">
             <button type="button" class="scenario-card__grade" data-grade="${recommendation.grade}" data-strength-scale="${recommendation.grade}" data-scenario="${recommendation.scenarioId}" aria-label="影身術戰力 ${recommendation.grade} 級，${strength.label}。查看六大情境與影身術戰力解析"><small>影身術戰力</small><strong>${recommendation.grade}</strong><em>${strength.label}</em><span class="scenario-card__hint" aria-hidden="true">六大情境與戰力解析 →</span></button>
             <div class="scenario-card__body">
-                <h4>${scenario.zh}<small>${scenario.name}</small></h4>
+                <h4>${scenario.zh}${scenario.name ? `<small>${scenario.name}</small>` : ''}</h4>
                 <p><b>${scenario.tagline}。</b>${scenario.description}</p>
                 <div class="scenario-facts"><span><small>模型能力${/\d+B/.test(scenario.capability) ? renderTermHelp('size') : ''}</small><strong>${withGlossary(scenario.capability, used)}</strong></span>${scenario.users ? `<span><small>服務規模</small><strong>${scenario.users}</strong></span>` : ''}</div>
                 <small class="scenario-label">適合用途（點選看說明）</small>
@@ -3009,6 +3104,11 @@ function handleHardwareInteraction(event) {
         selectHardwareTab(tab.dataset.hardwareTab);
         return;
     }
+    const carouselStep = event.target.closest('[data-carousel-step]');
+    if (carouselStep) {
+        stepTwCarousel(carouselStep);
+        return;
+    }
     const storeChoice = event.target.closest('[data-store-choice]');
     if (storeChoice) {
         showStoreChoice(storeChoice);
@@ -3019,7 +3119,7 @@ function handleHardwareInteraction(event) {
 function showStoreChoice(trigger) {
     const stores = JSON.parse(decodeURIComponent(trigger.dataset.storeChoice));
     const label = trigger.dataset.storeLabel;
-    const series = trigger.closest('.component-series-card')?.querySelector('.component-series-card__heading strong')?.textContent.trim() || '';
+    const series = (trigger.closest('.component-series-card')?.querySelector('.component-series-card__heading strong') || trigger.closest('.tw-config__col')?.querySelector('h5'))?.firstChild?.textContent.trim() || '';
     elements.modalContent.innerHTML = `<div class="store-choice"><span class="step-kicker">${series}</span><h2 id="modal-title">選擇購買通路</h2><p>${label}</p><div class="store-choice__list">${Object.entries(stores).map(([store, href]) => `<a class="button button--accent hardware-buy-link" href="${href}" target="_blank" rel="noopener noreferrer" data-store-link="${store}" aria-label="前往 ${store}：${label}（另開新視窗）">${store}<span aria-hidden="true">→</span></a>`).join('')}</div><button class="button button--quiet" type="button" data-close-modal>取消</button></div>`;
     elements.modalContent.querySelector('[data-close-modal]').addEventListener('click', closeModal);
     openModal(trigger);
@@ -3348,7 +3448,7 @@ async function createReportSnapshotBlob() {
 const TW_CANVAS = Object.freeze({ head: 78, line: 40 });
 
 function getTwConfigLines(column) {
-    return [['最佳適用', column.bestFor.join('、')], ...column.rows.map(row => [row.label, `${twRowText(row)}${row.note ? `（${row.note}）` : ''}`])];
+    return [['最佳適用', column.bestFor.join('、')], ...column.rows.map(row => [row.label, `${twRowText(row)}${row.note ? `（${row.note}）` : ''}`]), ...(column.products?.length ? [['推薦產品', column.products.map(product => product.name).join('、')]] : [])];
 }
 
 function getTwConfigCanvasHeight(scenarioId) {
@@ -3508,17 +3608,17 @@ function openStrengthScaleModal(trigger) {
         <div class="strength-scale-modal">
             <header>
                 <span class="step-kicker">情境與戰力分級</span>
-                <h2 id="modal-title">六大情境與 A 至 SS 影身術戰力</h2>
+                <h2 id="modal-title">六大情境與 A 至 S++ 影身術戰力</h2>
                 <p>情境分類依 ASUS Agent Computer 的地端 AI 六大情境；每個情境列出我們歸入該情境的建議配置與戰力等級。分級代表運算餘裕，不代表固定速度倍數，也不等同 SCI。</p>
             </header>
             <div class="strength-scale-list">${HQ_SCENARIOS.filter(item => !item.hidden).map((scenario, index, shown) => {
-                const grades = SCENARIO_GRADES[scenario.id] || [hardwareCatalog[ROUTE_OUTCOMES[scenario.id].tier].strength.grade];
+                const grades = [SCENARIO_STRENGTH[scenario.id].grade];
                 const isCurrent = scenario.id === currentScenario;
                 const groupTitle = index === 0 || shown[index - 1].group !== scenario.group ? `<h3 class="strength-scale-group">${scenario.group}</h3>` : '';
                 return `${groupTitle}<article class="${isCurrent ? 'is-current' : ''}">
                     <div class="strength-scale-grade"><small>戰力</small><strong>${grades.join('<i>–</i>')}</strong>${isCurrent ? '<em>本次建議</em>' : ''}</div>
                     <div class="strength-scale-copy">
-                        <h3>${scenario.zh}<small>${scenario.name}</small><em>${scenario.tagline}</em></h3>
+                        <h3>${scenario.zh}${scenario.name ? `<small>${scenario.name}</small>` : ''}<em>${scenario.tagline}</em></h3>
                         <p class="strength-scale-capability">${scenario.capability}${scenario.users ? `・${scenario.users}` : ''}</p>
                         ${renderScenarioTags(scenario)}
                         <h4>推薦配置</h4>${renderTwConfigTable(scenario.id)}
@@ -3759,6 +3859,8 @@ function iconSvg(type) {
         coding: '<path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 5l-4 14"/>',
         clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
         'arrow-right': '<path d="M5 12h14M13 6l6 6-6 6"/>',
+        'chevron-left': '<path d="m15 6-6 6 6 6"/>',
+        'chevron-right': '<path d="m9 6 6 6-6 6"/>',
         cpu: '<rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/>',
         gpu: '<rect width="18" height="14" x="3" y="5" rx="2"/><circle cx="12" cy="12" r="4"/><path d="M3 9H1M3 15H1M21 10h2M21 14h2"/>',
         memory: '<rect width="18" height="12" x="3" y="6" rx="2"/><path d="M7 10h2v4H7zM11 10h2v4h-2zM15 10h2v4h-2zM7 18v3M11 18v3M15 18v3"/>',
@@ -4097,14 +4199,17 @@ function flushInteractions(leaving) {
 function describeClick(target) {
     const pick = selector => target.closest(selector);
     let el;
-    if ((el = pick('a[href^="http"]'))) {
-        const card = el.closest('.framework-card, .component-series-card');
-        const group = el.closest('.framework-card') ? 'Agent 框架' : el.closest('.component-series-card') ? '零組件' : '其他';
-        const label = card?.querySelector('h5, h4, .component-series-card__heading strong')?.textContent.trim() || '';
-        return ['外部連結', `${group}｜${label}｜${el.textContent.trim()}`, el.href];
-    }
     if ((el = pick('[data-store-link]'))) return ['前往賣場', `${el.dataset.storeLink}：${document.querySelector('.store-choice p')?.textContent.trim() || ''}`];
-    if ((el = pick('[data-store-choice]'))) return ['選擇購買通路', el.dataset.storeLabel];
+    if ((el = pick('a[href^="http"]'))) {
+        const card = el.closest('.framework-card, .component-series-card, .tw-config');
+        const group = el.closest('.framework-card') ? 'Agent 框架' : el.closest('.tw-config') ? 'Agent Computer' : el.closest('.component-series-card') ? '零組件' : '其他';
+        const heading = el.closest('.tw-config') ? el.closest('.tw-config').querySelector('h4')?.firstChild : (el.closest('.tw-product')?.querySelector('strong') || card?.querySelector('h5, h4, .component-series-card__heading strong'));
+        const label = heading?.textContent.trim() || '';
+        const name = el.closest('.tw-product')?.querySelector('strong')?.textContent.trim();
+        return ['外部連結', `${group}｜${label}｜${name ? `${name}｜` : ''}${el.textContent.replace('↗', '').trim()}`, el.href];
+    }
+    if ((el = pick('[data-carousel-step]'))) return ['推薦產品切換', `${el.closest('.tw-config')?.querySelector('h4')?.firstChild?.textContent.trim() || ''}｜${el.dataset.carouselStep === '1' ? '下一款' : '上一款'}`];
+    if ((el = pick('[data-store-choice]'))) return ['選擇購買通路', `${el.closest('.tw-config') ? 'Agent Computer｜' : ''}${el.dataset.storeLabel}`];
     if ((el = pick('[data-usecase]'))) return ['用途標籤', el.dataset.usecase, el.closest('.modal') ? '彈窗' : '情境卡'];
     if ((el = pick('[data-term], #sci-info-trigger'))) return ['名詞解釋', el.id === 'sci-info-trigger' ? 'SCI' : el.dataset.term];
     if ((el = pick('[data-strength-scale]'))) return ['開啟六大情境彈窗', el.dataset.scenario || ''];
@@ -4124,7 +4229,32 @@ function describeClick(target) {
     if ((el = pick('#consent-detail-button'))) return ['查看蒐集說明'];
     if ((el = pick('#start-assessment'))) return ['開始測驗'];
     if ((el = pick('#zenni-body'))) return ['戳 Zenni'];
+    if ((el = pick('label.persona-card'))) return ['選擇工作情境', el.querySelector('strong')?.textContent.trim() || el.dataset.persona];
+    if ((el = pick('.function-option'))) return ['選擇工作領域', el.textContent.replace(/\s+/g, ' ').trim()];
+    if ((el = pick('[data-recipe-card] .recipe-select'))) return ['勾選任務', el.closest('[data-recipe-card]').querySelector('h3, h4, strong')?.textContent.trim() || el.closest('[data-recipe-card]').dataset.recipeCard];
     return null;
+}
+
+function gaPageName() {
+    if (document.body.classList.contains('landing-active')) return '首頁';
+    if (assessmentState.currentStep === 4) return `報告卡片 ${reportCardIndex + 1}`;
+    return `步驟 ${assessmentState.currentStep}`;
+}
+
+function pushDataLayer(category, action, label) {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event: 'data_layer_event', event_category_DL: category, event_action_DL: action, event_label_DL: label });
+}
+
+function pushGaClick(target, described) {
+    if (target.matches('input') && target.closest('label')) return;
+    const el = target.closest('a[href], button, summary, label.persona-card, .recipe-select, .function-option');
+    if (!el && !described) return;
+    const text = (el?.getAttribute('aria-label') || el?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+    const label = described ? described.slice(0, 2).filter(Boolean).join('｜') : text;
+    if (!label) return;
+    const toggle = el?.matches('summary, [aria-expanded], [data-task-toggle], [data-clone-toggle]');
+    pushDataLayer('buttons', toggle ? 'toggle' : 'clicked', `${label} - ${gaPageName()}`);
 }
 
 function initInteractionLog() {
@@ -4132,13 +4262,17 @@ function initInteractionLog() {
         if (!(event.target instanceof Element)) return;
         const described = describeClick(event.target);
         if (described) logInteraction(...described);
+        pushGaClick(event.target, described);
     }, true);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushInteractions(true); });
     window.addEventListener('pagehide', () => flushInteractions(true));
 }
 
+const GA_MILESTONES = Object.freeze({ assessment_started: '開始測驗', anonymous_data_submitted: '查看結果（資料已送出）', anonymous_data_failed: '查看結果（資料送出失敗）', report_downloaded: '下載報告圖片' });
+
 function trackEvent(name, detail) {
     document.dispatchEvent(new CustomEvent('sci:analytics', { detail: { name, ...detail, versions: VERSIONS } }));
+    if (GA_MILESTONES[name]) pushDataLayer('assessment', name, `${GA_MILESTONES[name]}${detail?.tier ? `｜${assessmentState.result?.recommendation?.grade || detail.tier}` : ''}${detail?.entry ? `｜${detail.entry === 'auto' ? '自動進入' : '按鈕'}` : ''}`);
 }
 
 function restoreSciAssessment(saved) {

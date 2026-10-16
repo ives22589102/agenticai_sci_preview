@@ -1075,8 +1075,9 @@ a.hardware-buy-link { text-decoration: none; }
 [data-grade="A"] { --g0: #17509f; --g1: #25b6d2; --g2: #2f6fed; }
 [data-grade="A+"] { --g0: #1a2a9c; --g1: #45a3ff; --g2: #253eec; }
 [data-grade="S"] { --g0: #2b1a8f; --g1: #8266ff; --g2: #4326d9; }
+[data-grade="A++"] { --g0: #172f8c; --g1: #5f8bff; --g2: #3348e6; }
 [data-grade="S+"] { --g0: #45188f; --g1: #c653ff; --g2: #6a2bd9; }
-[data-grade="SS"] { --g0: #8f3d06; --g1: #ffc94d; --g2: #ff6a2b; }
+[data-grade="S++"] { --g0: #8f3d06; --g1: #ffc94d; --g2: #ff6a2b; }
 .scenario-card__grade { background: var(--g0, #1a2a9c); }
 .scenario-card__grade::before { inset: 0; width: auto; height: auto; right: 0; top: 0; border-radius: 0; background: linear-gradient(165deg, var(--g1, #5c3bff), var(--g2, #133ed4)); transform: scaleY(0); transform-origin: bottom; transition: transform 1.3s cubic-bezier(.22, .9, .3, 1) .2s; }
 .scenario-card__grade::after { left: auto; right: -70px; bottom: auto; top: -70px; background: radial-gradient(circle, rgba(255, 255, 255, .3), transparent 68%); }
@@ -1753,3 +1754,35 @@ a.hardware-table__store { min-height: 34px; height: 34px; min-width: 76px; paddi
     .tw-config__row dt { padding-top: 0; }
     .tw-config__item { font-size: 13px; padding: 6px 11px; }
 }
+.tw-product { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 18px; align-items: center; height: 100%; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.tw-product__image { width: 100%; height: 112px; object-fit: contain; }
+.tw-product__body small { display: block; color: var(--subtle); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+.tw-product__body strong { display: block; margin: 2px 0 10px; color: var(--text); font-size: 16px; font-weight: 800; }
+.tw-product__body dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; margin: 0; }
+.tw-product__body dl div { min-width: 0; }
+.tw-product__body dt { color: var(--subtle); font-size: 11px; font-weight: 600; }
+.tw-product__body dd { margin: 0; color: var(--text); font-size: 13px; font-weight: 600; line-height: 1.4; }
+@media (max-width: 640px) {
+    .tw-product { grid-template-columns: minmax(0, 1fr); padding: 14px; }
+    .tw-product__image { height: 120px; }
+}
+.tw-config__item--link { text-decoration: none; transition: border-color .2s, color .2s, box-shadow .2s; }
+.tw-config__item--link i { align-self: center; color: var(--subtle); font-size: 12px; font-style: normal; transition: transform .2s, color .2s; }
+.tw-config__item--link:hover, .tw-config__item--link:focus-visible { border-color: var(--blue); color: var(--blue); box-shadow: 0 6px 16px -10px rgba(37, 62, 236, .5); }
+.tw-config__item--link:hover i, .tw-config__item--link:focus-visible i { color: var(--blue); transform: translate(2px, -2px); }
+.tw-product__link { margin-top: 14px; min-height: 40px; padding: 0 20px; font-size: 14px; }
+.tw-product__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.tw-product__actions .tw-product__link { margin-top: 0; }
+.tw-carousel { margin-top: 18px; }
+.tw-carousel__head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.tw-carousel__head strong { color: var(--text); font-size: 14px; font-weight: 800; }
+.tw-carousel__count { margin-left: auto; color: var(--subtle); font-size: 13px; font-variant-numeric: tabular-nums; }
+.tw-carousel__count b { color: var(--blue); }
+.tw-carousel__nav { display: inline-flex; gap: 6px; }
+.tw-carousel__nav button { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid #d5dcea; border-radius: 50%; background: #fff; color: var(--blue); cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.tw-carousel__nav button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.tw-carousel__nav button:hover:not(:disabled), .tw-carousel__nav button:focus-visible { background: var(--blue); border-color: var(--blue); color: #fff; }
+.tw-carousel__nav button:disabled { opacity: .35; cursor: default; }
+.tw-carousel__track { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 14px; }
+.tw-carousel__track::-webkit-scrollbar { display: none; }
+.tw-carousel__slide { min-width: 0; scroll-snap-align: start; }

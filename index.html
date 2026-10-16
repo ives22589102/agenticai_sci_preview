@@ -25,13 +25,29 @@
     <meta name="twitter:description" content="回答幾個關於日常工作的問題，算出你的 SCI 影身術指數、每月可省下的工時與費用，並依六大地端 AI 情境推薦最適合的 ASUS Agent Computer 設備。">
     <meta name="twitter:image" content="https://www.asus.com/microsite/agent-computer-sci/tw/img/og-image.jpg">
     <link rel="preload" as="image" href="img/banner/kv-base.jpg?v=5" fetchpriority="high">
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({
+          "gtm.start": new Date().getTime(),
+          event: "gtm.js",
+        });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-NJRLM8");
+    </script>
     <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "SCI 影身術戰力解析", "url": "https://www.asus.com/microsite/agent-computer-sci/tw/", "description": "回答幾個關於日常工作的問題，算出你的 SCI 影身術指數、每月可省下的工時與費用，並依六大地端 AI 情境推薦最適合的 ASUS Agent Computer 設備。", "inLanguage": "zh-TW", "applicationCategory": "BusinessApplication", "operatingSystem": "Any", "browserRequirements": "需要啟用 JavaScript 的現代瀏覽器", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "TWD"}, "image": "https://www.asus.com/microsite/agent-computer-sci/tw/img/og-image.jpg", "publisher": {"@type": "Organization", "name": "ASUS", "url": "https://www.asus.com/tw/"}}</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=6.75.1">
+    <link rel="stylesheet" href="css/styles.css?v=6.79.1">
 </head>
 <body class="landing-active">
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NJRLM8" height="0" width="0" style="display: none; visibility: hidden"></iframe></noscript>
     <h1 class="visually-hidden">SCI 影身術戰力解析｜ASUS Agent Computer</h1>
     <noscript>
         <div class="noscript-note">
@@ -235,7 +251,7 @@
                                 <img class="hardware-guide" src="img/zenni/zenni-guide.webp" width="369" height="480" alt="" aria-hidden="true">
                             </div>
                             <section class="scenario-section" id="scenario-section" aria-label="本次建議情境"></section>
-                            <div class="hardware-tabs" role="tablist" aria-label="設備建議類型">
+                            <div class="hardware-tabs" role="tablist" aria-label="設備建議類型" hidden>
                                 <button type="button" role="tab" id="hardware-tab-system" aria-controls="hardware-panel-system" aria-selected="true" data-hardware-tab="system">Agent Computer 這樣配</button>
                                 <button type="button" role="tab" id="hardware-tab-components" aria-controls="hardware-panel-components" aria-selected="false" data-hardware-tab="components">零組件升級買這些</button>
                             </div>
@@ -330,6 +346,6 @@
     </div>
 
     <script src="js/workflow-data.js?v=3.6.0"></script>
-    <script src="js/app.js?v=5.96.0"></script>
+    <script src="js/app.js?v=6.3.2"></script>
 </body>
 </html>
