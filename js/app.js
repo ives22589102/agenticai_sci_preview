@@ -2729,7 +2729,7 @@ const TW_CONFIGS = Object.freeze({
                 { label: '顯示卡 (GPU)', groups: [{ brand: 'NVIDIA', items: [['GeForce RTX™ 5060 Ti', '16GB']] }, { brand: 'AMD', items: [['ASUS TURBO Radeon™ AI PRO R9700', '32GB']] }] },
                 { label: '記憶體 (DRAM)', groups: [{ items: ['32–64GB DRAM'] }] }
             ] },
-            { title: '統一記憶體架構', sub: '迷你桌機與 NUC', tone: 'unified', bestFor: ['個人 AI 代理', '地端程式設計助理', '專業創作工作流程'], rows: [
+            { title: '統一記憶體架構', sub: '迷你桌機與 NUC', tone: 'unified', products: [{ kind: '迷你電腦', machine: true, name: 'ProArt GR1X', image: 'img/parts/proart-gr1x.webp', specs: [['處理器', 'NVIDIA RTX Spark N1X'], ['GPU', 'NVIDIA Blackwell RTX（6,144 核心）'], ['記憶體', '最高 128GB 統一記憶體'], ['尺寸', '150 × 150 × 51 mm']] }], bestFor: ['個人 AI 代理', '地端程式設計助理', '專業創作工作流程'], rows: [
                 { label: '硬體平台', groups: [{ brand: 'NVIDIA', platform: 'NVIDIA RTX Spark', items: ['ProArt GR1X'] }] }
             ] }
         ]
