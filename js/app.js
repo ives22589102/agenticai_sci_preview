@@ -2736,29 +2736,10 @@ function getCloneAvatarPath(recipeId) {
 
 function renderHardware(recommendation, result) {
     document.getElementById('shadow-strength').innerHTML = renderShadowStrength(recommendation, result);
-    const modelSpecLabels = {
-        mb: ['主機板', 'MB', 'motherboard'], cpu: ['處理器', 'CPU', 'cpu'], gpu: ['顯示卡', 'VGA', 'gpu'],
-        ram: ['記憶體', 'RAM', 'memory'], ssd: ['儲存裝置', 'SSD', 'database'], case: ['機殼', 'CASE', 'case'],
-        cooling: ['散熱系統', 'COOLING', 'fan'], psu: ['電源供應器', 'PSU', 'zap']
-    };
-    const grid = document.getElementById('platform-grid');
-    modelFilter.cpu = null; modelFilter.gpu = null; modelFilter.chassisIndex = 0;
-    const ownTable = recommendation.models.length > 3;
-    const alternative = !ownTable && recommendation.tier === 'splus' && recommendation.desktopAlternative;
-    modelFilter.recommendation = ownTable ? recommendation : alternative ? { tier: 's', grade: hardwareCatalog.s.strength.grade, scenarioId: 'development', models: hardwareCatalog.s.models, alternative: true } : null;
-    grid.classList.add('platform-grid--table');
-    if (modelFilter.recommendation) renderModelTable(); else grid.innerHTML = '';
     const cards = document.getElementById('platform-cards');
-    cards.hidden = ownTable;
-    cards.classList.toggle('platform-cards--alone', !ownTable && !alternative);
-    cards.innerHTML = ownTable ? '' : `${alternative ? `<h5 class="platform-cards__heading">本次建議情境的設備：${HQ_SCENARIOS.find(item => item.id === recommendation.scenarioId).zh}</h5>` : ''}<div class="platform-grid">${!recommendation.models.length
-        ? ''
-        : recommendation.models.map((model, index) => `<article class="hardware-model-card">
-        <header><div><span class="hardware-scenario-tag">${HQ_SCENARIOS.find(item => item.id === getModelScenarioId(recommendation.tier, model)).zh}</span><h4>${model.name}</h4><p>${getModelFit(model, index)}</p></div><div class="device-visual" data-grade="${recommendation.grade}" role="img" aria-label="影身術戰力 ${recommendation.grade} 級"><span class="device-visual__grade" aria-hidden="true">${recommendation.grade}</span>${renderDeviceIllustration(model)}</div></header>
-        <div class="hardware-quick-specs"><span><small>GPU／VRAM</small><strong>${model.gpu}</strong></span><span><small>記憶體</small><strong>${model.ram}</strong></span><span><small>儲存</small><strong>${model.ssd}</strong></span></div>
-        <details class="hardware-full-specs" open><summary>完整配置</summary><div class="hardware-model-specs">${Object.entries(modelSpecLabels).filter(([key]) => !['gpu', 'ram', 'ssd'].includes(key) && model[key] && !(key === 'case' && model.integratedChassis)).map(([key, [zh, en, icon]]) => `<div class="hardware-model-spec"><span class="hardware-menu-row__icon">${iconSvg(icon)}</span><div><small>${en}</small><strong>${zh}</strong></div><p>${model[key]}</p></div>`).join('')}</div></details>
-        <div class="hardware-model-card__action">${renderPurchaseLink('了解更多', model.link || campaignConfig.productLinks.systemModels[model.name] || campaignConfig.productLinks.systems[recommendation.tier], `system-${index}`)}</div>
-    </article>`).join('')}</div>`;
+    cards.hidden = true;
+    cards.innerHTML = '';
+    document.getElementById('platform-grid').innerHTML = renderTwConfig(recommendation.scenarioId);
     const scenarioSection = document.getElementById('scenario-section');
     if (scenarioSection) scenarioSection.innerHTML = renderScenarioSection(recommendation);
     const frameworkSection = document.getElementById('framework-section');
@@ -2784,15 +2765,15 @@ function renderHardware(recommendation, result) {
 }
 
 const HQ_SCENARIOS = Object.freeze([
-    { id: 'personal', hideHq: true, group: '個人／專業玩家／中小企業', name: 'Personal AI', zh: '個人 AI', tagline: '日常 AI 與寫程式',
+    { id: 'personal', hideHq: true, group: '個人／專業玩家／中小企業', name: 'Personal AI', zh: 'AI 先鋒者', tagline: '日常 AI 與寫程式',
         description: '在自己的設備上對話、搜尋個人文件並取得寫程式協助，資料不外流、離線也能用。',
         capability: '7B–14B Q4 量化模型・個人 RAG', bestFor: ['對話', '文件問答', '個人 RAG', '個人 AI Agent', '地端程式助理', '創作流程'],
         hq: [['主機板', 'AMD：ROG STRIX B850／TUF Gaming X870 系列；Intel：ROG STRIX B860／TUF Gaming Z890 系列'], ['顯示卡', 'GeForce RTX 5060 Ti 16GB 或 ASUS TURBO Radeon AI PRO R9700 32GB'], ['記憶體', '32–64GB'], ['整合式平台', 'NVIDIA RTX Spark：ProArt GR1X、ProArt P16（H7607）、ProArt P14（H7407）']] },
-    { id: 'development', hideHq: true, group: '個人／專業玩家／中小企業', name: 'AI Development', zh: 'AI 開發', tagline: '開發與微調模型',
+    { id: 'development', hideHq: true, group: '個人／專業玩家／中小企業', name: 'AI Development', zh: 'AI 開拓家', tagline: '開發與微調模型',
         description: '在桌邊完成模型的原型製作、微調與測試，準備好再擴大規模，程式碼與資料都留在地端。',
         capability: '14B–20B Q4 量化模型・模型開發', bestFor: ['AI 程式開發', 'RAG 開發', 'Agent 開發', '模型微調', '大型模型原型', '多 Agent 協作開發'],
         hq: [['主機板', 'AMD：ROG STRIX X870E／ProArt X870E 系列；Intel：ROG STRIX Z890／ProArt Z890 系列'], ['顯示卡', 'GeForce RTX 5090 32GB'], ['記憶體', '128GB'], ['整合式平台', 'NVIDIA RTX Spark：ProArt P16（H7607）、ProArt P14（H7407）；NVIDIA DGX Spark：ASUS Ascent GX10']] },
-    { id: 'homelab', group: '個人／專業玩家／中小企業', name: 'Homelab / AI Nodes', zh: '家用實驗室／AI 節點', tagline: '全天候 Agent 與共用 AI',
+    { id: 'homelab', group: '個人／專業玩家／中小企業', name: 'Homelab / AI Nodes', zh: 'AI 領航員', tagline: '全天候 Agent 與共用 AI',
         description: '讓 AI 為家庭或小型團隊全天候運作，提供 24 小時 Agent、私有 RAG 與共用 AI 服務。',
         capability: '7B–120B 模型', bestFor: ['地端模型服務', '多模態流程', '全天候 Agent', '私有 RAG', '共用 AI 服務', '居家自動化'],
         hq: [['主機板', 'AMD：ROG CROSSHAIR X870E 系列；Intel：ROG MAXIMUS Z890 系列'], ['顯示卡', '2 × GeForce RTX 5090（每張 32GB）'], ['記憶體', '256GB'], ['整合式平台', 'NVIDIA DGX Spark：ASUS Ascent GX10（可叢集，執行 7B 至 120B 模型）']] },
@@ -2815,6 +2796,120 @@ function getModelScenarioId(tierKey, model) {
     if (tierKey === 's') return 'development';
     if (tierKey === 'splus') return /Spark|DGX/i.test(model.name) ? 'homelab' : 'workstation';
     return 'scale';
+}
+
+const TW_CONFIGS = Object.freeze({
+    personal: {
+        kicker: '日常 AI 助理與程式設計',
+        description: '在自己的裝置上直接與 AI 對話、精準檢索個人文件並獲取即時 Coding 輔助，具備絕佳隱私保護、完全離線可用且隨時待命。從單 GPU 獨立組裝主機到具備統一記憶體架構的迷你桌機，ASUS Agent Computer 讓您以自己的方式，打造專屬的個人化 AI。',
+        columns: [
+            { title: '獨立 GPU 組裝平台', sub: 'PC 零組件', bestFor: ['AI 即時對話', '文件問答檢索', '個人專屬 RAG'], rows: [
+                { label: '主機板', groups: [{ brand: 'AMD', items: ['ROG STRIX B850 系列', 'TUF Gaming X870 系列'] }, { brand: 'INTEL', items: ['ROG STRIX B860 系列', 'TUF Gaming Z890 系列'] }] },
+                { label: '顯示卡 (GPU)', groups: [{ brand: 'NVIDIA', items: [['GeForce RTX™ 5060 Ti', '16GB']] }, { brand: 'AMD', items: [['ASUS TURBO Radeon™ AI PRO R9700', '32GB']] }] },
+                { label: '記憶體 (DRAM)', groups: [{ items: ['32–64GB DRAM'] }] }
+            ] },
+            { title: '統一記憶體架構', sub: '迷你桌機與 NUC', tone: 'unified', bestFor: ['個人 AI 代理', '地端程式設計助理', '專業創作工作流程'], rows: [
+                { label: '硬體平台', groups: [{ brand: 'NVIDIA', platform: 'NVIDIA RTX Spark', items: ['ProArt GR1X'] }] }
+            ] }
+        ]
+    },
+    development: {
+        kicker: '建構與微調模型',
+        description: '在您的辦公桌前直接進行模型原型設計、微調與嚴苛測試，並在準備就緒後隨時擴充升級。ASUS Agent Computer 透過配置大容量 VRAM 的顯示卡，或是搭載 NVIDIA DGX Spark 的 ASUS Ascent GX10，為開發者打造絕對私密的地端實驗室，助您以極致效率加速模型疊代，同時嚴格確保核心程式碼與數據資產安全。',
+        columns: [
+            { title: '獨立 GPU 組裝平台', sub: 'PC 零組件', bestFor: ['AI 輔助程式設計', 'RAG 檢索系統開發', 'AI 代理架構開發', '模型精準微調'], rows: [
+                { label: '主機板', groups: [{ brand: 'AMD', items: ['ROG STRIX X870E 系列', 'ProArt X870E 系列'] }, { brand: 'INTEL', items: ['ROG STRIX Z890 系列', 'ProArt Z890 系列'] }] },
+                { label: '顯示卡 (GPU)', groups: [{ brand: 'NVIDIA', items: ['GeForce RTX™ 5070 Ti', 'GeForce RTX™ 5080', 'GeForce RTX™ 5080 Ti'] }] },
+                { label: '記憶體 (DRAM)', groups: [{ items: ['128GB DRAM'] }] }
+            ] },
+            { title: '統一記憶體架構', sub: '迷你桌機與 NUC', tone: 'unified', bestFor: ['超大型模型原型設計', '多代理人協作軟體開發', '地端模型深度微調'], rows: [
+                { label: '硬體平台', groups: [{ brand: 'NVIDIA', platform: 'NVIDIA DGX Spark', items: ['ASUS Ascent GX10'] }] }
+            ] }
+        ]
+    },
+    homelab: {
+        kicker: '全時運算 AI 代理與共享 AI 服務',
+        description: '為您的家用實驗室或小型團隊打造 24/7 全時運作的 AI 中樞，輕鬆承載不間斷運行的 AI 代理、高隱私檢索增強生成 (RAG) 以及團隊共享 AI 服務。',
+        columns: [
+            { title: '旗艦 GPU 組裝平台', sub: 'PC 零組件', bestFor: ['地端模型推論服務', '多模態處理流程'], rows: [
+                { label: '主機板', groups: [{ brand: 'AMD', items: ['ROG CROSSHAIR X870E 系列'] }, { brand: 'INTEL', items: ['ROG MAXIMUS Z890 系列'] }] },
+                { label: '顯示卡 (GPU)', groups: [{ brand: 'NVIDIA', items: [['GeForce RTX™ 5090', '32GB VRAM']] }] },
+                { label: '記憶體 (DRAM)', groups: [{ items: ['256GB DRAM'] }] }
+            ] },
+            { title: '統一記憶體架構', sub: '迷你桌機與 NUC', tone: 'unified', bestFor: ['24/7 全時 AI 代理', '私有化 RAG 系統', '共享式 AI 服務架構', '智慧家庭自動化'], rows: [
+                { label: '硬體平台', groups: [{ brand: 'NVIDIA', platform: 'NVIDIA DGX Spark', items: ['ASUS Ascent GX10'] }], note: '可叢集運算（Cluster），強悍駕馭 7B 至 120B 大規模模型。' }
+            ] }
+        ]
+    },
+    workstation: {
+        kicker: '運行超大型本機模型',
+        description: '單台工作站即可全精度運行 70B 級別大型模型，輕鬆駕馭工廠邊緣 AI、視覺語言分析與工程 Copilot 等應用。ASUS Agent Computer 支援多達 25 位使用者同時處理專屬工作負載，確保企業資料全數留存在地端，安全隱私有保障。',
+        columns: [
+            { title: '推薦旗艦配置', sub: '工作站等級硬體零組件', bestFor: ['智慧工廠邊緣 AI', 'VLM 視覺語言分析', '工程設計 Copilot'], rows: [
+                { label: '大型地端模型', chips: ['70B Dense / 122B MoE', '深度文件分析', '專業級邏輯推理'] },
+                { label: '支援人數', groups: [{ items: ['高達 25 位使用者專屬工作負載'] }] },
+                { label: '主機板', groups: [{ brand: 'AMD', items: ['Pro WS WRX90E-SAGE SE'] }, { brand: 'INTEL', items: ['Pro WS W890E-SAGE SE'] }] },
+                { label: '顯示卡 (GPU)', groups: [{ brand: 'NVIDIA', items: [['1 × RTX PRO 6000', '96GB VRAM']] }] },
+                { label: '記憶體', groups: [{ items: ['2TB R-DIMM'] }] }
+            ] }
+        ]
+    },
+    premium: {
+        kicker: '支援多使用者同時線上運算',
+        description: '支援多達 50 位使用者同時在線使用共享 AI 助理、自動化工作流程及部門知識庫 AI，並能並行運行多個模型。ASUS Agent Computer 將單台雙 GPU 工作站，轉化為全部門的 AI 服務樞紐。',
+        columns: [
+            { title: '推薦旗艦配置', sub: '工作站等級硬體零組件', bestFor: ['共享式 AI 助理', '工作流程全自動化', '部門專屬知識庫 AI'], rows: [
+                { label: '模型與服務範疇', chips: ['122B MoE 單一龐大模型', '27B 共享 AI 服務', '多模型並行與多使用者支援'] },
+                { label: '支援人數', groups: [{ items: ['高達 50 位使用者共享式 AI 服務架構'] }] },
+                { label: '主機板', groups: [{ brand: 'AMD', items: ['Pro WS WRX90E-SAGE SE'] }, { brand: 'INTEL', items: ['Pro WS W890E-SAGE SE'] }] },
+                { label: '顯示卡 (GPU)', groups: [{ brand: 'NVIDIA', items: [['2 × RTX PRO 6000', '每張 96GB VRAM']] }] },
+                { label: '記憶體', groups: [{ items: ['2TB R-DIMM'] }] }
+            ] }
+        ]
+    },
+    scale: {
+        kicker: '賦能企業級 AI 規模化部署',
+        description: '突破單一工作站極限，藉由企業級 AI 平台在全組織內實現大規模 RAG、代理調度編排與分散式推論。以 ExpertCenter Pro ET900N G3 為代表的 ASUS Agent Computer 可輕鬆擴展至 50 位以上使用者，並將資料安全、成本效益與資安法規要求牢牢掌握在您的掌控之中。',
+        columns: [
+            { title: '推薦旗艦配置', sub: '企業級頂級工作站', bestFor: ['企業級 RAG 與 API 服務', '多代理協同編排', '高負載分散式推論'], rows: [
+                { label: '企業級部署範疇', chips: ['超大規模模型處理流程', '極致高並行負載承載力', '多使用者企業級 AI 服務'] },
+                { label: '支援人數', groups: [{ items: ['50+ 位使用者大規模橫向擴展服務'] }] },
+                { label: '工作站主機', groups: [{ items: ['ExpertCenter Pro ET900N G3'] }] },
+                { label: '運算晶片', groups: [{ brand: 'NVIDIA', items: ['GB300'] }] }
+            ] }
+        ]
+    }
+});
+
+function twItemText(item) {
+    return Array.isArray(item) ? `${item[0]} ${item[1]}` : item;
+}
+
+function twRowText(row) {
+    if (row.chips) return row.chips.join('、');
+    return row.groups.map(group => `${group.brand ? `${group.brand}：` : ''}${group.platform ? `${group.platform}（${group.items.map(twItemText).join('／')}）` : group.items.map(twItemText).join('／')}`).join('；');
+}
+
+function renderTwConfig(scenarioId) {
+    const scenario = HQ_SCENARIOS.find(item => item.id === scenarioId);
+    const config = TW_CONFIGS[scenarioId];
+    if (!scenario || !config) return '';
+    const chips = list => `<ul class="tw-config__chips">${list.map(tag => `<li>${tag}</li>`).join('')}</ul>`;
+    const item = value => Array.isArray(value) ? `<span class="tw-config__item">${value[0]}<small>${value[1]}</small></span>` : `<span class="tw-config__item">${value}</span>`;
+    const row = entry => `<div class="tw-config__row"><dt>${entry.label}</dt><dd>${entry.chips ? chips(entry.chips) : entry.groups.map(group => `<div class="tw-config__group">${group.brand ? `<span class="tw-config__brand" data-brand="${group.brand.toLowerCase()}">${group.brand}</span>` : ''}<div class="tw-config__body">${group.platform ? `<strong class="tw-config__platform">${group.platform}</strong>` : ''}<span class="tw-config__items">${group.items.map(item).join('')}</span></div></div>`).join('')}${entry.note ? `<p class="tw-config__note">${entry.note}</p>` : ''}</dd></div>`;
+    return `<article class="tw-config" aria-labelledby="tw-config-title">
+        <header class="tw-config__head"><h4 id="tw-config-title">${scenario.zh}<small>（${config.kicker}）</small></h4><p>${config.description}</p></header>
+        <div class="tw-config__columns${config.columns.length === 1 ? ' tw-config__columns--single' : ''}">${config.columns.map(column => `<section class="tw-config__col${column.tone ? ` tw-config__col--${column.tone}` : ''}">
+            <h5>${column.title}<small>${column.sub}</small></h5>
+            <dl>${row({ label: '最佳適用', chips: column.bestFor })}${column.rows.map(row).join('')}</dl>
+        </section>`).join('')}</div>
+    </article>`;
+}
+
+function renderTwConfigTable(scenarioId) {
+    const config = TW_CONFIGS[scenarioId];
+    if (!config) return '';
+    return `<div class="scenario-table-wrap"><table class="scenario-table"><tbody>${config.columns.flatMap(column => column.rows.map(row => `<tr><th scope="row">${config.columns.length > 1 ? `${column.title}・` : ''}${row.label}</th><td>${twRowText(row)}${row.note ? `<br>${row.note}` : ''}</td></tr>`)).join('')}</tbody></table></div>`;
 }
 
 function getScenarioBuilds(scenarioId) {
@@ -2898,14 +2993,6 @@ function toggleUseCase(button) {
     note.innerHTML = `<strong>${button.dataset.usecase}</strong>${USE_CASES[button.dataset.usecase] || ''}`;
 }
 
-function renderScenarioHqSpec(scenario) {
-    return `<div class="scenario-table-wrap"><table class="scenario-table"><tbody>${scenario.hq.map(([label, value]) => `<tr><th scope="row">${label}</th><td>${value}</td></tr>`).join('')}</tbody></table></div>`;
-}
-
-function renderScenarioBuilds(builds) {
-    return `<div class="scenario-table-wrap"><table class="scenario-table scenario-table--builds"><thead><tr><th scope="col">戰力</th><th scope="col">機型</th><th scope="col">顯示卡</th><th scope="col">處理器</th><th scope="col">記憶體</th></tr></thead><tbody>${builds.map(({ grade, model }) => `<tr><td><b>${grade}</b></td><th scope="row">${model.name}${model.note ? `<small>${model.note}</small>` : ''}</th><td>${model.gpu}</td><td>${model.cpu}</td><td>${model.ram}</td></tr>`).join('')}</tbody></table></div>`;
-}
-
 function renderScenarioSection(recommendation) {
     const scenario = HQ_SCENARIOS.find(item => item.id === recommendation.scenarioId);
     const strength = recommendation.strength;
@@ -2921,7 +3008,6 @@ function renderScenarioSection(recommendation) {
                 ${renderScenarioTags(scenario)}
                 <div class="scenario-more">
                     <details class="scenario-hq"><summary>為什麼是這個建議</summary><ul class="scenario-reasons">${recommendation.reasons.map(reason => `<li>${reason}</li>`).join('')}</ul></details>
-                    ${scenario.hideHq ? '' : `<details class="scenario-hq" ${recommendation.models.length ? '' : 'open'}><summary>基本配置</summary>${renderScenarioHqSpec(scenario)}</details>`}
                 </div>
             </div>
         </article></div>`;
@@ -2941,67 +3027,6 @@ function renderFrameworkSection() {
             <span class="framework-card__vendor">${item.vendor}</span><h5>${item.name}</h5><p>${item.description}</p>
             <a class="framework-card__link" href="${item.url}" target="_blank" rel="noopener noreferrer" aria-label="了解更多：${item.name}（另開新視窗）">了解更多<span aria-hidden="true">→</span></a>
         </article>`).join('')}</div>`;
-}
-
-const MODEL_FILTERS = Object.freeze({ gpu: '顯示卡', cpu: '處理器與主機板平台' });
-const modelFilter = { cpu: null, gpu: null, recommendation: null };
-
-function getModelPlatform(model, part) {
-    const cpuPlatform = /AMD/i.test(model.cpu) ? 'AMD' : 'Intel';
-    if (part === 'gpu') return /Radeon/i.test(model.gpu) ? 'AMD' : 'NVIDIA';
-    if (part === 'mb') return /B650|B850|X870/i.test(model.mb) ? 'AMD' : /B760|B860|Z890/i.test(model.mb) ? 'Intel' : cpuPlatform;
-    return cpuPlatform;
-}
-
-function renderModelTable() {
-    const recommendation = modelFilter.recommendation;
-    if (!recommendation) return;
-    const models = recommendation.models;
-    const series = models.find(model => !model.integratedChassis)?.name || models[0].name;
-    const scenario = HQ_SCENARIOS.find(item => item.id === recommendation.scenarioId);
-    const active = Object.keys(MODEL_FILTERS).filter(part => modelFilter[part]);
-    const rows = models.filter(model => active.every(part => getModelPlatform(model, part) === modelFilter[part]));
-    const columns = [['gpu', '顯示卡'], ['cpu', '處理器'], ['mb', '主機板'], ['ram', '記憶體'], ['ssd', '儲存'], ['case', '機殼'], ['cooling', '散熱'], ['psu', '電源']];
-    const brandButtons = (part, brands) => {
-        const offered = brands.filter(name => models.some(model => getModelPlatform(model, part) === name));
-        return offered.length < 2 ? '' : `<span class="hardware-table__filter" role="group" aria-label="依${MODEL_FILTERS[part]}篩選">${offered.map(name => `<button type="button" data-filter-part="${part}" data-filter-value="${name}" aria-pressed="${modelFilter[part] === name}">${name}</button>`).join('')}</span>`;
-    };
-    const usage = new Map();
-    models.filter(model => model.image).forEach(model => usage.set(model.image, (usage.get(model.image) || 0) + 1));
-    const chassis = [...usage.entries()].sort((a, b) => b[1] - a[1]).map(([image]) => image);
-    modelFilter.chassisIndex = (modelFilter.chassisIndex || 0) % Math.max(1, chassis.length);
-    document.getElementById('platform-grid').innerHTML = `<article class="hardware-table-card">
-        <header><div><span class="hardware-scenario-tag">${scenario.zh}</span><h4>${series} 推薦配置</h4><p>${active.length ? `顯示 ${rows.length}／${models.length} 款<button type="button" class="hardware-table__clear" data-filter-clear>清除篩選</button>` : `${recommendation.alternative ? '桌上型配置選擇・' : ''}共 ${models.length} 款`}</p></div><div class="device-visual" data-grade="${recommendation.grade}" role="img" aria-label="影身術戰力 ${recommendation.grade} 級">${chassis.length ? `<span class="hardware-table-card__chassis" aria-hidden="true">${chassis.map((image, index) => `<img src="img/devices/${image}.webp" alt=""${index === modelFilter.chassisIndex ? ' class="is-current"' : ''}>`).join('')}</span>` : ''}<span class="device-visual__grade" aria-hidden="true">${recommendation.grade}</span></div></header>
-        <div class="hardware-table-wrap"><table class="hardware-table"><thead><tr>${columns.map(([, label]) => `<th scope="col">${label}</th>`).join('')}<th scope="col">哪裡購買</th></tr><tr class="hardware-table__filters"><td>${brandButtons('gpu', ['NVIDIA', 'AMD'])}</td><td colspan="2">${brandButtons('cpu', ['Intel', 'AMD'])}</td><td colspan="${columns.length - 2}"></td></tr></thead>
-        <tbody>${rows.length ? rows.map(model => `<tr>${columns.map(([key], index) => `<td>${index === 0 && model.name !== series ? `<b class="hardware-table__tag">${model.name}</b>` : ''}${model[key] || '<span class="hardware-table__tbc">依通路</span>'}</td>`).join('')}<td><a class="button button--accent hardware-buy-link hardware-table__store" href="${model.link}" target="_blank" rel="noopener noreferrer" aria-label="前往 ${model.store}：${model.name}・${model.cpu}（另開新視窗）">${model.store}</a></td></tr>`).join('') : `<tr><td colspan="${columns.length + 1}" class="hardware-table__empty">沒有同時符合這些條件的配置</td></tr>`}</tbody></table></div>
-    </article>`;
-    if (!modelFilter.chassisTimer && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        modelFilter.chassisTimer = setInterval(() => {
-            const pictures = document.querySelectorAll('.hardware-table-card__chassis img');
-            if (pictures.length < 2 || document.hidden) return;
-            modelFilter.chassisIndex = ((modelFilter.chassisIndex || 0) + 1) % pictures.length;
-            pictures.forEach((picture, index) => picture.classList.toggle('is-current', index === modelFilter.chassisIndex));
-        }, 2800);
-    }
-}
-
-function getModelFit(model, index) {
-    if (model.note) return model.note;
-    if (index === 0) return '符合本次任務的運算強度與並行需求';
-    if (model.integratedChassis) return '適合重視體積、整合部署或特定平台的使用情境';
-    return '可依軟體相容性與擴充需求選擇的平台配置';
-}
-
-const DEVICE_IMAGES = Object.freeze([
-    [/ET700I/, 'expertcenter-pro-et700i-w7', 'ExpertCenter Pro ET700I W7'],
-    [/ET900N/, 'expertcenter-pro-et900n-g3', 'ExpertCenter Pro ET900N G3'],
-    [/Spark/, 'asus-ascent-gx10', 'ASUS Ascent GX10']
-]);
-
-function renderDeviceIllustration(model) {
-    if (model.link) return model.image ? `<img class="device-photo" src="img/devices/${model.image}.webp" alt="${model.integratedChassis ? model.name : `${model.case} 機殼`}">` : '';
-    const match = DEVICE_IMAGES.find(([pattern]) => pattern.test(model.name));
-    return match ? `<img class="device-photo" src="img/devices/${match[1]}.webp" alt="${match[2]}">` : '';
 }
 
 function getComponentReason(key) {
@@ -3045,25 +3070,10 @@ function renderComponentLinks(label, link, series) {
     return `<div class="component-links">${anchor(link.amd, series.leftLabel || 'AMD 平台')}${anchor(link.intel, series.rightLabel || 'Intel 平台')}</div>`;
 }
 
-function renderPurchaseLink(label, href, kind) {
-    if (href) return `<a class="button button--accent hardware-buy-link" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="${label}（另開新視窗）">${label}</a>`;
-    return `<button class="button button--accent hardware-buy-link" type="button" data-buy-link="${kind}" aria-label="${label}">${label}</button>`;
-}
-
 function handleHardwareInteraction(event) {
     const tab = event.target.closest('[data-hardware-tab]');
     if (tab) {
         selectHardwareTab(tab.dataset.hardwareTab);
-        return;
-    }
-    const filterButton = event.target.closest('[data-filter-part]');
-    if (filterButton || event.target.closest('[data-filter-clear]')) {
-        if (filterButton) {
-            const { filterPart, filterValue } = filterButton.dataset;
-            modelFilter[filterPart] = modelFilter[filterPart] === filterValue ? null : filterValue;
-        } else Object.keys(MODEL_FILTERS).forEach(part => { modelFilter[part] = null; });
-        renderModelTable();
-        if (filterButton) document.querySelector(`[data-filter-part="${filterButton.dataset.filterPart}"][data-filter-value="${filterButton.dataset.filterValue}"]`)?.focus();
         return;
     }
     const storeChoice = event.target.closest('[data-store-choice]');
@@ -3071,8 +3081,6 @@ function handleHardwareInteraction(event) {
         showStoreChoice(storeChoice);
         return;
     }
-    const buyLink = event.target.closest('[data-buy-link]');
-    if (buyLink?.getAttribute('aria-disabled') === 'true') event.preventDefault();
 }
 
 function showStoreChoice(trigger) {
@@ -3404,15 +3412,24 @@ async function createReportSnapshotBlob() {
     return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Report snapshot export failed.')), 'image/png'));
 }
 
+const TW_CANVAS = Object.freeze({ head: 78, line: 40 });
+
+function getTwConfigLines(column) {
+    return [['最佳適用', column.bestFor.join('、')], ...column.rows.map(row => [row.label, `${twRowText(row)}${row.note ? `（${row.note}）` : ''}`])];
+}
+
+function getTwConfigCanvasHeight(scenarioId) {
+    return (TW_CONFIGS[scenarioId]?.columns || []).reduce((sum, column) => sum + TW_CANVAS.head + getTwConfigLines(column).length * TW_CANVAS.line + 18, 0);
+}
+
 async function createReportBlobV2(result) {
     const width = 1080;
     const left = 64;
     const contentWidth = width - left * 2;
     const taskHeight = 116;
-    const hardwareHeight = 250;
     const cloneRows = Math.max(1, Math.ceil(result.clones.length / 3));
     const height = 780 + cloneRows * 92 + result.taskResults.length * taskHeight
-        + Math.min(3, result.recommendation.models.length) * (hardwareHeight + 18) + 120;
+        + getTwConfigCanvasHeight(result.recommendation.scenarioId) + 120;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -3520,30 +3537,24 @@ async function createReportBlobV2(result) {
     y += 12;
     heading('找尋最適合您影身術軍團的設備', y);
     y += 38;
-    const hardwareLabels = {
-        mb: '主機板 MB', cpu: '處理器 CPU', gpu: '顯示卡 VGA', ram: '記憶體 RAM',
-        ssd: '儲存裝置 SSD', case: '機殼 CASE', cooling: '散熱系統', psu: '電源供應器 PSU'
-    };
-    result.recommendation.models.slice(0, 3).forEach(hardware => {
-        card(left, y, contentWidth, hardwareHeight);
-        canvasText(ctx, hardware.name, left + 24, y + 36, `900 19px ${font}`, colors.text);
+    const scenario = HQ_SCENARIOS.find(item => item.id === result.recommendation.scenarioId);
+    (TW_CONFIGS[result.recommendation.scenarioId]?.columns || []).forEach(column => {
+        const lines = getTwConfigLines(column);
+        const boxHeight = TW_CANVAS.head + lines.length * TW_CANVAS.line;
+        card(left, y, contentWidth, boxHeight);
+        canvasText(ctx, `${scenario.zh}｜${column.title}`, left + 24, y + 36, `900 18px ${font}`, colors.text);
         canvasText(ctx, `${result.recommendation.strength.grade} 級影身術戰力`, width - left - 24, y + 36, `800 13px ${font}`, colors.blue, 'right');
         ctx.strokeStyle = colors.line;
         ctx.beginPath();
         ctx.moveTo(left + 24, y + 58);
         ctx.lineTo(width - left - 24, y + 58);
         ctx.stroke();
-        Object.entries(hardwareLabels)
-            .filter(([key]) => !(key === 'case' && hardware.integratedChassis))
-            .forEach(([key, title], index) => {
-                const column = index % 4;
-                const row = Math.floor(index / 4);
-                const x = left + 24 + column * 230;
-                const itemY = y + 88 + row * 72;
-                canvasText(ctx, title, x, itemY, `700 10px ${font}`, colors.muted);
-                wrapCanvasText(ctx, hardware[key], x, itemY + 22, 205, 15, 3, `700 10px ${font}`, colors.text);
-            });
-        y += hardwareHeight + 18;
+        lines.forEach(([title, text], index) => {
+            const itemY = y + 86 + index * TW_CANVAS.line;
+            canvasText(ctx, title, left + 24, itemY, `700 11px ${font}`, colors.muted);
+            wrapCanvasText(ctx, text, left + 168, itemY, contentWidth - 192, 16, 2, `700 12px ${font}`, colors.text);
+        });
+        y += boxHeight + 18;
     });
 
     ctx.fillStyle = colors.line;
@@ -3720,8 +3731,7 @@ function openStrengthScaleModal(trigger) {
                         <h3>${scenario.zh}<small>${scenario.name}</small><em>${scenario.tagline}</em></h3>
                         <p class="strength-scale-capability">${scenario.capability}${scenario.users ? `・${scenario.users}` : ''}</p>
                         ${renderScenarioTags(scenario)}
-                        ${scenario.hideHq ? '' : `<h4>基本配置</h4>${renderScenarioHqSpec(scenario)}`}
-                        ${builds.length ? `<h4>我們的建議配置</h4>${renderScenarioBuilds(builds)}` : ''}
+                        <h4>推薦配置</h4>${renderTwConfigTable(scenario.id)}
                     </div>
                 </article>`;
             }).join('')}</div>
@@ -4322,17 +4332,13 @@ function describeClick(target) {
     const pick = selector => target.closest(selector);
     let el;
     if ((el = pick('a[href^="http"]'))) {
-        const card = el.closest('.framework-card, .hardware-model-card, .hardware-table-card, .component-series-card');
-        const group = el.closest('.framework-card') ? 'Agent 框架' : el.closest('.hardware-model-card, .hardware-table-card') ? '整機' : el.closest('.component-series-card') ? '零組件' : '其他';
+        const card = el.closest('.framework-card, .component-series-card');
+        const group = el.closest('.framework-card') ? 'Agent 框架' : el.closest('.component-series-card') ? '零組件' : '其他';
         const label = card?.querySelector('h5, h4, .component-series-card__heading strong')?.textContent.trim() || '';
         return ['外部連結', `${group}｜${label}｜${el.textContent.trim()}`, el.href];
     }
-    if ((el = pick('[data-filter-part]'))) return ['機型篩選', `${MODEL_FILTERS[el.dataset.filterPart]}：${el.dataset.filterValue}`];
-    if ((el = pick('[data-filter-clear]'))) return ['機型篩選', '清除篩選'];
-    if ((el = pick('.hardware-table__store'))) return ['前往賣場（整機）', `${el.textContent.trim()}：${el.closest('tr')?.children[0]?.textContent.trim() || ''}・${el.closest('tr')?.children[1]?.textContent.trim() || ''}`];
     if ((el = pick('[data-store-link]'))) return ['前往賣場', `${el.dataset.storeLink}：${document.querySelector('.store-choice p')?.textContent.trim() || ''}`];
     if ((el = pick('[data-store-choice]'))) return ['選擇購買通路', el.dataset.storeLabel];
-    if ((el = pick('[data-buy-link]'))) return ['了解更多（無連結）', el.closest('.hardware-model-card')?.querySelector('h4')?.textContent.trim() || ''];
     if ((el = pick('[data-usecase]'))) return ['用途標籤', el.dataset.usecase, el.closest('.modal') ? '彈窗' : '情境卡'];
     if ((el = pick('[data-term], #sci-info-trigger'))) return ['名詞解釋', el.id === 'sci-info-trigger' ? 'SCI' : el.dataset.term];
     if ((el = pick('[data-strength-scale]'))) return ['開啟六大情境彈窗', el.dataset.scenario || ''];
