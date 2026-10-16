@@ -4272,7 +4272,7 @@ const GA_MILESTONES = Object.freeze({ assessment_started: '開始測驗', anonym
 
 function trackEvent(name, detail) {
     document.dispatchEvent(new CustomEvent('sci:analytics', { detail: { name, ...detail, versions: VERSIONS } }));
-    if (GA_MILESTONES[name]) pushDataLayer('assessment', name, `${GA_MILESTONES[name]}${detail?.tier ? `｜${assessmentState.result?.recommendation?.grade || detail.tier}` : ''}${detail?.entry ? `｜${detail.entry === 'auto' ? '自動進入' : '按鈕'}` : ''}`);
+    if (GA_MILESTONES[name]) pushDataLayer('buttons', 'clicked', `${GA_MILESTONES[name]}${detail?.tier ? `｜${assessmentState.result?.recommendation?.grade || detail.tier}` : ''}${detail?.entry ? `｜${detail.entry === 'auto' ? '自動進入' : '按鈕'}` : ''}`);
 }
 
 function restoreSciAssessment(saved) {
