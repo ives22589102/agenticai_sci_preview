@@ -219,18 +219,6 @@ const hardwareCatalog = Object.freeze({
     a: Object.freeze({
         label: 'A 級影身術戰力',
         strength: Object.freeze({ grade: 'A', meter: 20, label: '初階協作', capacity: '適合日常內容、文件與單一工作流', description: '從地端文件整理、內容生成與一般資料工作開始建立影身術流程。' }),
-        models: Object.freeze([
-            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 5・32GB', store: '順發', gpu: 'ASUS Dual GeForce RTX 5060 Ti 16GB', cpu: 'Intel Core Ultra 5 225', mb: 'TUF GAMING B860M-PLUS', ram: '32GB（16GB×2）', ssd: '1TB PCIe 5.0', case: 'ASUS Prime AP202', cooling: 'ASUS LC 240 水冷', psu: 'TUF GAMING 750W 金牌', image: 'asus-prime-ap202', link: 'https://www.isunfar.com.tw/product/comboitem.aspx?prodseq=300S21&action_no=AD07041064' }),
-            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 7・32GB', store: 'PChome', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 7 270K Plus', mb: 'ASUS B860M-A CSM', ram: '32GB', ssd: '2TB PCIe 4.0', case: 'ASUS Prime AP202', psu: 'TUF GAMING 650W 銅牌', image: 'asus-prime-ap202', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900JV4HD' }),
-            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 7・32GB', store: 'momo', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 7 270K Plus', mb: 'ASUS B860M-K CSM', ram: '32GB', ssd: '1TB PCIe 5.0', case: 'ASUS Prime AP202', psu: 'TUF GAMING 750W 銅牌', image: 'asus-prime-ap202', link: 'https://www.momoshop.com.tw/product/15424503' }),
-            Object.freeze({ name: 'Agent Pioneer', note: 'AMD Ryzen 7・32GB', store: 'momo', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'ASUS B650M-F CSM', ram: '32GB', ssd: '1TB PCIe 4.0', case: 'ASUS A21 PLUS', psu: 'TUF GAMING 650W 銅牌', image: 'asus-a21-plus', link: 'https://www.momoshop.com.tw/product/15623653' }),
-            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 5・32GB', store: 'PChome', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M-K CSM', ram: '32GB（16GB×2）', ssd: '1TB PCIe 4.0', case: 'ASUS Prime AP202', psu: 'TUF GAMING 650W 銅牌', image: 'asus-prime-ap202', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900JV4FY' }),
-            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core i5・32GB', store: 'PChome', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core i5-14400F', mb: 'ASUS B760M-F D4 CSM', ram: '32GB（16GB×2）', ssd: '1TB PCIe 4.0', case: 'ASUS A21 PLUS', psu: 'TUF GAMING 650W 銅牌', image: 'asus-a21-plus', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900JQ56V' }),
-            Object.freeze({ name: 'Agent Pioneer', note: 'AMD Ryzen 5・32GB', store: 'momo', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'AMD Ryzen 5 7500F', mb: 'ASUS B650M-F CSM', ram: '32GB', ssd: '500GB PCIe 4.0', case: 'ASUS A21 PLUS', psu: 'TUF GAMING 650W 銅牌', image: 'asus-a21-plus', link: 'https://www.momoshop.com.tw/product/15623493' }),
-            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 5・32GB', store: 'momo', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 5 225F', mb: 'ASUS B860M-K CSM', ram: '32GB', ssd: '1TB PCIe 4.0', psu: 'TUF GAMING 650W 銅牌', link: 'https://www.momoshop.com.tw/product/15238030' }),
-            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 7・16GB', store: '平宇', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 7 270K Plus', mb: 'ASUS Z890 MAX GAMING', ram: '16GB', ssd: '1TB PCIe 5.0', psu: 'TUF GAMING 750W 銅牌', link: 'https://www.autobuy.tw/3c/prod_415204_17665' }),
-            Object.freeze({ name: 'Agent Pioneer', note: 'Intel Core Ultra 5・16GB', store: '平宇', gpu: 'ASUS Dual GeForce RTX 5060 Ti OC 16GB', cpu: 'Intel Core Ultra 5 245K', mb: 'ASUS Z890 MAX GAMING', ram: '16GB', ssd: '1TB PCIe 5.0', psu: 'TUF GAMING 750W 銅牌', link: 'https://www.autobuy.tw/3c/prod_415201_17665' })
-        ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 7 9000 系列', intel: 'Intel Core Ultra 7 桌上型處理器（系列 2）' },
             mb: { amd: 'ASUS TUF Gaming B850 系列', intel: 'ASUS TUF Gaming B860 系列' },
@@ -240,25 +228,6 @@ const hardwareCatalog = Object.freeze({
     aplus: Object.freeze({
         label: 'A+ 級影身術戰力',
         strength: Object.freeze({ grade: 'A+', meter: 40, label: '進階協作', capacity: '適合多項內容與資料工作流', description: '提供更多顯示記憶體、系統記憶體與多工具並行空間。' }),
-        models: Object.freeze([
-            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・64GB', store: 'PChome', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'ASUS B850M WIFI', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ASUS A21 PLUS', cooling: 'ASUS LC 360 ARGB', psu: 'TUF GAMING 850W 金牌', image: 'asus-a21-plus', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJO2Q?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・64GB', store: 'PChome', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'ASUS B850M WIFI', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ASUS A21 PLUS', cooling: 'ASUS LC 360 ARGB', psu: 'TUF GAMING 850W 金牌', image: 'asus-a21-plus', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJO0U?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 7・64GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5070 Ti 16GB', cpu: 'Intel Core Ultra 7 265K', mb: 'PRIME Z890-P WIFI-CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'AYW GAMING LC 360 ARGB', psu: 'ROG STRIX 850P GAMING', image: 'rog-strix-helios-ii', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNG1?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 7・64GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5070 Ti 16GB', cpu: 'Intel Core Ultra 7 265K', mb: 'PRIME Z890-P WIFI-CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'AYW GAMING LC 360 ARGB', psu: 'ROG STRIX 850P GAMING', image: 'rog-strix-helios-ii', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNEV?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・64GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5070 Ti 16GB', cpu: 'AMD Ryzen 7 9700X', mb: 'ASUS B850M AYW GAMING WIFI', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'TUF Gaming GT501', cooling: 'AYW GAMING LC 360 ARGB', psu: 'ROG STRIX 850W', image: 'tuf-gt501', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNDA?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 5・64GB', store: 'PChome', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M', ram: '64GB（32GB×2）', ssd: '2TB PCIe 4.0', case: 'ASUS Prime AP202', cooling: 'ASUS LC 360 ARGB', psu: 'TUF GAMING 850W 金牌', image: 'asus-prime-ap202', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJOK5?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 5・64GB', store: 'PChome', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M', ram: '64GB（32GB×2）', ssd: '2TB PCIe 4.0', case: 'ASUS Prime AP202', cooling: 'ASUS LC 360 ARGB', psu: 'TUF GAMING 850W 金牌', image: 'asus-prime-ap202', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJOGT?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 5・64GB', store: 'PChome', gpu: 'ASUS GeForce RTX 5060 Ti 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M', ram: '64GB（32GB×2）', ssd: '2TB PCIe 4.0', case: 'ASUS Prime AP202', cooling: 'ASUS LC 360 ARGB', psu: 'TUF GAMING 750W 金牌', image: 'asus-prime-ap202', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJOY3?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・32GB', store: '順發', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'TUF GAMING X870-PLUS', ram: '32GB（16GB×2）', ssd: '2TB PCIe 5.0', case: 'ASUS A31 PLUS', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', image: 'asus-a31-plus', link: 'https://www.isunfar.com.tw/product/comboitem.aspx?prodseq=300S22&action_no=AD07041065' }),
-            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・64GB', store: 'PChome', gpu: 'ASUS Radeon RX 9060 XT 16GB', cpu: 'AMD Ryzen 7 7800X3D', mb: 'ASUS B650M-F CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJGU3' }),
-            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・64GB', store: 'PChome', gpu: 'ASUS Radeon RX 9060 XT 16GB', cpu: 'AMD Ryzen 7 7800X3D', mb: 'ASUS B650M-F CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJGUQ' }),
-            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 5・64GB', store: 'PChome', gpu: 'ASUS Radeon RX 9060 XT 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M-K CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJH2I' }),
-            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 5・64GB', store: 'PChome', gpu: 'ASUS Radeon RX 9060 XT 16GB', cpu: 'Intel Core Ultra 5 250K Plus', mb: 'ASUS B860M-K CSM', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJH3N' }),
-            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・32GB', store: 'momo', gpu: 'ASUS PRIME Radeon RX 9070 XT OC 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'PRIME X870-P WIFI', ram: '32GB（16GB×2）', ssd: '1TB PCIe 5.0', cooling: 'Prime LC 360 ARGB', psu: 'PRIME 850W 金牌', link: 'https://www.momoshop.com.tw/product/14048260' }),
-            Object.freeze({ name: 'Agent Professional', note: 'Intel Core Ultra 7・32GB', store: '順發', gpu: 'ASUS GeForce RTX 5070 Ti 16GB', cpu: 'Intel Core Ultra 7 270', mb: 'PRIME Z890-P', ram: '32GB（16GB×2）', ssd: '2TB PCIe 5.0', cooling: 'ASUS LC 360 水冷', psu: 'TUF GAMING 850W 金牌', link: 'https://www.isunfar.com.tw/product/comboitem.aspx?prodseq=300S23&action_no=AD07041066' }),
-            Object.freeze({ name: 'Agent Professional', note: 'AMD Ryzen 7・32GB', store: 'momo', gpu: 'ASUS PRIME Radeon RX 9070 XT OC 16GB', cpu: 'AMD Ryzen 7 9800X3D', mb: 'PRIME X870-P WIFI', ram: '32GB（16GB×2）', ssd: '1TB PCIe 4.0', psu: 'PRIME 850W 金牌', link: 'https://www.momoshop.com.tw/product/14048259' }),
-            Object.freeze({ name: 'ROG NUC', note: 'GeForce RTX 5080・迷你主機', store: 'momo', gpu: 'NVIDIA GeForce RTX 5080', cpu: 'Intel Core Ultra 9 275HX', mb: '整合式系統', ram: '64GB（32GB×2）', ssd: '3TB', case: '整合式機身', cooling: '整合式散熱', integratedChassis: true, psu: '整合式系統', image: 'rog-nuc-16', link: 'https://www.momoshop.com.tw/product/14409925?Area=search&mdiv=403&oid=1_9&cid=index&kw=ROG+NUC&ecTagNos=' })
-        ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 9 9900X 系列', intel: 'Intel Core Ultra 7／Ultra 9 系列' },
             mb: { amd: 'ASUS B850／X870 系列', intel: 'ASUS Z890 系列' },
@@ -268,18 +237,6 @@ const hardwareCatalog = Object.freeze({
     s: Object.freeze({
         label: 'S 級影身術戰力',
         strength: Object.freeze({ grade: 'S', meter: 60, label: '高效協作', capacity: '適合高負載創作與多流程持續運行', description: '以 RTX 5080 級以上顯示卡與高階桌上型平台承接高負載地端模型及創作流程。' }),
-        models: Object.freeze([
-            Object.freeze({ name: 'Agent Master', note: 'Intel Core Ultra 9・128GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5080 16GB', cpu: 'Intel Core Ultra 9 285K', mb: 'ROG MAXIMUS Z890 HERO', ram: '128GB（64GB×2）', ssd: '4TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'ROG RYUJIN III 360 ARGB', psu: 'ROG THOR III 1200W', image: 'rog-strix-helios-ii', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNRJ' }),
-            Object.freeze({ name: 'Agent Master', note: 'AMD Ryzen 9・128GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5080 16GB', cpu: 'AMD Ryzen 9 9950X', mb: 'ROG STRIX X870E-E GAMING', ram: '128GB（64GB×2）', ssd: '4TB PCIe 5.0', case: 'ROG Hyperion GR701', cooling: 'AYW GAMING LC 360', psu: 'TUF 1200G ATX3.0 1200W 金牌', image: 'rog-hyperion-gr701', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNHQ?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Master', note: 'AMD Ryzen 9・64GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5080 16GB', cpu: 'AMD Ryzen 9 9950X', mb: 'ROG STRIX X870E-E GAMING', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'AYW GAMING LC 360 ARGB', psu: 'TUF 1200G ATX3.0 1200W', image: 'rog-strix-helios-ii', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNGV?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Master', note: 'Intel Core Ultra 7・64GB', store: 'PChome', gpu: 'ASUS PRIME GeForce RTX 5080 16GB', cpu: 'Intel Core Ultra 7 270K Plus', mb: 'ROG MAXIMUS Z890 HERO', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Strix Helios II', cooling: 'ROG RYUJIN III 360 ARGB', psu: 'TUF 1200G ATX3.0 1200W', image: 'rog-strix-helios-ii', link: 'https://24h.pchome.com.tw/prod/DSAUR0-A900KJNOB?fq=/S/DSAUZ9' }),
-            Object.freeze({ name: 'Agent Master', note: 'Intel Core Ultra 7・64GB', store: 'momo', gpu: 'ASUS PRIME GeForce RTX 5080 16GB', cpu: 'Intel Core Ultra 7 270K Plus', mb: 'ROG MAXIMUS Z890 HERO', ram: '64GB（32GB×2）', ssd: '2TB PCIe 4.0', case: 'ROG Strix Helios II', cooling: 'ROG RYUJIN III 360 ARGB EXTREME', psu: 'TUF GAMING 1200W 金牌', image: 'rog-strix-helios-ii', link: 'https://www.momoshop.com.tw/product/15772646' }),
-            Object.freeze({ name: 'Agent Master', note: 'Intel Core Ultra 9・RTX 5090・32GB', store: '原價屋', gpu: 'ROG Astral GeForce RTX 5090 32GB', cpu: 'Intel Core Ultra 9 285K', mb: 'ROG MAXIMUS Z890 HERO', ram: '32GB（16GB×2）', ssd: '1TB PCIe 5.0', case: 'ROG Cronox ARGB GR801', cooling: 'ROG RYUO IV 360 ARGB', psu: 'ROG STRIX 1200W', image: 'rog-cronox-argb', link: 'https://www.coolpc.com.tw/evaluate.php' }),
-            Object.freeze({ name: 'Agent Master', note: 'Intel Core Ultra 9・RTX 5090・64GB', store: '原價屋', gpu: 'ROG Astral GeForce RTX 5090 32GB', cpu: 'Intel Core Ultra 9 285K', mb: 'ROG MAXIMUS Z890 HERO', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Cronox ARGB GR801', cooling: 'ROG RYUO IV 360 ARGB', psu: 'ROG STRIX 1200W', image: 'rog-cronox-argb', link: 'https://www.coolpc.com.tw/evaluate.php' }),
-            Object.freeze({ name: 'Agent Master', note: 'AMD Ryzen 9・RTX 5090・32GB', store: '原價屋', gpu: 'ROG Astral GeForce RTX 5090 32GB', cpu: 'AMD Ryzen 9 9950X', mb: 'ROG CROSSHAIR X870E APEX', ram: '32GB（16GB×2）', ssd: '1TB PCIe 5.0', case: 'ROG Cronox ARGB GR801', cooling: 'ROG RYUO IV 360 ARGB', psu: 'ROG STRIX 1200W', image: 'rog-cronox-argb', link: 'https://www.coolpc.com.tw/evaluate.php' }),
-            Object.freeze({ name: 'Agent Master', note: 'AMD Ryzen 9・RTX 5090・64GB', store: '原價屋', gpu: 'ROG Astral GeForce RTX 5090 32GB', cpu: 'AMD Ryzen 9 9950X', mb: 'ROG CROSSHAIR X870E APEX', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: 'ROG Cronox ARGB GR801', cooling: 'ROG RYUO IV 360 ARGB', psu: 'ROG STRIX 1200W', image: 'rog-cronox-argb', link: 'https://www.coolpc.com.tw/evaluate.php' }),
-            Object.freeze({ name: 'ROG NUC', note: 'GeForce RTX 5090・迷你主機', store: 'momo', gpu: 'NVIDIA GeForce RTX 5090', cpu: 'Intel Core Ultra 9 290HX', mb: '整合式系統', ram: '64GB（32GB×2）', ssd: '2TB PCIe 5.0', case: '整合式機身', cooling: '整合式散熱', integratedChassis: true, psu: '整合式系統', image: 'rog-nuc-16', link: 'https://www.momoshop.com.tw/product/15467401?Area=search&mdiv=403&oid=1_2&cid=index&kw=ROG+NUC&ecTagNos=' })
-        ]),
         components: Object.freeze({
             cpu: { amd: 'AMD Ryzen 9 9950X 系列', intel: 'Intel Core Ultra 9 285K 系列' },
             mb: { amd: 'ASUS ROG Crosshair X870E 系列', intel: 'ASUS ROG Maximus Z890 系列' },
@@ -289,10 +246,6 @@ const hardwareCatalog = Object.freeze({
     splus: Object.freeze({
         label: 'S+ 級影身術戰力',
         strength: Object.freeze({ grade: 'S+', meter: 80, label: '專業算力協作', capacity: '適合大型模型、專業資料與高併發工作', description: '面向工作站級顯示卡、大容量記憶體或整合式 Blackwell 平台。' }),
-        models: Object.freeze([
-            Object.freeze({ name: 'ET700I W7', mb: 'Intel W790', cpu: 'Intel Xeon W-3400', gpu: 'NVIDIA RTX 6000 Ada', ram: '512GB RDIMM DDR5 4800', ssd: '4TB PCIe 4.0', case: '整合式機身', cooling: '依工作站配置', psu: '1300W' }),
-            Object.freeze({ name: 'RTX DGX／Spark', mb: '整合式系統', cpu: 'NVIDIA DGX／Spark', gpu: 'NVIDIA Blackwell', ram: '128GB', ssd: '2TB', case: '整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '整合式系統' })
-        ]),
         components: Object.freeze({
             cpu: { amd: 'NVIDIA GB10 Grace Blackwell Superchip', intel: 'Intel Xeon W-3400 系列', leftLabel: 'NVIDIA 平台', rightLabel: 'Intel 工作站' },
             mb: { amd: 'NVIDIA DGX Spark 整合平台', intel: 'Intel W790 工作站平台', leftLabel: 'NVIDIA 平台', rightLabel: 'Intel 工作站' },
@@ -302,9 +255,6 @@ const hardwareCatalog = Object.freeze({
     ss: Object.freeze({
         label: 'SS 級影身術戰力',
         strength: Object.freeze({ grade: 'SS', meter: 100, label: '極致算力協作', capacity: '適合超大型算力需求與極重工作負載', description: '為高 SCI 且需要大量影身術工作持續並行的極重度情境提供最高階地端算力。' }),
-        models: Object.freeze([
-            Object.freeze({ name: 'ET900N G3', mb: '整合式 NVIDIA GB300 平台', cpu: 'Grace 72-Core Neoverse V2', gpu: 'NVIDIA GB300 Grace Blackwell Ultra', ram: '748GB', ssd: '8TB', case: '整合式機身', integratedChassis: true, cooling: '整合式散熱', psu: '1600W Titanium' })
-        ]),
         components: Object.freeze({
             cpu: { all: 'NVIDIA Grace 72-Core Neoverse V2' },
             mb: { all: 'NVIDIA GB300 整合式運算平台' },
@@ -316,12 +266,6 @@ const hardwareCatalog = Object.freeze({
 const campaignConfig = Object.freeze({
     tutorials: [], promotions: [],
     productLinks: {
-        systems: { a: '', aplus: '', s: '', splus: '', ss: '' },
-        systemModels: {
-            'ET700I W7': 'https://www.asus.com/tw/displays-desktops/workstations/advanced/expertcenter-pro-et700i-w7/',
-            'RTX DGX／Spark': 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/',
-            'ET900N G3': 'https://www.asus.com/tw/displays-desktops/workstations/performance/expertcenter-pro-et900n-g3/'
-        },
         scenarioComponents: {
             homelab: {
                 cpu: 'https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/',
@@ -1698,7 +1642,7 @@ function routeHardware(snapshot, taskResults) {
 
     const { scenarioId, tier: tierKey } = ROUTE_OUTCOMES[outcome];
     const tier = hardwareCatalog[tierKey];
-    const models = tier.models.filter(model => getModelScenarioId(tierKey, model) === scenarioId).map(model => ({ ...model }));
+    const models = getTwConfigDevices(scenarioId).map(name => ({ name }));
     return {
         scenarioId,
         tier: tierKey,
@@ -1711,7 +1655,6 @@ function routeHardware(snapshot, taskResults) {
         loadLevel,
         sharedUsers: users,
         models,
-        primaryModel: models[0] ? { ...models[0] } : null,
         componentSeries: JSON.parse(JSON.stringify(SCENARIO_COMPONENTS[scenarioId] || tier.components)),
         strength: { ...tier.strength },
         reasons
@@ -2765,38 +2708,25 @@ function renderHardware(recommendation, result) {
 }
 
 const HQ_SCENARIOS = Object.freeze([
-    { id: 'personal', hideHq: true, group: '個人／專業玩家／中小企業', name: 'Personal AI', zh: 'AI 先鋒者', tagline: '日常 AI 與寫程式',
+    { id: 'personal', group: '個人／專業玩家／中小企業', name: 'Personal AI', zh: 'AI 先鋒者', tagline: '日常 AI 與寫程式',
         description: '在自己的設備上對話、搜尋個人文件並取得寫程式協助，資料不外流、離線也能用。',
-        capability: '7B–14B Q4 量化模型・個人 RAG', bestFor: ['對話', '文件問答', '個人 RAG', '個人 AI Agent', '地端程式助理', '創作流程'],
-        hq: [['主機板', 'AMD：ROG STRIX B850／TUF Gaming X870 系列；Intel：ROG STRIX B860／TUF Gaming Z890 系列'], ['顯示卡', 'GeForce RTX 5060 Ti 16GB 或 ASUS TURBO Radeon AI PRO R9700 32GB'], ['記憶體', '32–64GB'], ['整合式平台', 'NVIDIA RTX Spark：ProArt GR1X、ProArt P16（H7607）、ProArt P14（H7407）']] },
-    { id: 'development', hideHq: true, group: '個人／專業玩家／中小企業', name: 'AI Development', zh: 'AI 開拓家', tagline: '開發與微調模型',
+        capability: '7B–14B Q4 量化模型・個人 RAG', bestFor: ['對話', '文件問答', '個人 RAG', '個人 AI Agent', '地端程式助理', '創作流程'] },
+    { id: 'development', group: '個人／專業玩家／中小企業', name: 'AI Development', zh: 'AI 開拓家', tagline: '開發與微調模型',
         description: '在桌邊完成模型的原型製作、微調與測試，準備好再擴大規模，程式碼與資料都留在地端。',
-        capability: '14B–20B Q4 量化模型・模型開發', bestFor: ['AI 程式開發', 'RAG 開發', 'Agent 開發', '模型微調', '大型模型原型', '多 Agent 協作開發'],
-        hq: [['主機板', 'AMD：ROG STRIX X870E／ProArt X870E 系列；Intel：ROG STRIX Z890／ProArt Z890 系列'], ['顯示卡', 'GeForce RTX 5090 32GB'], ['記憶體', '128GB'], ['整合式平台', 'NVIDIA RTX Spark：ProArt P16（H7607）、ProArt P14（H7407）；NVIDIA DGX Spark：ASUS Ascent GX10']] },
+        capability: '14B–20B Q4 量化模型・模型開發', bestFor: ['AI 程式開發', 'RAG 開發', 'Agent 開發', '模型微調', '大型模型原型', '多 Agent 協作開發'] },
     { id: 'homelab', group: '個人／專業玩家／中小企業', name: 'Homelab / AI Nodes', zh: 'AI 領航員', tagline: '全天候 Agent 與共用 AI',
         description: '讓 AI 為家庭或小型團隊全天候運作，提供 24 小時 Agent、私有 RAG 與共用 AI 服務。',
-        capability: '7B–120B 模型', bestFor: ['地端模型服務', '多模態流程', '全天候 Agent', '私有 RAG', '共用 AI 服務', '居家自動化'],
-        hq: [['主機板', 'AMD：ROG CROSSHAIR X870E 系列；Intel：ROG MAXIMUS Z890 系列'], ['顯示卡', '2 × GeForce RTX 5090（每張 32GB）'], ['記憶體', '256GB'], ['整合式平台', 'NVIDIA DGX Spark：ASUS Ascent GX10（可叢集，執行 7B 至 120B 模型）']] },
+        capability: '7B–120B 模型', bestFor: ['地端模型服務', '多模態流程', '全天候 Agent', '私有 RAG', '共用 AI 服務', '居家自動化'] },
     { id: 'workstation', group: '企業', name: 'Enterprise Workstations', zh: '企業工作站', tagline: '執行更大的地端模型',
         description: '以單一工作站執行 70B 等級全精度模型，資料留在自己的場域。', users: '最多 25 位使用者・專屬工作負載',
-        capability: '70B 以上全精度模型', bestFor: ['工廠邊緣 AI', '視覺語言模型分析', '工程 Copilot', '文件分析', '專業推理'],
-        hq: [['主機板', 'AMD：Pro WS WRX90E-SAGE SE；Intel：Pro WS W890E-SAGE SE'], ['顯示卡', '1 × RTX PRO 6000（96GB）'], ['記憶體', '2TB R-DIMM']] },
+        capability: '70B 以上全精度模型', bestFor: ['工廠邊緣 AI', '視覺語言模型分析', '工程 Copilot', '文件分析', '專業推理'] },
     { id: 'premium', group: '企業', name: 'Enterprise Workstations Premium', zh: '企業工作站進階版', tagline: '同時服務多位使用者',
         description: '一台雙顯示卡工作站即可成為整個部門的 AI 服務，多個模型同時運作。', users: '最多 50 位使用者・共用 AI 服務',
-        capability: '全精度模型・122B 單一模型或 27B 多人共用服務', bestFor: ['共用 AI 助理', '工作流程自動化', '部門知識 AI'],
-        hq: [['主機板', 'AMD：Pro WS WRX90E-SAGE SE；Intel：Pro WS W890E-SAGE SE'], ['顯示卡', '2 × RTX PRO 6000（每張 96GB）'], ['記憶體', '2TB R-DIMM']] },
+        capability: '全精度模型・122B 單一模型或 27B 多人共用服務', bestFor: ['共用 AI 助理', '工作流程自動化', '部門知識 AI'] },
     { id: 'scale', group: '企業', name: 'Enterprise Scale', zh: '企業級規模', tagline: '擴展企業 AI',
         description: '超越單一工作站的企業 AI 平台，支援大規模 RAG、Agent 協調與跨組織的分散式推論。', users: '50 位以上使用者・橫向擴充服務',
-        capability: '超越單一工作站・企業 AI 平台', bestFor: ['企業 RAG 與 API', 'Agent 協調', '分散式推論'],
-        hq: [['工作站', 'ExpertCenter Pro ET900N G3'], ['運算平台', 'NVIDIA GB300']] }
+        capability: '超越單一工作站・企業 AI 平台', bestFor: ['企業 RAG 與 API', 'Agent 協調', '分散式推論'] }
 ]);
-
-function getModelScenarioId(tierKey, model) {
-    if (tierKey === 'a' || tierKey === 'aplus') return 'personal';
-    if (tierKey === 's') return 'development';
-    if (tierKey === 'splus') return /Spark|DGX/i.test(model.name) ? 'homelab' : 'workstation';
-    return 'scale';
-}
 
 const TW_CONFIGS = Object.freeze({
     personal: {
@@ -2912,10 +2842,13 @@ function renderTwConfigTable(scenarioId) {
     return `<div class="scenario-table-wrap"><table class="scenario-table"><tbody>${config.columns.flatMap(column => column.rows.map(row => `<tr><th scope="row">${config.columns.length > 1 ? `${column.title}・` : ''}${row.label}</th><td>${twRowText(row)}${row.note ? `<br>${row.note}` : ''}</td></tr>`)).join('')}</tbody></table></div>`;
 }
 
-function getScenarioBuilds(scenarioId) {
-    return Object.entries(hardwareCatalog).flatMap(([tierKey, tier]) => tier.models
-        .filter(model => getModelScenarioId(tierKey, model) === scenarioId)
-        .map(model => ({ grade: tier.strength.grade, model })));
+const SCENARIO_GRADES = Object.freeze({ personal: ['A', 'A+'], development: ['S'], homelab: ['S+'], workstation: ['S+'], premium: ['S+'], scale: ['SS'] });
+
+function getTwConfigDevices(scenarioId) {
+    return (TW_CONFIGS[scenarioId]?.columns || []).map(column => {
+        const gpu = column.rows.find(row => /顯示卡|硬體平台|工作站主機/.test(row.label));
+        return gpu ? `${column.title}：${twRowText(gpu)}` : column.title;
+    });
 }
 
 const GLOSSARY = Object.freeze({
@@ -3569,148 +3502,6 @@ async function createReportBlobV2(result) {
     ));
 }
 
-async function createReportBlob(result) {
-    const width = 1080;
-    const taskRowHeight = 146;
-    const hardwareCardHeight = 326;
-    const hardwareCardGap = 18;
-    const additionalHardwareHeight = Math.max(0, Math.min(3, result.recommendation.models.length) - 1) * (hardwareCardHeight + hardwareCardGap);
-    const cloneRows = Math.ceil(result.clones.length / 3);
-    const cloneAvatarImages = new Map(await Promise.all(result.clones.map(async clone => [clone.recipeId, await loadImageAsset(getCloneAvatarPath(clone.recipeId))])));
-    const height = 1566 + result.taskResults.length * taskRowHeight + additionalHardwareHeight + cloneRows * 38;
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    const font = '"Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif';
-    const left = 64;
-    const contentWidth = width - left * 2;
-    let y = 0;
-
-    ctx.fillStyle = '#080D16';
-    ctx.fillRect(0, 0, width, height);
-    const glow = ctx.createRadialGradient(920, 0, 0, 920, 0, 560);
-    glow.addColorStop(0, 'rgba(20,121,232,.22)');
-    glow.addColorStop(1, 'rgba(20,121,232,0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(400, 0, 680, 620);
-
-    y = 64;
-    roundedRect(ctx, left, y, 46, 46, 11, '#1479E8');
-    canvasText(ctx, 'A', left + 23, y + 33, `900 25px ${font}`, '#FFFFFF', 'center');
-    canvasText(ctx, 'ASUS', left + 62, y + 22, `800 23px ${font}`, '#FFFFFF');
-    canvasText(ctx, 'AGENTIC AI', left + 62, y + 44, `700 12px ${font}`, '#20C9EB');
-    canvasText(ctx, `診斷日期 ${formatTaipeiDate(result.generatedAt)}`, width - left, y + 29, `500 13px ${font}`, '#8391A7', 'right');
-
-    y += 96;
-    canvasText(ctx, 'SCI 影身術工作效益報告', left, y, `800 38px ${font}`, '#FFFFFF');
-    canvasText(ctx, `${personaCatalog[result.persona].name} · ${result.taskResults.length} 項工作`, left, y + 34, `500 15px ${font}`, '#9AA8BC');
-
-    y += 82;
-    roundedRect(ctx, left, y, contentWidth, 218, 18, '#101826', 'rgba(148,163,184,.22)');
-    canvasText(ctx, '目前 SCI', left + 28, y + 38, `700 14px ${font}`, '#9AA8BC');
-    canvasText(ctx, `${Math.round(result.sci.current)}`, left + 28, y + 116, `900 58px ${font}`, '#AAB5C8');
-    canvasText(ctx, '', left + 125, y + 116, `600 15px ${font}`, '#6F7E94');
-    canvasText(ctx, getSciLevel(result.sci.current), left + 28, y + 154, `700 14px ${font}`, '#20C9EB');
-    ctx.fillStyle = 'rgba(148,163,184,.22)';
-    ctx.fillRect(left + 210, y + 26, 1, 166);
-    canvasText(ctx, '影身術團隊加入後 · 導入後 SCI', left + 244, y + 38, `700 14px ${font}`, '#20C9EB');
-    canvasText(ctx, `${Math.round(result.sci.target)}`, left + 244, y + 116, `900 76px ${font}`, '#20C9EB');
-    canvasText(ctx, '', left + 341, y + 116, `600 15px ${font}`, '#6F7E94');
-    canvasText(ctx, `提升 ${Math.round(result.sci.gap)} 點`, left + 244, y + 154, `700 14px ${font}`, '#55D6A6');
-    const metricX = left + 448;
-    const reportMetrics = [
-        ['每月替你省下', formatSavedHours(result.time.savedHoursMonthly)],
-        ['省下的時間價值等同', formatCurrency(result.cost.laborSavedMonthlyTwd)],
-        ['改用地端，每月省下', formatCurrency(result.tokens.savedMonthlyTwd)]
-    ].filter((metric, index) => index < 2 || showsCloudTokens(result));
-    reportMetrics.forEach((metric, index) => {
-        const x = metricX + index * 168;
-        canvasText(ctx, metric[0], x, y + 48, `600 11px ${font}`, '#7F8CA3');
-        wrapCanvasText(ctx, metric[1], x, y + 88, 150, 26, 2, `800 22px ${font}`, '#FFFFFF');
-        if (metric[2]) canvasText(ctx, metric[2], x, y + 112, `600 11px ${font}`, '#7F8CA3');
-    });
-
-    y += 246;
-
-    canvasText(ctx, '影身術介入前後，工作如何重新分配', left, y + 22, `800 21px ${font}`, '#FFFFFF');
-    canvasText(ctx, '以同一批工作全人工完成所需時間為基準', left, y + 44, `500 11px ${font}`, '#8391A7');
-    const barX = left + 150;
-    const barWidth = contentWidth - 150;
-    const aiShare = clamp(result.sci.target, 0, 100);
-    const humanShare = 100 - aiShare;
-    canvasText(ctx, '整體協作比例', left, y + 78, `700 11px ${font}`, '#AAB5C8');
-    drawOverallDistributionBar(ctx, barX, y + 65, barWidth, 22, humanShare, aiShare);
-    canvasText(ctx, `人工處理 ${Math.round(humanShare)}%`, barX, y + 107, `600 11px ${font}`, '#AAB5C8');
-    canvasText(ctx, `影身術可協助 ${Math.round(aiShare)}%`, barX + barWidth, y + 107, `700 11px ${font}`, '#55D6A6', 'right');
-    canvasText(ctx, '影身術介入前', left, y + 145, `700 11px ${font}`, '#AAB5C8');
-    drawTaskDistributionBar(ctx, result.taskResults, barX, y + 132, barWidth, 18, false, font);
-    canvasText(ctx, '影身術介入後', left, y + 183, `700 11px ${font}`, '#AAB5C8');
-    drawTaskDistributionBar(ctx, result.taskResults, barX, y + 170, barWidth, 18, true, font);
-    y += 218;
-
-    canvasText(ctx, '逐項工作效益', left, y + 24, `800 21px ${font}`, '#FFFFFF');
-    y += 48;
-    result.taskResults.forEach((task, index) => {
-        roundedRect(ctx, left, y, contentWidth, 128, 12, index % 2 ? '#121D2B' : '#101826');
-        canvasText(ctx, `TASK ${String(index + 1).padStart(2, '0')} · ${task.title}`, left + 20, y + 29, `700 15px ${font}`, '#F5F7FB');
-        canvasText(ctx, `${task.scaleLabel} · ${getFrequencyLabel(task)} · 目前 ${formatHours(task.currentMonthlyMinutes / 60)} 小時／月`, left + 20, y + 55, `500 11px ${font}`, '#8391A7');
-        wrapCanvasText(ctx, `由「${task.cloneTag}」協助${getAgentSupportScope(task)}；每月預估可省下 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}。`, left + 20, y + 80, 420, 16, 2, `600 11px ${font}`, '#20C9EB');
-        canvasText(ctx, `目前 ${formatHours(task.currentMonthlyMinutes / 60)} ${getTimeUnit()}`, left + 465, y + 32, `600 12px ${font}`, '#AAB5C8');
-        canvasText(ctx, `導入後 ${formatHours(task.targetMonthlyMinutes / 60)} ${getTimeUnit()}`, left + 465, y + 60, `600 12px ${font}`, '#AAB5C8');
-        canvasText(ctx, `每月可省下 ${formatHours(task.savedMonthlyMinutes / 60)} ${getTimeUnit()}`, width - left - 18, y + 40, `800 14px ${font}`, '#20C9EB', 'right');
-        canvasText(ctx, `人力成本價值 ${formatCurrency(task.savedCostMonthlyTwd)}`, width - left - 18, y + 62, `600 11px ${font}`, '#8391A7', 'right');
-        y += taskRowHeight;
-    });
-
-    canvasText(ctx, '影身術團隊', left, y + 22, `800 21px ${font}`, '#FFFFFF');
-    y += 46;
-    result.clones.forEach((clone, index) => {
-        const column = index % 3;
-        const row = Math.floor(index / 3);
-        const x = left + column * 312;
-        const cardY = y + row * 78;
-        roundedRect(ctx, x, cardY, 294, 68, 8, 'rgba(32,201,235,.10)', 'rgba(32,201,235,.28)');
-        const avatar = cloneAvatarImages.get(clone.recipeId);
-        roundedRect(ctx, x + 10, cardY + 10, 48, 48, 8, '#16283B', 'rgba(32,201,235,.24)');
-        if (avatar) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.roundRect(x + 10, cardY + 10, 48, 48, 8);
-            ctx.clip();
-            ctx.drawImage(avatar, x + 10, cardY + 10, 48, 48);
-            ctx.restore();
-        }
-        canvasText(ctx, clone.name, x + 68, cardY + 20, `700 11px ${font}`, '#BFF4FF');
-        wrapCanvasText(ctx, clone.capability, x + 68, cardY + 38, 212, 13, 1, `500 9px ${font}`, '#9AA8BC');
-        canvasText(ctx, `每月可省下 ${formatHours(clone.savedMonthlyMinutes / 60)} 小時`, x + 68, cardY + 56, `700 9px ${font}`, '#55D6A6');
-    });
-    y += cloneRows * 78 + 34;
-
-    const hardwareLabels = { mb: '主機板 MB', cpu: '處理器 CPU', gpu: '顯示卡 VGA', ram: '記憶體 RAM', ssd: '儲存裝置 SSD', case: '機殼 CASE', cooling: '散熱系統', psu: '電源供應器 PSU' };
-    result.recommendation.models.slice(0, 3).forEach((hardware, hardwareIndex) => {
-        roundedRect(ctx, left, y, contentWidth, hardwareCardHeight, 18, 'rgba(20,121,232,.13)', 'rgba(32,201,235,.28)');
-        canvasText(ctx, hardware.name, left + 24, y + 36, `800 18px ${font}`, '#20C9EB');
-        canvasText(ctx, `推薦機台 ${hardwareIndex + 1}／${Math.min(3, result.recommendation.models.length)} · 整機配置`, left + 24, y + 58, `600 11px ${font}`, '#8391A7');
-        drawHardwareGradeStamp(ctx, result.recommendation.strength.grade, width - left - 48, y + 44, font);
-        Object.entries(hardwareLabels).filter(([key]) => hardware[key] && !(key === 'case' && hardware.integratedChassis)).forEach(([key, label], index) => {
-            const column = index % 4;
-            const row = Math.floor(index / 4);
-            const x = left + 24 + column * 232;
-            const itemY = y + 96 + row * 82;
-            canvasText(ctx, label, x, itemY, `600 10px ${font}`, '#6F7E94');
-            wrapCanvasText(ctx, hardware[key], x, itemY + 21, 214, 15, 3, `700 10px ${font}`, '#FFFFFF');
-        });
-        y += hardwareCardHeight + hardwareCardGap;
-    });
-
-    wrapCanvasText(ctx, `SCI（Shadow-Clone Index）採 100 分制，代表相對於全人工基準，可由影身術協助承接的人工工作比例。影身術戰力採 A、A+、S、S+、SS 五級，代表推薦設備的相對地端運算餘裕，不等同 SCI。`, left, y, contentWidth, 20, 4, `500 11px ${font}`, '#77859B');
-    canvasText(ctx, `${result.scoringVersion} · ${result.workflowCatalogVersion} · ${result.recipeCatalogVersion} · ${result.hardwareCatalogVersion}`, left, height - 38, `500 9px ${font}`, '#4F5C70');
-    canvasText(ctx, 'ASUS AGENTIC AI', width - left, height - 38, `700 11px ${font}`, '#20C9EB', 'right');
-
-    return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Canvas export failed')), 'image/png', 1));
-}
-
 function openStrengthScaleModal(trigger) {
     const currentScenario = trigger.dataset.scenario;
     elements.modalContent.innerHTML = `
@@ -3721,8 +3512,7 @@ function openStrengthScaleModal(trigger) {
                 <p>情境分類依 ASUS Agent Computer 的地端 AI 六大情境；每個情境列出我們歸入該情境的建議配置與戰力等級。分級代表運算餘裕，不代表固定速度倍數，也不等同 SCI。</p>
             </header>
             <div class="strength-scale-list">${HQ_SCENARIOS.filter(item => !item.hidden).map((scenario, index, shown) => {
-                const builds = getScenarioBuilds(scenario.id);
-                const grades = builds.length ? [...new Set(builds.map(build => build.grade))] : [hardwareCatalog[ROUTE_OUTCOMES[scenario.id].tier].strength.grade];
+                const grades = SCENARIO_GRADES[scenario.id] || [hardwareCatalog[ROUTE_OUTCOMES[scenario.id].tier].strength.grade];
                 const isCurrent = scenario.id === currentScenario;
                 const groupTitle = index === 0 || shown[index - 1].group !== scenario.group ? `<h3 class="strength-scale-group">${scenario.group}</h3>` : '';
                 return `${groupTitle}<article class="${isCurrent ? 'is-current' : ''}">
@@ -4188,30 +3978,6 @@ function loadImageAsset(src) {
         image.onerror = () => resolve(null);
         image.src = src;
     });
-}
-
-function drawHardwareGradeStamp(ctx, grade, x, y, font) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(-8 * Math.PI / 180);
-    ctx.strokeStyle = 'rgba(32,201,235,.82)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0, 0, 31, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.setLineDash([3, 3]);
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(0, 0, 26, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#20C9EB';
-    ctx.font = `800 7px ${font}`;
-    ctx.fillText('影身術戰力', 0, -7);
-    ctx.font = `900 23px ${font}`;
-    ctx.fillText(String(grade), 0, 15);
-    ctx.restore();
 }
 
 function canvasText(ctx, text, x, y, font, color, align = 'left') {
